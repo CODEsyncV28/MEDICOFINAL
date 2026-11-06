@@ -1,0 +1,6 @@
+{
+  "name": "AYUSH Wellness Connect",
+  "description": "A digital lifestyle and wellness support platform based on AYUSH services. Personalized lifestyle guidance, verified practitioner connections, and evidence-informed traditional wellness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

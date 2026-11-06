@@ -1,0 +1,319 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // -------------------------------------------------------------------------
+    // Helper Functions
+    // -------------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function userDocExists(uid) {
+      return exists(/databases/$(database)/documents/users/$(uid));
+    }
+
+    // Role lookups strictly derived from trusted database document (never client claims)
+    function getUserData(uid) {
+      return get(/databases/$(database)/documents/users/$(uid)).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn() &&
+        userDocExists(request.auth.uid) &&
+        ('role' in getUserData(request.auth.uid)) &&
+        getUserData(request.auth.uid).role == 'admin';
+    }
+
+    function isPractitioner() {
+      return isSignedIn() &&
+        userDocExists(request.auth.uid) &&
+        ('role' in getUserData(request.auth.uid)) &&
+        getUserData(request.auth.uid).role == 'practitioner';
+    }
+
+    // PHASE 2: Safe practitioner check handling missing docs, missing fields, null assignments
+    function isAssignedPractitioner(clientUid) {
+      return isPractitioner() &&
+        userDocExists(clientUid) &&
+        ('assignedPractitionerId' in getUserData(clientUid)) &&
+        getUserData(clientUid).assignedPractitionerId != null &&
+        getUserData(clientUid).assignedPractitionerId == request.auth.uid;
+    }
+
+    // Global Safety Net: Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 1: Users Collection Security
+    // -------------------------------------------------------------------------
+    match /users/{userId} {
+      // Sensitive private info: only owner or admin can read. Practitioners cannot read /users/{userId}.
+      allow read: if isOwner(userId) || isAdmin();
+
+      // On creation, role must be 'user'. Privileged fields cannot be injected.
+      allow create: if isOwner(userId) &&
+        request.resource.data.uid == userId &&
+        request.resource.data.role == 'user' &&
+        (!('isActive' in request.resource.data) || request.resource.data.isActive == true) &&
+        (!('assignedPractitionerId' in request.resource.data) || request.resource.data.assignedPractitionerId == null) &&
+        (!('assignedPractitionerName' in request.resource.data) || request.resource.data.assignedPractitionerName == null);
+
+      // Normal users can ONLY modify safe, non-privileged profile fields.
+      // Modifying role, isActive, assignedPractitionerId, etc. is strictly blocked.
+      allow update: if (
+        isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName',
+          'avatarUrl',
+          'prakritiBaseline',
+          'agreedToTerms',
+          'updatedAt',
+          'updatedAtServer'
+        ])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 2: Limited Practitioner-Facing Client Profile Collection
+    // -------------------------------------------------------------------------
+    match /clientProfiles/{userId} {
+      // Exposes only non-sensitive summary info (goals, program, adherence, practitioner notes).
+      // Readable by owner, admin, or explicitly assigned practitioner.
+      allow read: if isOwner(userId) || isAdmin() || isAssignedPractitioner(userId);
+
+      allow create: if isOwner(userId) || isAdmin();
+
+      // Owner can update their goals/program; assigned practitioner can update clinical notes/status; admin has full rights.
+      allow update: if (
+        isOwner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'primaryGoal',
+          'enrolledProgram',
+          'discipline',
+          'updatedAt',
+          'updatedAtServer'
+        ])
+      ) || (
+        isAssignedPractitioner(userId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'practitionerNotes',
+          'status',
+          'adherenceRate',
+          'lastCheckIn',
+          'updatedAt',
+          'updatedAtServer'
+        ])
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 3: Lifestyle Assessments Collection
+    // -------------------------------------------------------------------------
+    match /assessments/{assessmentId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        isAssignedPractitioner(resource.data.userId)
+      );
+
+      // Strict document ID: assess_{request.auth.uid}
+      allow create: if isSignedIn() &&
+        assessmentId == ('assess_' + request.auth.uid) &&
+        request.resource.data.userId == request.auth.uid;
+
+      // Ownership integrity: cannot overwrite or change userId
+      allow update: if isSignedIn() &&
+        assessmentId == ('assess_' + request.auth.uid) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Daily Activities Collection
+    // -------------------------------------------------------------------------
+    match /dailyActivities/{activityId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        isAssignedPractitioner(resource.data.userId)
+      );
+
+      allow create, update: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid;
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 5: Wellness Programs Collection
+    // -------------------------------------------------------------------------
+    match /wellnessPrograms/{programId} {
+      allow read: if resource.data.isPublished == true || (
+        isSignedIn() && (resource.data.creatorPractitionerId == request.auth.uid || isAdmin())
+      );
+
+      // Authors cannot self-publish on create: isPublished must be false unless Admin
+      allow create: if isSignedIn() && (isPractitioner() || isAdmin()) &&
+        request.resource.data.creatorPractitionerId == request.auth.uid &&
+        (isAdmin() || request.resource.data.isPublished == false);
+
+      // Practitioner authors can update content, but cannot change isPublished to true
+      allow update: if (
+        isSignedIn() &&
+        isPractitioner() &&
+        resource.data.creatorPractitionerId == request.auth.uid &&
+        request.resource.data.creatorPractitionerId == request.auth.uid &&
+        request.resource.data.isPublished == false
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 5: Educational Articles Collection
+    // -------------------------------------------------------------------------
+    match /educationalArticles/{articleId} {
+      allow read: if resource.data.status == 'published' || (
+        isSignedIn() && (resource.data.authorId == request.auth.uid || isAdmin())
+      );
+
+      // Authors cannot publish directly: status must be 'draft' or 'pending_approval' unless Admin
+      allow create: if isSignedIn() && (isPractitioner() || isAdmin()) &&
+        request.resource.data.authorId == request.auth.uid &&
+        (isAdmin() || request.resource.data.status in ['draft', 'pending_approval']);
+
+      // Practitioner authors can edit draft/pending_approval, but cannot approve or publish
+      allow update: if (
+        isSignedIn() &&
+        isPractitioner() &&
+        resource.data.authorId == request.auth.uid &&
+        request.resource.data.authorId == request.auth.uid &&
+        request.resource.data.status in ['draft', 'pending_approval'] &&
+        resource.data.status != 'published'
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 6: Practitioner Profiles Collection (Governance)
+    // -------------------------------------------------------------------------
+    match /practitioners/{practitionerId} {
+      allow read: if resource.data.isVerified == true || (
+        isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin())
+      );
+
+      // Practitioner profile must be created unverified
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.isVerified == false;
+
+      // Verification and credential changes can ONLY be approved by Admin.
+      // Practitioners can only update non-credential bio fields.
+      allow update: if isAdmin() || (
+        isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.isVerified == resource.data.isVerified &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'bio',
+          'specialization',
+          'nextAvailableSlot',
+          'activeClientsCount',
+          'rating',
+          'updatedAt',
+          'updatedAtServer'
+        ])
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // PHASE 4: Consultations Collection Security
+    // -------------------------------------------------------------------------
+    match /consultations/{consultationId} {
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.practitionerId == request.auth.uid ||
+        isAdmin()
+      );
+
+      // Normal user creating consultation: status must be 'pending', no scheduledTime or practitionerNotes
+      allow create: if isSignedIn() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.status == 'pending' &&
+        (!('scheduledTime' in request.resource.data) || request.resource.data.scheduledTime == null) &&
+        (!('practitionerNotes' in request.resource.data) || request.resource.data.practitionerNotes == null);
+
+      // Normal user can only cancel their consultation or update their preferred slot/topic/notes.
+      // They CANNOT mark as completed/confirmed or change userId/practitionerId.
+      // Practitioner can update status (confirmed/completed/cancelled), scheduledTime, notes.
+      allow update: if (
+        isSignedIn() &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.practitionerId == resource.data.practitionerId &&
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+            'preferredSlot',
+            'topic',
+            'notes',
+            'status',
+            'updatedAt',
+            'updatedAtServer'
+          ]) &&
+          (request.resource.data.status == resource.data.status || request.resource.data.status == 'cancelled')
+        )
+      ) || (
+        isSignedIn() &&
+        isPractitioner() &&
+        resource.data.practitionerId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.practitionerId == resource.data.practitionerId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'status',
+          'scheduledTime',
+          'practitionerNotes',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        request.resource.data.status in ['confirmed', 'completed', 'cancelled']
+      ) || isAdmin();
+
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // Content Approvals Queue Collection
+    // -------------------------------------------------------------------------
+    match /contentApprovals/{approvalId} {
+      allow read: if isSignedIn() && (
+        resource.data.submittedByAuthorId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        request.resource.data.submittedByAuthorId == request.auth.uid &&
+        request.resource.data.status == 'Pending Review';
+
+      // Only administrators can approve or request revision on items
+      allow update: if isAdmin();
+
+      allow delete: if isAdmin();
+    }
+  }
+}
