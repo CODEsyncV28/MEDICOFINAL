@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   CheckCircle2,
   Circle,
@@ -29,6 +29,8 @@ import {
   Eye,
   Award,
   Layers,
+  AlertCircle,
+  RefreshCw,
 } from 'lucide-react';
 import {
   DailyActivity,
@@ -48,11 +50,30 @@ import {
   AssessmentVersionRecord,
   AssessmentComparison,
 } from '../../types/assessment';
-import { UserProfileDocument } from '../../types/firebase';
+import { UserProfileDocument, ConsultationDocument, ConsultationStatus } from '../../types/firebase';
 import {
   EXPANDED_ASSESSMENT_QUESTIONS,
   ASSESSMENT_CATEGORIES,
 } from '../../data/assessmentQuestions';
+import { countCanonicalAnsweredQuestions } from '../../utils/assessmentValidation';
+import {
+  getConsultationTopicLabel,
+  getPreferredSlotLabel,
+} from '../../services/consultationService';
+import { GUEST_DINACHARYA_USER_ID } from '../../services/dinacharyaService';
+import {
+  fetchPublishedArticlesForUser,
+  formatPublicationDateLabel,
+  PublishedUserArticle,
+} from '../../services/contentService';
+import {
+  enrollInPublishedProgram,
+  fetchPublishedProgramsForUser,
+  fetchUserProgramEnrollments,
+  ProgramEnrollmentRecord,
+  PublishedUserProgram,
+  seedDemoUserEnrollments,
+} from '../../services/programService';
 import { SafetyBanner } from '../common/SafetyBanner';
 
 interface UserDashboardProps {
@@ -67,7 +88,8 @@ interface UserDashboardProps {
   onCompleteAssessment?: (answers: Record<string, string>, categoryNotes?: Record<string, string>) => void;
   onReadArticle: (article: EducationalArticle) => void;
   onConnectPractitioner: () => void;
-  onSwitchRole: () => void;
+  onSwitchRole?: () => void;
+  demoPortalEnabled?: boolean;
   userProfile?: UserProfileDocument | null;
   userName?: string;
   userEmail?: string | null;
@@ -80,6 +102,12 @@ interface UserDashboardProps {
   activePlan?: WellnessPlan | null;
   assessmentHistory?: AssessmentVersionRecord[];
   planHistory?: WellnessPlan[];
+  // Consultation Requests Props
+  consultations?: ConsultationDocument[];
+  isLoadingConsultations?: boolean;
+  consultationsError?: string | null;
+  // Published Catalog Refresh Trigger
+  catalogRefreshKey?: number;
 }
 
 export const UserDashboard: React.FC<UserDashboardProps> = ({
@@ -95,6 +123,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   onReadArticle,
   onConnectPractitioner,
   onSwitchRole,
+  demoPortalEnabled = false,
   userProfile,
   userName,
   userEmail,
@@ -106,6 +135,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   activePlan,
   assessmentHistory = [],
   planHistory = [],
+  consultations = [],
+  isLoadingConsultations = false,
+  consultationsError = null,
+  catalogRefreshKey = 0,
 }) => {
   // Activity filter state
   const [selectedTimeFilter, setSelectedTimeFilter] = useState<'All' | 'Morning' | 'Afternoon' | 'Evening'>('All');
@@ -113,9 +146,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   // Profile card details toggle
   const [showProfileDetails, setShowProfileDetails] = useState<boolean>(true);
 
-  // Question preview accordion state
+  // Question preview accordion state (matches ASSESSMENT_CATEGORIES[0].id = 'circadian')
   const [showQuestionsPreview, setShowQuestionsPreview] = useState<boolean>(false);
-  const [selectedPreviewCategory, setSelectedPreviewCategory] = useState<string>('circadian_rhythm');
+  const [selectedPreviewCategory, setSelectedPreviewCategory] = useState<string>(
+    ASSESSMENT_CATEGORIES[0]?.id || 'circadian'
+  );
   
   // Plan section active tab
   const [activePlanTab, setActivePlanTab] = useState<'routine' | 'habits' | 'sleep' | 'food' | 'movement' | 'stress' | 'goals'>('routine');
@@ -123,13 +158,113 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   // History inspection modal/drawer state
   const [inspectingVersion, setInspectingVersion] = useState<number | null>(null);
 
+  // Published Learning Corner & Wellness Programmes State (hydrated from contentService & programService)
+  const effectiveSeekerUid = userUid || GUEST_DINACHARYA_USER_ID;
+  const [publishedArticles, setPublishedArticles] = useState<PublishedUserArticle[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState<boolean>(true);
+  const [articlesError, setArticlesError] = useState<string | null>(null);
+
+  const [publishedPrograms, setPublishedPrograms] = useState<PublishedUserProgram[]>([]);
+  const [programEnrollments, setProgramEnrollments] = useState<ProgramEnrollmentRecord[]>([]);
+  const [programsLoading, setProgramsLoading] = useState<boolean>(true);
+  const [programsError, setProgramsError] = useState<string | null>(null);
+  const [enrollingProgramId, setEnrollingProgramId] = useState<string | null>(null);
+  const [programEnrollNotice, setProgramEnrollNotice] = useState<string | null>(null);
+  const [programEnrollError, setProgramEnrollError] = useState<string | null>(null);
+
+  const loadPublishedArticles = useCallback(async () => {
+    setArticlesLoading(true);
+    setArticlesError(null);
+    try {
+      const result = await fetchPublishedArticlesForUser({ demoCatalog: articles });
+      setPublishedArticles(result);
+    } catch (err) {
+      setArticlesError(
+        err instanceof Error ? err.message : 'Unable to load published educational articles.'
+      );
+    } finally {
+      setArticlesLoading(false);
+    }
+  }, [articles]);
+
+  const loadPublishedProgramsAndEnrollments = useCallback(async () => {
+    setProgramsLoading(true);
+    setProgramsError(null);
+    try {
+      if (!isLoggedIn && effectiveSeekerUid === GUEST_DINACHARYA_USER_ID) {
+        seedDemoUserEnrollments(effectiveSeekerUid);
+      }
+      const [loadedPrograms, loadedEnrollments] = await Promise.all([
+        fetchPublishedProgramsForUser({ demoCatalog: programs }),
+        fetchUserProgramEnrollments(effectiveSeekerUid),
+      ]);
+      setPublishedPrograms(loadedPrograms);
+      setProgramEnrollments(loadedEnrollments);
+    } catch (err) {
+      setProgramsError(
+        err instanceof Error ? err.message : 'Unable to load published wellness programmes.'
+      );
+    } finally {
+      setProgramsLoading(false);
+    }
+  }, [effectiveSeekerUid, isLoggedIn, programs]);
+
+  useEffect(() => {
+    loadPublishedArticles();
+    loadPublishedProgramsAndEnrollments();
+  }, [loadPublishedArticles, loadPublishedProgramsAndEnrollments, catalogRefreshKey]);
+
+  const { enrolledPrograms, availablePrograms } = useMemo(() => {
+    const enrollmentByProgramId = new Map<string, ProgramEnrollmentRecord>(
+      programEnrollments.map((item) => [item.programId, item])
+    );
+
+    const enrolled: Array<PublishedUserProgram & { completedSessions: number }> = [];
+    const available: PublishedUserProgram[] = [];
+
+    for (const prog of publishedPrograms) {
+      const enrollment = enrollmentByProgramId.get(prog.id);
+      if (enrollment) {
+        enrolled.push({
+          ...prog,
+          completedSessions: Math.min(prog.totalSessions, Math.max(0, enrollment.completedSessions)),
+        });
+      } else {
+        available.push(prog);
+      }
+    }
+
+    return { enrolledPrograms: enrolled, availablePrograms: available };
+  }, [publishedPrograms, programEnrollments]);
+
+  const handleEnrollProgram = async (program: PublishedUserProgram) => {
+    setProgramEnrollError(null);
+    setProgramEnrollNotice(null);
+    setEnrollingProgramId(program.id);
+    try {
+      const record = await enrollInPublishedProgram(effectiveSeekerUid, program.id, programs);
+      setProgramEnrollments((prev) => [
+        record,
+        ...prev.filter((item) => item.programId !== record.programId),
+      ]);
+      setProgramEnrollNotice(`Enrolled in "${program.title}".`);
+      setTimeout(() => setProgramEnrollNotice(null), 4000);
+    } catch (err) {
+      setProgramEnrollError(
+        err instanceof Error ? err.message : 'Unable to enroll in this wellness programme.'
+      );
+    } finally {
+      setEnrollingProgramId(null);
+    }
+  };
+
   // Adherence and greetings
   const adherence = calculateActivityAdherence(activities);
   const statusInfo = getAdherenceStatus(adherence);
   const greeting = getGreetingByTime();
 
-  // Assessment calculation
-  const answeredCount = Object.keys(assessmentAnswers).filter((k) => !!assessmentAnswers[k]).length;
+  // Assessment calculation (count canonical 20-question IDs)
+  const answeredCount = countCanonicalAnsweredQuestions(assessmentAnswers);
   const isAssessmentComplete = answeredCount >= totalAssessmentQuestions && totalAssessmentQuestions > 0;
   const assessmentPercentage = totalAssessmentQuestions > 0
     ? Math.min(100, Math.round((answeredCount / totalAssessmentQuestions) * 100))
@@ -251,12 +386,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <span>Sign In / Register</span>
             </button>
           )}
-          <button
-            onClick={onSwitchRole}
-            className="text-[#2D5A43] font-bold hover:text-[#183626] underline underline-offset-2 whitespace-nowrap self-start sm:self-auto transition-colors"
-          >
-            Switch to Practitioner Portal →
-          </button>
+          {demoPortalEnabled && onSwitchRole && (
+            <button
+              type="button"
+              onClick={onSwitchRole}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 font-bold hover:bg-amber-100 whitespace-nowrap self-start sm:self-auto transition-colors"
+            >
+              <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-200 text-amber-950">
+                DEMO MODE
+              </span>
+              <span>Switch to Practitioner Portal →</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1520,61 +1661,319 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 <span>Message or Request Consultation</span>
               </button>
             </div>
+
+            {/* Persisted Consultation Requests for Current Seeker */}
+            <div className="pt-2 border-t border-[#EEF2EC] space-y-2.5">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                  My Consultation Requests
+                </h4>
+                <span className="text-[11px] text-[#526B5C]">
+                  {consultations.length} {consultations.length === 1 ? 'Request' : 'Requests'}
+                </span>
+              </div>
+
+              {isLoadingConsultations ? (
+                <div className="p-3 rounded-lg bg-[#FAFBF9] border border-[#E3E8E3] text-xs text-[#526B5C] flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2D5A43]" />
+                  <span>Loading your consultation requests...</span>
+                </div>
+              ) : consultationsError ? (
+                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B]">
+                  {consultationsError}
+                </div>
+              ) : consultations.length === 0 ? (
+                <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3 rounded-lg border border-dashed border-[#D6E0D7]">
+                  No consultation requests submitted yet. Use the button above to schedule a lifestyle review.
+                </p>
+              ) : (
+                <div className="space-y-2.5">
+                  {consultations.map((consult) => {
+                    const statusBadgeMap: Record<
+                      ConsultationStatus,
+                      { label: string; className: string }
+                    > = {
+                      pending: {
+                        label: 'Pending Review',
+                        className: 'bg-[#FEF3C7] text-[#92400E]',
+                      },
+                      confirmed: {
+                        label: 'Confirmed',
+                        className: 'bg-[#EBF2ED] text-[#244E38]',
+                      },
+                      rescheduled: {
+                        label: 'Rescheduled',
+                        className: 'bg-[#E8F0F7] text-[#1E4E79]',
+                      },
+                      rejected: {
+                        label: 'Declined',
+                        className: 'bg-[#FDF2F0] text-[#9B2C1B]',
+                      },
+                      completed: {
+                        label: 'Completed',
+                        className: 'bg-[#EBF2ED] text-[#244E38]',
+                      },
+                      cancelled: {
+                        label: 'Cancelled',
+                        className: 'bg-slate-100 text-slate-600',
+                      },
+                    };
+                    const badge = statusBadgeMap[consult.status] || statusBadgeMap.pending;
+
+                    return (
+                      <div
+                        key={consult.id}
+                        className="p-3 rounded-xl bg-[#FAFBF9] border border-[#E3E8E3] space-y-1.5 text-xs"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-semibold text-[#1E3F2E] leading-snug">
+                            {consult.topicLabel || getConsultationTopicLabel(consult.topic)}
+                          </span>
+                          <span
+                            className={`shrink-0 text-[10px] px-2 py-0.5 rounded-md font-semibold ${badge.className}`}
+                          >
+                            {badge.label}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-[#526B5C]">
+                          {consult.practitionerName} ·{' '}
+                          {consult.preferredDate ? `${consult.preferredDate} · ` : ''}
+                          {getPreferredSlotLabel(consult.preferredSlot)}
+                        </p>
+                        {consult.scheduledTime && (
+                          <p className="text-[11px] font-semibold text-[#2D5A43]">
+                            Scheduled Appointment: {consult.scheduledTime}
+                          </p>
+                        )}
+                        {consult.practitionerNotes && (
+                          <p className="text-[11px] text-[#3E5547] bg-white p-2 rounded-lg border border-[#E6ECE7]">
+                            <strong>Practitioner Note:</strong> {consult.practitionerNotes}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </section>
 
-          {/* ENROLLED WELLNESS PROGRAMMES */}
-          <section className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4">
+          {/* ENROLLED & AVAILABLE PUBLISHED WELLNESS PROGRAMMES */}
+          <section
+            data-testid="user-programmes-section"
+            className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-5"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
-                  Active Courses
+                  Active Courses &amp; Catalog
                 </span>
                 <h3 className="text-base font-serif font-bold text-[#1E3F2E]">
-                  Enrolled Regimens
+                  Wellness Programmes
                 </h3>
               </div>
               <span className="text-xs text-[#526B5C]">
-                {programs.length} Regimens
+                {enrolledPrograms.length} Enrolled · {availablePrograms.length} Available
               </span>
             </div>
 
-            <div className="space-y-3">
-              {programs.slice(0, 2).map((prog) => {
-                const progPct = Math.round((prog.completedSessions / prog.totalSessions) * 100);
+            {programEnrollNotice && (
+              <div
+                role="status"
+                className="p-3 rounded-xl bg-[#EBF2ED] border border-[#CCDCD2] text-xs font-semibold text-[#1E3F2E] flex items-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4 text-[#2D5A43] shrink-0" />
+                <span>{programEnrollNotice}</span>
+              </div>
+            )}
 
-                return (
-                  <div
-                    key={prog.id}
-                    className="p-4 rounded-xl border border-[#E4E8E3] bg-[#FAFBF9] space-y-2.5"
-                  >
-                    <div className="flex items-center justify-between text-xs text-[#526B5C]">
-                      <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
-                      <span className="tabular-nums font-semibold text-[#1E3F2E]">{progPct}%</span>
-                    </div>
+            {programEnrollError && (
+              <div
+                role="alert"
+                className="p-3 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs font-medium text-[#9B2C1B] flex items-center gap-2"
+              >
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{programEnrollError}</span>
+              </div>
+            )}
 
-                    <h4 className="font-serif font-bold text-sm text-[#1E3F2E] leading-snug">
-                      {prog.title}
+            {programsLoading ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#526B5C]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#2D5A43]" />
+                <span>Loading published wellness programmes...</span>
+              </div>
+            ) : programsError ? (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-2"
+              >
+                <p className="font-semibold">{programsError}</p>
+                <button
+                  type="button"
+                  onClick={loadPublishedProgramsAndEnrollments}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#ECC8C1] text-[#9B2C1B] font-semibold hover:bg-[#FAF2EF]"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Retry</span>
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                {/* Sub-section 1: Enrolled Regimens */}
+                <div data-testid="enrolled-regimens-list" className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                      Enrolled Regimens
                     </h4>
-
-                    <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className="bg-[#2D5A43] h-full transition-all duration-300"
-                        style={{ width: `${progPct}%` }}
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
-                      <span>{prog.completedSessions} of {prog.totalSessions} sessions</span>
-                      <span>{prog.durationWeeks} Weeks</span>
-                    </div>
+                    <span className="text-[11px] text-[#526B5C]">
+                      {enrolledPrograms.length} Enrolled
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  {enrolledPrograms.length === 0 ? (
+                    <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3.5 rounded-xl border border-dashed border-[#D6E0D7]">
+                      You have not enrolled in any published programmes yet. Select an approved programme below to start tracking sessions.
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {enrolledPrograms.map((prog) => {
+                        const progPct =
+                          prog.totalSessions > 0
+                            ? Math.round((prog.completedSessions / prog.totalSessions) * 100)
+                            : 0;
+
+                        return (
+                          <div
+                            key={prog.id}
+                            className="p-4 rounded-xl border border-[#CADDCF] bg-[#F7FAF8] space-y-2.5"
+                          >
+                            <div className="flex items-center justify-between gap-2 text-xs text-[#526B5C]">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                                  Enrolled
+                                </span>
+                                {prog.isSimulated && (
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                                    Demo Record
+                                  </span>
+                                )}
+                              </div>
+                              <span className="tabular-nums font-semibold text-[#1E3F2E]">{progPct}%</span>
+                            </div>
+
+                            <h5 className="font-serif font-bold text-sm text-[#1E3F2E] leading-snug">
+                              {prog.title}
+                            </h5>
+
+                            <p className="text-[11px] text-[#526B5C]">
+                              Led by <strong>{prog.practitionerName}</strong> ({prog.practitionerTitle})
+                            </p>
+
+                            <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-[#2D5A43] h-full transition-all duration-300"
+                                style={{ width: `${progPct}%` }}
+                              />
+                            </div>
+
+                            <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
+                              <span>{prog.completedSessions} of {prog.totalSessions} sessions</span>
+                              <span>{prog.durationWeeks} Weeks</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Sub-section 2: Available Published Programmes */}
+                <div
+                  data-testid="available-programmes-list"
+                  className="pt-4 border-t border-[#EEF2EC] space-y-2.5"
+                >
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                      Available Published Programmes
+                    </h4>
+                    <span className="text-[11px] text-[#526B5C]">
+                      {availablePrograms.length} Available
+                    </span>
+                  </div>
+
+                  {availablePrograms.length === 0 ? (
+                    <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3.5 rounded-xl border border-dashed border-[#D6E0D7]">
+                      {publishedPrograms.length === 0
+                        ? 'No Admin-published wellness programmes are available right now.'
+                        : 'You are enrolled in all currently published wellness programmes.'}
+                    </p>
+                  ) : (
+                    <div className="space-y-3">
+                      {availablePrograms.map((prog) => (
+                        <div
+                          key={prog.id}
+                          className="p-4 rounded-xl border border-[#E4E8E3] bg-[#FAFBF9] space-y-2"
+                        >
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-[#526B5C]">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                              <span>·</span>
+                              <span>{prog.level}</span>
+                            </div>
+                            {prog.isSimulated ? (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                                Demo Record
+                              </span>
+                            ) : (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                                Admin Published
+                              </span>
+                            )}
+                          </div>
+
+                          <h5 className="font-serif font-bold text-sm text-[#1E3F2E] leading-snug">
+                            {prog.title}
+                          </h5>
+
+                          <p className="text-[11px] text-[#4E6457] leading-relaxed line-clamp-2">
+                            {prog.description}
+                          </p>
+
+                          <div className="text-[11px] text-[#526B5C] space-y-0.5">
+                            <p>
+                              By <strong>{prog.practitionerName}</strong> · {prog.practitionerTitle}
+                            </p>
+                            <p>
+                              {prog.durationWeeks} Weeks · {prog.totalSessions} sessions
+                              {prog.publishedAt ? ` · ${formatPublicationDateLabel(prog.publishedAt)}` : ''}
+                            </p>
+                          </div>
+
+                          <div className="pt-1">
+                            <button
+                              type="button"
+                              disabled={enrollingProgramId === prog.id}
+                              onClick={() => handleEnrollProgram(prog)}
+                              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] hover:bg-[#DCE9E0] border border-[#C8D8CE] rounded-lg transition-colors disabled:opacity-60"
+                            >
+                              {enrollingProgramId === prog.id ? 'Enrolling...' : 'Enroll in Programme'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </section>
 
           {/* LEARNING CORNER */}
-          <section className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4">
+          <section
+            data-testid="user-learning-corner"
+            className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
@@ -1584,40 +1983,89 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   Learning Corner
                 </h3>
               </div>
-              <BookOpen className="w-4 h-4 text-[#2D5A43]" />
+              <div className="flex items-center gap-2 text-xs text-[#526B5C]">
+                <span>{publishedArticles.length} Published</span>
+                <BookOpen className="w-4 h-4 text-[#2D5A43]" />
+              </div>
             </div>
 
             <p className="text-xs text-[#526B5C]">
               Peer-reviewed, evidence-informed traditional wisdom for daily reading.
             </p>
 
-            <div className="space-y-3">
-              {articles.slice(0, 3).map((art) => (
-                <div
-                  key={art.id}
-                  onClick={() => onReadArticle(art)}
-                  className="p-3.5 rounded-xl border border-[#E3E8E3] hover:border-[#CAD7CC] bg-[#FAFBF9] hover:bg-white transition-colors cursor-pointer space-y-1.5 group select-none"
+            {articlesLoading ? (
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#526B5C]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#2D5A43]" />
+                <span>Loading published educational articles...</span>
+              </div>
+            ) : articlesError ? (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-2"
+              >
+                <p className="font-semibold">{articlesError}</p>
+                <button
+                  type="button"
+                  onClick={loadPublishedArticles}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#ECC8C1] text-[#9B2C1B] font-semibold hover:bg-[#FAF2EF]"
                 >
-                  <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
-                    <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
-                    <span>{art.readTime}</span>
-                  </div>
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Retry</span>
+                </button>
+              </div>
+            ) : publishedArticles.length === 0 ? (
+              <div className="p-5 rounded-xl bg-[#FAFBF9] border border-dashed border-[#D6E0D7] text-center text-xs text-[#637C6D]">
+                No published educational articles are available right now.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {publishedArticles.map((art) => (
+                  <button
+                    key={art.id}
+                    type="button"
+                    onClick={() => onReadArticle(art)}
+                    className="w-full text-left p-3.5 rounded-xl border border-[#E3E8E3] hover:border-[#CAD7CC] bg-[#FAFBF9] hover:bg-white transition-colors cursor-pointer space-y-1.5 group block"
+                  >
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-[#526B5C]">
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
+                        <span>·</span>
+                        <span>{art.category}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <span>{art.readTime}</span>
+                        {art.isSimulated ? (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                            Demo Record
+                          </span>
+                        ) : (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                            Published
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                  <h4 className="text-xs font-semibold text-[#1E3F2E] group-hover:text-[#2D5A43] transition-colors leading-snug">
-                    {art.title}
-                  </h4>
+                    <h4 className="text-xs font-semibold text-[#1E3F2E] group-hover:text-[#2D5A43] transition-colors leading-snug">
+                      {art.title}
+                    </h4>
 
-                  <p className="text-[11px] text-[#526B5C] line-clamp-2">
-                    {art.summary}
-                  </p>
+                    <p className="text-[11px] text-[#405648]">
+                      By <strong>{art.author}</strong> ({art.authorQualification}) · {art.reviewedDate}
+                    </p>
 
-                  <div className="pt-1 flex items-center gap-1 text-[11px] font-semibold text-[#2D5A43]">
-                    <span>Read educational article</span>
-                    <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                  </div>
-                </div>
-              ))}
-            </div>
+                    <p className="text-[11px] text-[#526B5C] line-clamp-2">
+                      {art.summary}
+                    </p>
+
+                    <div className="pt-1 flex items-center gap-1 text-[11px] font-semibold text-[#2D5A43]">
+                      <span>Read educational article</span>
+                      <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </div>

@@ -1,15 +1,35 @@
 import React from 'react';
-import { User, Stethoscope, Shield, ArrowRight, CheckCircle2, Sparkles, Info } from 'lucide-react';
+import {
+  User,
+  Stethoscope,
+  Shield,
+  ArrowRight,
+  CheckCircle2,
+  Lock,
+  ShieldAlert,
+  Sparkles,
+} from 'lucide-react';
 import { RoleType } from '../../types';
+import { canAccessPortal, PORTAL_SECURITY_DISCLAIMER } from '../../utils/portalAccess';
 
 interface RoleSelectorProps {
   currentRole: RoleType;
+  accountRole: RoleType | null;
+  isAuthenticated: boolean;
+  isConfigured: boolean;
+  demoPortalEnabled: boolean;
+  onToggleDemoPortal: (enabled: boolean) => void;
   onSelectRole: (role: RoleType) => void;
   onBackToLanding: () => void;
 }
 
 export const RoleSelector: React.FC<RoleSelectorProps> = ({
   currentRole,
+  accountRole,
+  isAuthenticated,
+  isConfigured,
+  demoPortalEnabled,
+  onToggleDemoPortal,
   onSelectRole,
   onBackToLanding,
 }) => {
@@ -29,7 +49,9 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         'Direct Practitioner Consultation Requests',
         'Curated Educational Guides & Recipes',
       ],
-      sampleProfile: 'Previewing as: Priya Sundaram (Prakriti Assessment: 75% complete)',
+      sampleProfile: isAuthenticated
+        ? `Signed-in account role: ${accountRole || 'user'}`
+        : 'Previewing as: Guest Seeker (Local Persistent Demo Storage)',
       ctaText: 'Enter Wellness User Portal',
     },
     {
@@ -37,7 +59,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
       title: 'AYUSH Practitioner',
       persona: 'Certified Physician (BAMS, MD, BUMS, etc.)',
       icon: Stethoscope,
-      badge: 'Clinical Guidance',
+      badge: 'Restricted · Clinical Role',
       description:
         'Manage assigned seekers, monitor habit compliance, prescribe customized lifestyle and yoga regimens, review client notes, and draft evidence-based wellness educational guides.',
       keyFeatures: [
@@ -47,7 +69,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         'Educational Content Authoring & Submissions',
         'Verified CCIM / State Council Profile',
       ],
-      sampleProfile: 'Previewing as: Dr. Ananya Sharma (BAMS, MD Ayurveda, 48 active clients)',
+      sampleProfile: 'Simulated practitioner preview: Dr. Ananya Sharma (BAMS, MD Ayurveda)',
       ctaText: 'Enter Practitioner Portal',
     },
     {
@@ -55,7 +77,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
       title: 'Platform Administrator',
       persona: 'Governance, Verification & Operations',
       icon: Shield,
-      badge: 'Platform Quality & Compliance',
+      badge: 'Restricted · Governance Role',
       description:
         'Supervise platform-wide participation metrics, verify medical credentials and licenses of registering practitioners, and review educational publications before public release.',
       keyFeatures: [
@@ -65,7 +87,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         'Safety & Compliance Oversight',
         'Community Participation Trends',
       ],
-      sampleProfile: 'Previewing as: AYUSH Central Platform Governance Console',
+      sampleProfile: 'Simulated governance preview: AYUSH Central Platform Governance Console',
       ctaText: 'Enter Administrator Portal',
     },
   ];
@@ -76,26 +98,68 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
       <div className="max-w-3xl space-y-3">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EBF2ED] text-[#244E38] rounded-full text-xs font-semibold">
           <Sparkles className="w-3.5 h-3.5 text-[#2D5A43]" />
-          <span>Interactive Role Preview Mode</span>
+          <span>Role Access & Hackathon Demo Switcher</span>
         </div>
         <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#142A1E]">
           Select Your Experience Portal
         </h1>
         <p className="text-sm sm:text-base text-[#405648] leading-relaxed">
-          AYUSH Wellness Connect accommodates three key participants. Select a role below to explore realistic workflows, sample data records, and administrative interfaces.
+          AYUSH Wellness Connect separates Seeker self-care from Practitioner and Administrator governance workspaces. Standard accounts and guests only have access to the Wellness User portal unless an authorized role is verified or the explicit Demo Mode switcher is enabled.
         </p>
       </div>
 
-      {/* Demonstration Notice */}
-      <div className="p-4 rounded-xl bg-white border border-[#CCD5CB] flex items-start gap-3 text-xs sm:text-sm text-[#3E5547]">
-        <Info className="w-5 h-5 text-[#2D5A43] shrink-0 mt-0.5" />
-        <div className="space-y-0.5">
-          <p className="font-semibold text-[#1E3F2E]">
-            Demonstration Environment · No Authentication Barrier
-          </p>
-          <p className="text-xs text-[#526B5C]">
-            All three roles are fully unlocked for evaluation. Switch between roles anytime using the top navigation bar or this switcher without losing your session progress.
-          </p>
+      {/* Authorization Boundary & Explicit DEMO MODE Portal Switcher */}
+      <div className="p-5 rounded-2xl bg-white border border-[#CCD5CB] space-y-4 text-xs sm:text-sm text-[#3E5547] shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <ShieldAlert className="w-5 h-5 text-[#A64B2A] shrink-0 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-bold text-[#1E3F2E]">
+                {demoPortalEnabled
+                  ? 'DEMO MODE Portal Switcher Active (UI Evaluation Only)'
+                  : 'Standard Role Access Active · Restricted Portals Locked'}
+              </p>
+              <p className="text-xs text-[#526B5C] leading-relaxed">
+                {PORTAL_SECURITY_DISCLAIMER}
+              </p>
+              <p className="text-[11px] font-medium text-[#2D5A43]">
+                Current Account Identity:{' '}
+                {isAuthenticated
+                  ? `Signed-in Demo Account (role: "${accountRole || 'user'}")`
+                  : 'Unauthenticated Guest Preview'}
+              </p>
+            </div>
+          </div>
+
+          {!isConfigured && (
+            <div className="shrink-0 flex flex-col items-start md:items-end gap-1.5">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={demoPortalEnabled}
+                onClick={() => onToggleDemoPortal(!demoPortalEnabled)}
+                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                  demoPortalEnabled
+                    ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
+                    : 'bg-[#F4F7F4] text-[#1E3F2E] border-[#BCCAC0] hover:bg-[#E8EFEA]'
+                }`}
+              >
+                <span
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    demoPortalEnabled ? 'bg-amber-600' : 'bg-slate-400'
+                  }`}
+                />
+                <span>
+                  {demoPortalEnabled
+                    ? 'DEMO MODE Portal Switcher: ON (Disable)'
+                    : 'Enable DEMO MODE Portal Switcher'}
+                </span>
+              </button>
+              <span className="text-[10px] text-[#637C6D]">
+                For hackathon jury preview only · Does not change account role
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -104,12 +168,21 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         {roles.map((r) => {
           const Icon = r.icon;
           const isSelected = currentRole === r.type;
+          const access = canAccessPortal({
+            targetRole: r.type,
+            accountRole,
+            isAuthenticated,
+            demoPortalEnabled,
+            isFirebaseConfigured: isConfigured,
+          });
 
           return (
             <div
               key={r.type}
               className={`rounded-2xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-white border ${
-                isSelected
+                !access.allowed
+                  ? 'border-[#E4E8E3] opacity-85'
+                  : isSelected
                   ? 'border-[#2D5A43] ring-2 ring-[#2D5A43]/15 shadow-md'
                   : 'border-[#E4E8E3] hover:border-[#CCD5CB] shadow-xs'
               }`}
@@ -120,8 +193,20 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                   <div className="w-12 h-12 rounded-xl bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center">
                     <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-[11px] font-semibold text-[#2D5A43] bg-[#F2F7F4] px-2.5 py-1 rounded-md border border-[#DCE7E0]">
-                    {r.badge}
+                  <span
+                    className={`text-[11px] font-semibold px-2.5 py-1 rounded-md border ${
+                      access.isDemoOverride
+                        ? 'bg-amber-50 text-amber-900 border-amber-300'
+                        : !access.allowed
+                        ? 'bg-slate-100 text-slate-600 border-slate-200'
+                        : 'text-[#2D5A43] bg-[#F2F7F4] border-[#DCE7E0]'
+                    }`}
+                  >
+                    {access.isDemoOverride
+                      ? 'DEMO MODE Preview'
+                      : !access.allowed
+                      ? 'Locked · Role Restricted'
+                      : r.badge}
                   </span>
                 </div>
 
@@ -159,19 +244,35 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
               </div>
 
               {/* Action Button */}
-              <div className="pt-6">
-                <button
-                  type="button"
-                  onClick={() => onSelectRole(r.type)}
-                  className={`w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold rounded-xl transition-colors ${
-                    isSelected
-                      ? 'bg-[#2D5A43] text-white hover:bg-[#234835]'
-                      : 'bg-[#EBF2ED] text-[#1E3F2E] hover:bg-[#DCE7E0] border border-[#CCD5CB]'
-                  }`}
-                >
-                  <span>{r.ctaText}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              <div className="pt-6 space-y-2">
+                {access.allowed ? (
+                  <button
+                    type="button"
+                    onClick={() => onSelectRole(r.type)}
+                    className={`w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold rounded-xl transition-colors ${
+                      access.isDemoOverride
+                        ? 'bg-amber-600 text-white hover:bg-amber-700'
+                        : isSelected
+                        ? 'bg-[#2D5A43] text-white hover:bg-[#234835]'
+                        : 'bg-[#EBF2ED] text-[#1E3F2E] hover:bg-[#DCE7E0] border border-[#CCD5CB]'
+                    }`}
+                  >
+                    <span>
+                      {access.isDemoOverride ? `DEMO MODE: ${r.ctaText}` : r.ctaText}
+                    </span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-xs sm:text-sm font-semibold rounded-xl bg-slate-100 text-slate-500 border border-slate-200 cursor-not-allowed"
+                    title={access.reason}
+                  >
+                    <Lock className="w-4 h-4" />
+                    <span>Restricted ({r.type === 'admin' ? 'Admin' : 'Practitioner'} Only)</span>
+                  </button>
+                )}
               </div>
             </div>
           );

@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Menu, X, ArrowRight, ShieldCheck, User, Stethoscope, Shield, LogOut } from 'lucide-react';
 import { RoleType } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { canAccessPortal } from '../../utils/portalAccess';
 
 interface NavbarProps {
   currentView: 'landing' | 'roles' | 'dashboard';
   currentRole: RoleType;
+  demoPortalEnabled: boolean;
   onNavigate: (view: 'landing' | 'roles' | 'dashboard') => void;
   onSelectRole: (role: RoleType) => void;
   onOpenAuth?: () => void;
@@ -14,12 +16,35 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   currentView,
   currentRole,
+  demoPortalEnabled,
   onNavigate,
   onSelectRole,
   onOpenAuth,
 }) => {
   const { firebaseUser, userProfile, logout, isConfigured } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const isDemoPreviewActive =
+    demoPortalEnabled &&
+    !isConfigured &&
+    (currentRole === 'practitioner' || currentRole === 'admin') &&
+    userProfile?.role !== currentRole;
+
+  const canEnterPractitioner = canAccessPortal({
+    targetRole: 'practitioner',
+    accountRole: (userProfile?.role as RoleType) || null,
+    isAuthenticated: Boolean(firebaseUser),
+    demoPortalEnabled,
+    isFirebaseConfigured: isConfigured,
+  }).allowed;
+
+  const canEnterAdmin = canAccessPortal({
+    targetRole: 'admin',
+    accountRole: (userProfile?.role as RoleType) || null,
+    isAuthenticated: Boolean(firebaseUser),
+    demoPortalEnabled,
+    isFirebaseConfigured: isConfigured,
+  }).allowed;
 
   const getRoleLabel = (role: RoleType) => {
     switch (role) {
@@ -52,23 +77,23 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#FAFAF7]/95 backdrop-blur-md border-b border-[#E4E8E3]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-8 h-20">
+        <div className="flex items-center justify-between gap-4 h-20">
           {/* Zone 1: Brand Wordmark (Single text element in display face) */}
           <button
             onClick={() => {
               setMobileMenuOpen(false);
               onNavigate('landing');
             }}
-            className="text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43] rounded-lg p-1 -m-1"
+            className="text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43] rounded-lg p-1 -m-1 shrink-0"
             aria-label="AYUSH Wellness Connect - Home"
           >
-            <span className="text-xl sm:text-2xl font-serif font-bold tracking-tight text-[#1E3F2E] whitespace-nowrap shrink-0 group-hover:text-[#2D5A43] transition-colors">
+            <span className="text-lg sm:text-xl font-serif font-bold tracking-tight text-[#1E3F2E] whitespace-nowrap shrink-0 group-hover:text-[#2D5A43] transition-colors">
               AYUSH Wellness Connect
             </span>
           </button>
 
           {/* Zone 2: Clean single-line text links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-[#405448]">
+          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-[13px] font-medium text-[#405448]">
             <button
               onClick={() => handleNavClick()}
               className={`hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 ${
@@ -77,30 +102,34 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               Overview
             </button>
-            <button
-              onClick={() => handleNavClick('ayush-intro-section')}
-              className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
-            >
-              What is AYUSH?
-            </button>
-            <button
-              onClick={() => handleNavClick('ayush-systems')}
-              className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
-            >
-              Five Systems
-            </button>
-            <button
-              onClick={() => handleNavClick('ayush-in-india')}
-              className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
-            >
-              AYUSH in India
-            </button>
-            <button
-              onClick={() => handleNavClick('what-platform-offers')}
-              className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
-            >
-              Platform Offerings
-            </button>
+            {currentView === 'landing' && (
+              <>
+                <button
+                  onClick={() => handleNavClick('ayush-intro-section')}
+                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                >
+                  What is AYUSH?
+                </button>
+                <button
+                  onClick={() => handleNavClick('ayush-systems')}
+                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                >
+                  Five Systems
+                </button>
+                <button
+                  onClick={() => handleNavClick('ayush-in-india')}
+                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                >
+                  AYUSH in India
+                </button>
+                <button
+                  onClick={() => handleNavClick('what-platform-offers')}
+                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                >
+                  Platform Offerings
+                </button>
+              </>
+            )}
             <button
               onClick={() => handleNavClick('disclaimer-section')}
               className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent text-[#A64B2A]"
@@ -110,9 +139,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           </nav>
 
           {/* Zone 3: 1 Primary Action (Prominent Get Started or Role Switcher) */}
-          <div className="hidden sm:flex items-center gap-3 shrink-0">
+          <div className="hidden sm:flex items-center gap-2.5 shrink-0">
             <span
-              className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#EBF2ED] text-[#244E38] border border-[#CCDCD2]"
+              className={`${currentView === 'landing' ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex'} items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#EBF2ED] text-[#244E38] border border-[#CCDCD2] whitespace-nowrap`}
               title={isConfigured ? 'Connected to live Firebase Cloud Firestore' : 'Running in local persistent demo storage mode'}
             >
               <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
@@ -151,29 +180,41 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {currentView === 'dashboard' ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[#526B5C] hidden md:inline">Active Portal:</span>
+                <span className="text-xs text-[#526B5C] hidden md:inline">
+                  {isDemoPreviewActive ? 'DEMO MODE:' : 'Active Portal:'}
+                </span>
                 <button
+                  type="button"
                   onClick={() => onNavigate('roles')}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold text-[#1E3F2E] bg-[#EBF2ED] hover:bg-[#DCE7E0] border border-[#D1DDD5] rounded-xl transition-colors whitespace-nowrap shrink-0"
-                  title="Switch to another portal"
+                  className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap shrink-0 border ${
+                    isDemoPreviewActive
+                      ? 'text-amber-950 bg-amber-50 hover:bg-amber-100 border-amber-300'
+                      : 'text-[#1E3F2E] bg-[#EBF2ED] hover:bg-[#DCE7E0] border-[#D1DDD5]'
+                  }`}
+                  title="Open Portal Access & Demo Switcher"
                 >
                   {currentRole === 'user' && <User className="w-3.5 h-3.5 text-[#2D5A43]" />}
                   {currentRole === 'practitioner' && <Stethoscope className="w-3.5 h-3.5 text-[#2D5A43]" />}
                   {currentRole === 'admin' && <Shield className="w-3.5 h-3.5 text-[#2D5A43]" />}
                   <span>{getRoleLabel(currentRole)}</span>
-                  <span className="text-[11px] text-[#2D5A43] underline font-bold ml-1">Switch</span>
+                  <span className="text-[11px] text-[#2D5A43] underline font-bold ml-1">Portal</span>
                 </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
                   onClick={() => onNavigate('roles')}
                   className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#2D5A43] hover:text-[#173827] hover:bg-[#EBF2ED] rounded-xl transition-colors whitespace-nowrap shrink-0"
                 >
-                  <span>Select Role</span>
+                  <span>Portal Access</span>
                 </button>
                 <button
-                  onClick={() => onNavigate('roles')}
+                  type="button"
+                  onClick={() => {
+                    onSelectRole('user');
+                    onNavigate('dashboard');
+                  }}
                   className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] active:bg-[#1A3728] rounded-xl shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D5A43]"
                 >
                   <span>Get Started</span>
@@ -186,7 +227,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Mobile menu hamburger */}
           <div className="lg:hidden flex items-center gap-2">
             <button
-              onClick={() => onNavigate('roles')}
+              type="button"
+              onClick={() => {
+                onSelectRole('user');
+                onNavigate('dashboard');
+              }}
               className="px-3 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] rounded-lg sm:hidden whitespace-nowrap"
             >
               Get Started
@@ -246,12 +291,45 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </nav>
 
+          {/* Mobile Auth Controls */}
+          <div className="pt-3 border-t border-[#E4E8E3] px-2 flex items-center justify-between gap-2">
+            {firebaseUser ? (
+              <>
+                <span className="text-xs font-semibold text-[#1C3A29] truncate">
+                  {userProfile?.displayName || firebaseUser.email}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    logout();
+                  }}
+                  className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] rounded-lg"
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : onOpenAuth ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenAuth();
+                }}
+                className="w-full py-2 text-xs font-semibold text-[#1E3F2E] bg-white border border-[#CCD5CB] rounded-lg"
+              >
+                Sign In / Register
+              </button>
+            ) : null}
+          </div>
+
           <div className="pt-3 border-t border-[#E4E8E3] space-y-2">
             <p className="text-xs font-semibold text-[#526B5C] uppercase tracking-wider px-3">
-              Switch Role Preview
+              {demoPortalEnabled ? 'DEMO MODE Portal Switcher (Preview Only)' : 'Portal Access'}
             </p>
             <div className="grid grid-cols-1 gap-2 px-2">
               <button
+                type="button"
                 onClick={() => {
                   onSelectRole('user');
                   onNavigate('dashboard');
@@ -266,35 +344,52 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>Wellness User Portal</span>
                 <span className="text-xs opacity-75">Seeker</span>
               </button>
+              {canEnterPractitioner && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectRole('practitioner');
+                    onNavigate('dashboard');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
+                    currentRole === 'practitioner' && currentView === 'dashboard'
+                      ? 'bg-amber-600 text-white font-medium'
+                      : 'bg-amber-50 text-amber-950 border border-amber-300'
+                  }`}
+                >
+                  <span>DEMO MODE: Practitioner Portal</span>
+                  <span className="text-xs opacity-75">Preview</span>
+                </button>
+              )}
+              {canEnterAdmin && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onSelectRole('admin');
+                    onNavigate('dashboard');
+                    setMobileMenuOpen(false);
+                  }}
+                  className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
+                    currentRole === 'admin' && currentView === 'dashboard'
+                      ? 'bg-amber-600 text-white font-medium'
+                      : 'bg-amber-50 text-amber-950 border border-amber-300'
+                  }`}
+                >
+                  <span>DEMO MODE: Admin Portal</span>
+                  <span className="text-xs opacity-75">Preview</span>
+                </button>
+              )}
               <button
+                type="button"
                 onClick={() => {
-                  onSelectRole('practitioner');
-                  onNavigate('dashboard');
+                  onNavigate('roles');
                   setMobileMenuOpen(false);
                 }}
-                className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
-                  currentRole === 'practitioner' && currentView === 'dashboard'
-                    ? 'bg-[#2D5A43] text-white font-medium'
-                    : 'bg-white text-[#1E3F2E] border border-[#E4E8E3]'
-                }`}
+                className="flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold bg-[#F4F7F4] text-[#2D5A43] border border-[#CCDCD2]"
               >
-                <span>Practitioner Portal</span>
-                <span className="text-xs opacity-75">BAMS / MD</span>
-              </button>
-              <button
-                onClick={() => {
-                  onSelectRole('admin');
-                  onNavigate('dashboard');
-                  setMobileMenuOpen(false);
-                }}
-                className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
-                  currentRole === 'admin' && currentView === 'dashboard'
-                    ? 'bg-[#2D5A43] text-white font-medium'
-                    : 'bg-white text-[#1E3F2E] border border-[#E4E8E3]'
-                }`}
-              >
-                <span>Admin Portal</span>
-                <span className="text-xs opacity-75">Governance</span>
+                <span>Manage Portal Access / Demo Switcher</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

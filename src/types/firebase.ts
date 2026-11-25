@@ -24,6 +24,8 @@ export interface UserProfileDocument {
 export interface ClientProfileDocument {
   userId: string;
   clientName: string;
+  age?: number;
+  gender?: string;
   primaryGoal: string;
   enrolledProgram: string;
   discipline: AYUSHDiscipline;
@@ -33,6 +35,7 @@ export interface ClientProfileDocument {
   practitionerNotes?: string;
   status: 'Active' | 'Needs Review' | 'On Track';
   assignedPractitionerId: string;
+  isSimulated?: boolean;
   updatedAt: string;
 }
 
@@ -72,6 +75,9 @@ export interface DailyActivityDocument {
   completedAt?: string | null;
 }
 
+export type ProgramApprovalStatus = 'draft' | 'pending_approval' | 'published' | 'revision_requested';
+export type ArticleApprovalStatus = 'draft' | 'pending_approval' | 'published' | 'revision_requested';
+
 /**
  * 4. Wellness Program Regimen Document (/wellnessPrograms/{programId})
  */
@@ -88,8 +94,16 @@ export interface WellnessProgramDocument {
   description: string;
   nextSessionTemplate: string;
   level: 'Beginner' | 'Intermediate' | 'Deepening';
+  status: ProgramApprovalStatus;
   isPublished: boolean;
+  submittedAt?: string | null;
+  reviewedByAdminId?: string | null;
+  reviewedAt?: string | null;
+  publishedAt?: string | null;
+  reviewNotes?: string | null;
+  isSimulated?: boolean;
   createdAt: string;
+  updatedAt: string;
 }
 
 /**
@@ -107,9 +121,14 @@ export interface EducationalArticleDocument {
   summary: string;
   fullContent: string;
   keyTakeaways: string[];
-  status: 'draft' | 'pending_approval' | 'published' | 'revision_requested';
+  status: ArticleApprovalStatus;
+  submittedAt?: string | null;
   reviewedByAdminId?: string | null;
+  reviewedAt?: string | null;
   publishedAt?: string | null;
+  reviewNotes?: string | null;
+  isSimulated?: boolean;
+  createdAt?: string;
   updatedAt: string;
 }
 
@@ -136,6 +155,14 @@ export interface PractitionerDocument {
 /**
  * 7. Consultation Request Document (/consultations/{consultationId})
  */
+export type ConsultationStatus =
+  | 'pending'
+  | 'confirmed'
+  | 'rescheduled'
+  | 'rejected'
+  | 'completed'
+  | 'cancelled';
+
 export interface ConsultationDocument {
   id: string;
   userId: string;
@@ -143,10 +170,14 @@ export interface ConsultationDocument {
   practitionerId: string;
   practitionerName: string;
   topic: string;
+  topicLabel?: string;
+  preferredDate?: string;
   preferredSlot: 'morning' | 'afternoon' | 'evening';
   notes?: string;
-  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
+  status: ConsultationStatus;
   scheduledTime?: string | null;
+  practitionerNotes?: string | null;
+  isSimulated?: boolean;
   createdAt: string;
   updatedAt: string;
 }

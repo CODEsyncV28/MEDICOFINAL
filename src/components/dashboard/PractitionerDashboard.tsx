@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Users,
   Calendar,
@@ -27,6 +27,7 @@ import {
   UserCheck,
   HelpCircle,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 import {
   ClientRecord,
@@ -36,160 +37,223 @@ import {
   AYUSHDiscipline,
   WellnessCategory,
 } from '../../types';
+import {
+  ConsultationDocument,
+  ConsultationStatus,
+  EducationalArticleDocument,
+  WellnessProgramDocument,
+  ArticleApprovalStatus,
+  ProgramApprovalStatus,
+} from '../../types/firebase';
+import {
+  fetchConsultationsForPractitioner,
+  getConsultationTopicLabel,
+  getPreferredSlotLabel,
+  updateConsultationStatus,
+} from '../../services/consultationService';
+import {
+  fetchClientsForPractitioner,
+  updateClientObservationNotes,
+} from '../../services/practitionerService';
+import {
+  fetchArticlesForPractitioner,
+  saveOrSubmitArticle,
+} from '../../services/contentService';
+import {
+  fetchProgramsForPractitioner,
+  saveOrSubmitProgram,
+} from '../../services/programService';
 import { SafetyBanner } from '../common/SafetyBanner';
 
 interface PractitionerDashboardProps {
   practitioner: Practitioner;
-  clients: ClientRecord[];
+  clients?: ClientRecord[];
   programs: WellnessProgram[];
   articles: EducationalArticle[];
+  programsRefreshKey?: number;
   onOpenNewRegimen: () => void;
   onReadArticle: (article: EducationalArticle) => void;
-  onSwitchRole: () => void;
+  onSwitchRole?: () => void;
+  onConsultationUpdated?: () => void;
+  canSwitchToAdmin?: boolean;
+  isDemoMode?: boolean;
 }
 
-interface ExtendedProgram extends WellnessProgram {
-  status: 'Published' | 'Pending Approval' | 'Draft';
+function formatReadableDate(iso?: string | null): string {
+  if (!iso) return 'Not submitted';
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return iso;
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: '2-digit',
+    year: 'numeric',
+  }).format(parsed);
 }
 
-interface AuthoredArticle {
-  id: string;
-  title: string;
-  discipline: AYUSHDiscipline;
-  category: WellnessCategory;
-  readTime: string;
-  summary: string;
-  content: string;
-  status: 'Draft' | 'Pending Review' | 'Approved';
-  submittedDate: string;
+function getArticleStatusMeta(status: ArticleApprovalStatus): { label: string; className: string } {
+  switch (status) {
+    case 'published':
+      return { label: 'Approved', className: 'bg-[#EBF2ED] text-[#244E38]' };
+    case 'pending_approval':
+      return { label: 'Pending Review', className: 'bg-[#FEF3C7] text-[#92400E]' };
+    case 'revision_requested':
+      return { label: 'Revision Requested', className: 'bg-[#FBF2EE] text-[#A64B2A]' };
+    default:
+      return { label: 'Draft', className: 'bg-slate-100 text-slate-700' };
+  }
 }
 
-interface ConsultationItem {
-  id: string;
-  seekerName: string;
-  topic: string;
-  preferredSlot: 'Morning (8-11 AM)' | 'Afternoon (1-4 PM)' | 'Evening (5-7 PM)';
-  seekerNotes: string;
-  status: 'Pending Review' | 'Confirmed' | 'Completed' | 'Rescheduled';
-  scheduledTime?: string;
-  isSimulated: boolean;
-  practitionerNotes?: string;
+function getProgramStatusMeta(status: ProgramApprovalStatus): { label: string; className: string } {
+  switch (status) {
+    case 'published':
+      return { label: 'Published', className: 'bg-[#EBF2ED] text-[#244E38]' };
+    case 'pending_approval':
+      return { label: 'Pending Approval', className: 'bg-[#FEF3C7] text-[#92400E]' };
+    case 'revision_requested':
+      return { label: 'Revision Requested', className: 'bg-[#FBF2EE] text-[#A64B2A]' };
+    default:
+      return { label: 'Draft', className: 'bg-slate-100 text-slate-700' };
+  }
 }
 
 export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   practitioner,
-  clients,
-  programs,
-  articles,
+  clients = [],
+  programsRefreshKey = 0,
   onOpenNewRegimen,
   onReadArticle,
   onSwitchRole,
+  onConsultationUpdated,
+  canSwitchToAdmin = false,
+  isDemoMode = false,
 }) => {
   // Navigation / Tab state within practitioner workspace
   const [activeTab, setActiveTab] = useState<'roster' | 'consultations' | 'programs' | 'authoring'>('roster');
 
-  // Client roster filtering & state
+  // Client roster filtering & state (hydrated from practitionerService)
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<'All' | 'On Track' | 'Active' | 'Needs Review'>('All');
   const [disciplineFilter, setDisciplineFilter] = useState<string>('All');
   const [clientList, setClientList] = useState<ClientRecord[]>(clients);
+  const [clientsLoading, setClientsLoading] = useState<boolean>(true);
+  const [clientsError, setClientsError] = useState<string | null>(null);
 
   // Client detail drawer state
   const [selectedClient, setSelectedClient] = useState<ClientRecord | null>(null);
   const [editingNotes, setEditingNotes] = useState<string>('');
   const [editingStatus, setEditingStatus] = useState<'Active' | 'Needs Review' | 'On Track'>('Active');
+  const [savingNotes, setSavingNotes] = useState<boolean>(false);
+  const [notesError, setNotesError] = useState<string | null>(null);
   const [saveNotesToast, setSaveNotesToast] = useState<string | null>(null);
 
-  // Programme management & editing
-  const [localPrograms, setLocalPrograms] = useState<ExtendedProgram[]>(() =>
-    programs.map((p, idx) => ({
-      ...p,
-      status: idx === 0 ? 'Published' : idx === 1 ? 'Published' : 'Pending Approval',
-    }))
-  );
-  const [editingProgram, setEditingProgram] = useState<ExtendedProgram | null>(null);
+  // Programme management & editing (hydrated from programService)
+  const [programList, setProgramList] = useState<WellnessProgramDocument[]>([]);
+  const [programsLoading, setProgramsLoading] = useState<boolean>(true);
+  const [programsError, setProgramsError] = useState<string | null>(null);
+  const [editingProgram, setEditingProgram] = useState<WellnessProgramDocument | null>(null);
+  const [programEditError, setProgramEditError] = useState<string | null>(null);
+  const [isSavingProgramEdit, setIsSavingProgramEdit] = useState<boolean>(false);
   const [programEditSuccess, setProgramEditSuccess] = useState<string | null>(null);
 
-  // Educational content authoring
-  const [authoredArticles, setAuthoredArticles] = useState<AuthoredArticle[]>([
-    {
-      id: 'auth-1',
-      title: 'Guidance on Seasonal Herbal Teas for Autumn Transition (Sharad Ritucharya)',
-      discipline: 'Ayurveda',
-      category: 'Lifestyle Education',
-      readTime: '6 min read',
-      summary: 'Clear educational tone with appropriate safety disclaimers regarding culinary vs medicinal dosages of ginger and tulsi.',
-      content: 'In late autumn (Sharad Ritucharya), the environmental cooling requires pacification of residual Pitta heat followed by stabilization of Vata dryness. Traditional infusions of boiled coriander seeds, dried ginger, and holy basil support gentle digestive fire without overheating mucosal membranes...',
-      status: 'Pending Review',
-      submittedDate: 'Nov 04, 2026',
-    },
-    {
-      id: 'auth-2',
-      title: 'Understanding Prakriti: Your Unique Constitutional Blueprint',
-      discipline: 'Ayurveda',
-      category: 'Ayurveda',
-      readTime: '6 min read',
-      summary: 'A foundational introduction to Vata, Pitta, and Kapha biological principles for beginners.',
-      content: 'Prakriti is the individual biological constitution established at conception according to classical Ayurvedic biology...',
-      status: 'Approved',
-      submittedDate: 'Oct 15, 2026',
-    },
-    {
-      id: 'auth-3',
-      title: 'Dinacharya Guidelines: Circadian Awakening & Oral Hygiene Rituals',
-      discipline: 'Ayurveda',
-      category: 'Lifestyle Education',
-      readTime: '5 min read',
-      summary: 'Exploring oil pulling (Gandusha), tongue scraping (Jihwa Nirlekhana), and warm morning hydration.',
-      content: 'Classical texts recommend sensory organ purification upon waking to stimulate vagal nerve tone and prime gastrointestinal tract readiness...',
-      status: 'Draft',
-      submittedDate: 'Nov 05, 2026',
-    },
-  ]);
+  // Educational content authoring (hydrated from contentService)
+  const [authoredArticles, setAuthoredArticles] = useState<EducationalArticleDocument[]>([]);
+  const [articlesLoading, setArticlesLoading] = useState<boolean>(true);
+  const [articlesError, setArticlesError] = useState<string | null>(null);
   const [isAuthorModalOpen, setIsAuthorModalOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState<EducationalArticleDocument | null>(null);
   const [articleFormTitle, setArticleFormTitle] = useState('');
   const [articleFormDiscipline, setArticleFormDiscipline] = useState<AYUSHDiscipline>('Ayurveda');
   const [articleFormCategory, setArticleFormCategory] = useState<WellnessCategory>('Lifestyle Education');
   const [articleFormReadTime, setArticleFormReadTime] = useState('5 min read');
   const [articleFormSummary, setArticleFormSummary] = useState('');
   const [articleFormContent, setArticleFormContent] = useState('');
+  const [articleModalError, setArticleModalError] = useState<string | null>(null);
+  const [isSavingArticle, setIsSavingArticle] = useState<boolean>(false);
   const [authorSuccessMsg, setAuthorSuccessMsg] = useState<string | null>(null);
 
-  // Consultation requests
-  const [consultations, setConsultations] = useState<ConsultationItem[]>([
-    {
-      id: 'c-1',
-      seekerName: 'Priya Sundaram',
-      topic: 'Circadian Sleep Restoration & Evening Wind-down (Dinacharya)',
-      preferredSlot: 'Morning (8-11 AM)',
-      seekerNotes: 'Experiencing restless awakening around 3 AM. Warm milk with nutmeg helped slightly.',
-      status: 'Confirmed',
-      scheduledTime: 'Tomorrow at 10:30 AM',
-      isSimulated: true,
-      practitionerNotes: 'Will review tongue observation and recommend evening Ashwagandha decoction.',
-    },
-    {
-      id: 'c-2',
-      seekerName: 'Vikram Malhotra',
-      topic: 'Postural Spine Mobility & Ergonomics',
-      preferredSlot: 'Afternoon (1-4 PM)',
-      seekerNotes: 'Upper cervical tightness after 6 hours of consecutive laptop work.',
-      status: 'Pending Review',
-      isSimulated: true,
-    },
-    {
-      id: 'c-3',
-      seekerName: 'Farhan Qureshi',
-      topic: 'Metabolic Agni & Meal Interval Guidance',
-      preferredSlot: 'Evening (5-7 PM)',
-      seekerNotes: 'Digestive heaviness when eating after 8 PM.',
-      status: 'Pending Review',
-      isSimulated: true,
-    },
-  ]);
-  const [activeConsultationModal, setActiveConsultationModal] = useState<ConsultationItem | null>(null);
+  // Consultation requests (hydrated from consultationService)
+  const [consultations, setConsultations] = useState<ConsultationDocument[]>([]);
+  const [consultationsLoading, setConsultationsLoading] = useState<boolean>(true);
+  const [consultationsError, setConsultationsError] = useState<string | null>(null);
+  const [activeConsultationModal, setActiveConsultationModal] = useState<ConsultationDocument | null>(null);
+  const [consultationModalAction, setConsultationModalAction] = useState<'confirmed' | 'rescheduled' | 'rejected'>('confirmed');
   const [scheduledSlotInput, setScheduledSlotInput] = useState<string>('Tomorrow at 02:00 PM');
   const [consultationNoteInput, setConsultationNoteInput] = useState<string>('');
+  const [isUpdatingConsultation, setIsUpdatingConsultation] = useState<boolean>(false);
+  const [consultationModalError, setConsultationModalError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function hydratePractitionerWorkspace() {
+      setClientsLoading(true);
+      setConsultationsLoading(true);
+      setProgramsLoading(true);
+      setArticlesLoading(true);
+      setClientsError(null);
+      setConsultationsError(null);
+      setProgramsError(null);
+      setArticlesError(null);
+
+      try {
+        const [loadedClients, loadedConsultations, loadedPrograms, loadedArticles] =
+          await Promise.all([
+            fetchClientsForPractitioner(practitioner.id),
+            fetchConsultationsForPractitioner(practitioner.id),
+            fetchProgramsForPractitioner(practitioner.id),
+            fetchArticlesForPractitioner(practitioner.id),
+          ]);
+
+        if (!isMounted) return;
+        setClientList(loadedClients);
+        setConsultations(loadedConsultations);
+        setProgramList(loadedPrograms);
+        setAuthoredArticles(loadedArticles);
+      } catch (err) {
+        if (!isMounted) return;
+        const msg = err instanceof Error ? err.message : 'Unable to load practitioner workspace data.';
+        setClientsError(msg);
+        setConsultationsError(msg);
+        setProgramsError(msg);
+        setArticlesError(msg);
+      } finally {
+        if (isMounted) {
+          setClientsLoading(false);
+          setConsultationsLoading(false);
+          setProgramsLoading(false);
+          setArticlesLoading(false);
+        }
+      }
+    }
+
+    hydratePractitionerWorkspace();
+    return () => {
+      isMounted = false;
+    };
+  }, [practitioner.id]);
+
+  // Refresh practitioner programmes immediately after NewRegimenModal saves a new programme
+  useEffect(() => {
+    if (programsRefreshKey <= 0) return;
+    let isMounted = true;
+    fetchProgramsForPractitioner(practitioner.id)
+      .then((loaded) => {
+        if (isMounted) {
+          setProgramList(loaded);
+          setProgramsError(null);
+        }
+      })
+      .catch((err) => {
+        if (isMounted) {
+          setProgramsError(
+            err instanceof Error ? err.message : 'Unable to refresh wellness programmes.'
+          );
+        }
+      });
+    return () => {
+      isMounted = false;
+    };
+  }, [programsRefreshKey, practitioner.id]);
 
   // Filtered Client Roster
   const filteredClients = useMemo(() => {
@@ -210,103 +274,216 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     setEditingNotes(client.practitionerNotes || '');
     setEditingStatus(client.status);
     setSaveNotesToast(null);
+    setNotesError(null);
   };
 
-  // Handle save client observation note
-  const handleSaveClientNotes = (e: React.FormEvent) => {
+  // Handle save client observation note persistently via practitionerService
+  const handleSaveClientNotes = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedClient) return;
 
-    setClientList((prev) =>
-      prev.map((c) =>
-        c.id === selectedClient.id
-          ? { ...c, practitionerNotes: editingNotes, status: editingStatus }
-          : c
-      )
-    );
-    setSelectedClient((prev) => (prev ? { ...prev, practitionerNotes: editingNotes, status: editingStatus } : null));
-    setSaveNotesToast('Observation note updated in /clientProfiles record');
-    setTimeout(() => setSaveNotesToast(null), 3000);
+    setSavingNotes(true);
+    setNotesError(null);
+    setSaveNotesToast(null);
+
+    try {
+      const updated = await updateClientObservationNotes(
+        selectedClient.id,
+        editingNotes,
+        editingStatus,
+        practitioner.id,
+        selectedClient
+      );
+
+      setClientList((prev) => {
+        const exists = prev.some((c) => c.id === updated.id);
+        return exists
+          ? prev.map((c) => (c.id === updated.id ? updated : c))
+          : [updated, ...prev];
+      });
+      setSelectedClient(updated);
+      setSaveNotesToast('Observation note saved persistently for this practitioner');
+      setTimeout(() => setSaveNotesToast(null), 3000);
+    } catch (err) {
+      setNotesError(
+        err instanceof Error ? err.message : 'Could not save client observation note.'
+      );
+    } finally {
+      setSavingNotes(false);
+    }
   };
 
-  // Handle saving an edited programme
-  const handleSaveProgramEdit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleOpenNewArticleModal = () => {
+    setEditingArticle(null);
+    setArticleFormTitle('');
+    setArticleFormDiscipline(practitioner.discipline || 'Ayurveda');
+    setArticleFormCategory('Lifestyle Education');
+    setArticleFormReadTime('5 min read');
+    setArticleFormSummary('');
+    setArticleFormContent('');
+    setArticleModalError(null);
+    setIsAuthorModalOpen(true);
+  };
+
+  const handleOpenEditArticleModal = (article: EducationalArticleDocument) => {
+    setEditingArticle(article);
+    setArticleFormTitle(article.title);
+    setArticleFormDiscipline(article.discipline);
+    setArticleFormCategory(article.category);
+    setArticleFormReadTime(article.readTime || '5 min read');
+    setArticleFormSummary(article.summary);
+    setArticleFormContent(article.fullContent);
+    setArticleModalError(null);
+    setIsAuthorModalOpen(true);
+  };
+
+  // Handle saving an edited programme persistently (Draft or Submit for Admin Approval)
+  const handleSaveProgramEdit = async (submitForReview: boolean) => {
     if (!editingProgram) return;
+    setProgramEditError(null);
+    setIsSavingProgramEdit(true);
 
-    // Practitioners editing a programme marks it as Pending Approval (cannot bypass Admin approval)
-    const updatedStatus: 'Pending Approval' = 'Pending Approval';
-    setLocalPrograms((prev) =>
-      prev.map((p) =>
-        p.id === editingProgram.id
-          ? { ...editingProgram, status: updatedStatus }
-          : p
-      )
-    );
-    setProgramEditSuccess(`Regimen "${editingProgram.title}" updated and submitted for Admin approval.`);
-    setTimeout(() => {
-      setProgramEditSuccess(null);
+    try {
+      const saved = await saveOrSubmitProgram({
+        id: editingProgram.id,
+        title: editingProgram.title,
+        discipline: editingProgram.discipline,
+        category: editingProgram.category,
+        durationWeeks: Number(editingProgram.durationWeeks),
+        level: editingProgram.level,
+        description: editingProgram.description,
+        nextSessionTemplate: editingProgram.nextSessionTemplate,
+        creatorPractitionerId: practitioner.id,
+        practitionerName: practitioner.name,
+        practitionerTitle: practitioner.qualification,
+        submitForReview,
+      });
+
+      setProgramList((prev) =>
+        prev.some((p) => p.id === saved.id)
+          ? prev.map((p) => (p.id === saved.id ? saved : p))
+          : [saved, ...prev]
+      );
       setEditingProgram(null);
-    }, 1500);
+      setProgramEditSuccess(
+        submitForReview
+          ? `Regimen "${saved.title}" updated and submitted for Admin approval.`
+          : `Regimen "${saved.title}" saved as Draft.`
+      );
+      setTimeout(() => setProgramEditSuccess(null), 4000);
+    } catch (err) {
+      setProgramEditError(
+        err instanceof Error ? err.message : 'Unable to save wellness programme changes.'
+      );
+    } finally {
+      setIsSavingProgramEdit(false);
+    }
   };
 
-  // Handle author article submit
-  const handleArticleSubmit = (asDraft: boolean) => {
-    if (!articleFormTitle.trim() || !articleFormSummary.trim()) return;
+  // Handle author article Draft or Submit for Admin Review (creates or updates without duplicates)
+  const handleArticleSubmit = async (asDraft: boolean) => {
+    setArticleModalError(null);
+    setIsSavingArticle(true);
 
-    const newArticle: AuthoredArticle = {
-      id: `auth-${Date.now()}`,
-      title: articleFormTitle.trim(),
-      discipline: articleFormDiscipline,
-      category: articleFormCategory,
-      readTime: articleFormReadTime,
-      summary: articleFormSummary.trim(),
-      content: articleFormContent.trim() || 'Educational article content awaiting practitioner expansion.',
-      status: asDraft ? 'Draft' : 'Pending Review',
-      submittedDate: new Intl.DateTimeFormat('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).format(new Date()),
-    };
+    try {
+      const saved = await saveOrSubmitArticle({
+        id: editingArticle?.id,
+        title: articleFormTitle,
+        discipline: articleFormDiscipline,
+        category: articleFormCategory,
+        readTime: articleFormReadTime,
+        summary: articleFormSummary,
+        fullContent: articleFormContent,
+        authorId: practitioner.id,
+        authorName: practitioner.name,
+        authorQualification: practitioner.qualification,
+        submitForReview: !asDraft,
+      });
 
-    setAuthoredArticles((prev) => [newArticle, ...prev]);
-    setAuthorSuccessMsg(
-      asDraft
-        ? `Draft "${newArticle.title}" saved.`
-        : `Article "${newArticle.title}" submitted for Administrator Governance review.`
-    );
-    setTimeout(() => {
-      setAuthorSuccessMsg(null);
+      setAuthoredArticles((prev) =>
+        prev.some((a) => a.id === saved.id)
+          ? prev.map((a) => (a.id === saved.id ? saved : a))
+          : [saved, ...prev]
+      );
+
       setIsAuthorModalOpen(false);
+      setEditingArticle(null);
       setArticleFormTitle('');
       setArticleFormSummary('');
       setArticleFormContent('');
-    }, 1600);
+      setAuthorSuccessMsg(
+        asDraft
+          ? `Draft "${saved.title}" saved persistently.`
+          : `Article "${saved.title}" submitted for Administrator Governance review.`
+      );
+      setTimeout(() => setAuthorSuccessMsg(null), 4000);
+    } catch (err) {
+      setArticleModalError(
+        err instanceof Error ? err.message : 'Unable to save educational article.'
+      );
+    } finally {
+      setIsSavingArticle(false);
+    }
   };
 
-  // Handle consultation confirmation
-  const handleConfirmConsultation = (e: React.FormEvent) => {
+  const handleOpenConsultationModal = (
+    item: ConsultationDocument,
+    action: 'confirmed' | 'rescheduled' | 'rejected'
+  ) => {
+    setActiveConsultationModal(item);
+    setConsultationModalAction(action);
+    setConsultationModalError(null);
+    setScheduledSlotInput(
+      item.scheduledTime ||
+        `${item.preferredDate ? `${item.preferredDate} · ` : ''}${getPreferredSlotLabel(item.preferredSlot)}`
+    );
+    setConsultationNoteInput(item.practitionerNotes || '');
+  };
+
+  // Handle consultation confirm, reschedule, or decline persistently
+  const handleUpdateConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeConsultationModal) return;
 
-    setConsultations((prev) =>
-      prev.map((item) =>
-        item.id === activeConsultationModal.id
-          ? {
-              ...item,
-              status: 'Confirmed',
-              scheduledTime: scheduledSlotInput,
-              practitionerNotes: consultationNoteInput || item.practitionerNotes,
-            }
-          : item
-      )
-    );
-    setActiveConsultationModal(null);
-    setConsultationNoteInput('');
+    setConsultationModalError(null);
+    if (
+      (consultationModalAction === 'confirmed' || consultationModalAction === 'rescheduled') &&
+      !scheduledSlotInput.trim()
+    ) {
+      setConsultationModalError('Please enter a scheduled date and time window.');
+      return;
+    }
+
+    setIsUpdatingConsultation(true);
+    try {
+      const updated = await updateConsultationStatus(activeConsultationModal.id, {
+        status: consultationModalAction,
+        practitionerId: practitioner.id,
+        scheduledTime:
+          consultationModalAction === 'rejected' ? null : scheduledSlotInput.trim(),
+        practitionerNotes: consultationNoteInput.trim() || null,
+      });
+
+      setConsultations((prev) =>
+        prev.map((item) => (item.id === updated.id ? updated : item))
+      );
+      setActiveConsultationModal(null);
+      setConsultationNoteInput('');
+      onConsultationUpdated?.();
+    } catch (err) {
+      setConsultationModalError(
+        err instanceof Error ? err.message : 'Unable to update consultation request.'
+      );
+    } finally {
+      setIsUpdatingConsultation(false);
+    }
   };
 
   // Counts for overview
-  const pendingConsultationsCount = consultations.filter((c) => c.status === 'Pending Review').length;
+  const pendingConsultationsCount = consultations.filter((c) => c.status === 'pending').length;
   const pendingSubmissionsCount =
-    authoredArticles.filter((a) => a.status === 'Pending Review').length +
-    localPrograms.filter((p) => p.status === 'Pending Approval').length;
+    authoredArticles.filter((a) => a.status === 'pending_approval').length +
+    programList.filter((p) => p.status === 'pending_approval').length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
@@ -322,17 +499,29 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
             Verified Statutory License
           </span>
+          {isDemoMode && (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
+              DEMO MODE · UI Preview Only
+            </span>
+          )}
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[11px] text-[#526B5C] hidden md:inline">
             RBAC: /clientProfiles restricted
           </span>
-          <button
-            onClick={onSwitchRole}
-            className="text-[#2D5A43] font-bold hover:text-[#183626] underline underline-offset-2 whitespace-nowrap transition-colors"
-          >
-            Switch to Administrator Portal →
-          </button>
+          {canSwitchToAdmin && onSwitchRole && (
+            <button
+              type="button"
+              onClick={onSwitchRole}
+              className={`font-bold whitespace-nowrap transition-colors ${
+                isDemoMode
+                  ? 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100'
+                  : 'text-[#2D5A43] hover:text-[#183626] underline underline-offset-2'
+              }`}
+            >
+              {isDemoMode ? 'DEMO MODE: Switch to Administrator Portal →' : 'Switch to Administrator Portal →'}
+            </button>
+          )}
         </div>
       </div>
 
@@ -372,7 +561,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
         <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto shrink-0">
           <button
             type="button"
-            onClick={() => setIsAuthorModalOpen(true)}
+            onClick={handleOpenNewArticleModal}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-[#1E3F2E] bg-white hover:bg-[#F2F6F3] border border-[#CCD5CB] rounded-xl shadow-xs transition-colors"
           >
             <FileText className="w-4 h-4 text-[#2D5A43]" />
@@ -420,13 +609,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
-              {localPrograms.length}
+              {programList.length}
             </span>
             <span className="text-xs text-[#526B5C]">Curated Regimens</span>
           </div>
           <p className="text-[11px] text-[#5E7869]">
-            {localPrograms.filter((p) => p.status === 'Published').length} Published ·{' '}
-            {localPrograms.filter((p) => p.status === 'Pending Approval').length} In Review
+            {programList.filter((p) => p.status === 'published').length} Published ·{' '}
+            {programList.filter((p) => p.status === 'pending_approval').length} In Review
           </p>
         </div>
 
@@ -445,7 +634,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             <span className="text-xs text-[#A64B2A] font-semibold">Pending Review</span>
           </div>
           <p className="text-[11px] text-[#6E544B]">
-            {consultations.filter((c) => c.status === 'Confirmed').length} Confirmed for review
+            {consultations.filter((c) => c.status === 'confirmed' || c.status === 'rescheduled').length} Confirmed or Rescheduled
           </p>
         </div>
 
@@ -509,7 +698,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           }`}
         >
           <Award className="w-4 h-4" />
-          <span>Wellness Programmes ({localPrograms.length})</span>
+          <span>Wellness Programmes ({programList.length})</span>
         </button>
 
         <button
@@ -588,100 +777,122 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           </div>
 
           {/* Roster Table */}
-          <div className="overflow-x-auto border border-[#E0E7E1] rounded-xl">
-            <table className="w-full text-left text-xs sm:text-sm">
-              <thead className="bg-[#FAFBF9] border-b border-[#E0E7E1] text-[#526B5C] font-semibold text-xs">
-                <tr>
-                  <th className="py-3 px-4">Seeker Name</th>
-                  <th className="py-3 px-4">Primary Wellness Goal</th>
-                  <th className="py-3 px-4">Enrolled Regimen</th>
-                  <th className="py-3 px-4">Dinacharya Adherence</th>
-                  <th className="py-3 px-4">Baseline Assessment</th>
-                  <th className="py-3 px-4">Clinical Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#EEF2EC]">
-                {filteredClients.map((client) => (
-                  <tr key={client.id} className="hover:bg-[#FAFBF9] transition-colors">
-                    <td className="py-3.5 px-4 font-semibold text-[#1E3F2E]">
-                      <div>
-                        <span>{client.name}</span>
-                        <p className="text-[11px] text-[#6B8576] font-normal">
-                          {client.age} yrs · {client.gender}
-                        </p>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-[#3C5345] max-w-xs">
-                      <span className="line-clamp-2 leading-relaxed">{client.primaryGoal}</span>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-[#3C5345]">
-                      <div>
-                        <span className="font-medium text-[#1E3F2E]">{client.enrolledProgram}</span>
-                        <p className="text-[11px] text-[#6B8576]">{client.discipline}</p>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <div className="space-y-1 w-28">
-                        <div className="flex justify-between text-[11px] font-semibold text-[#1E3F2E]">
-                          <span className="tabular-nums">{client.adherenceRate}%</span>
-                          <span className="text-[10px] text-[#526B5C]">Active</span>
-                        </div>
-                        <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full ${
-                              client.adherenceRate >= 80 ? 'bg-[#2D5A43]' : 'bg-[#D97746]'
-                            }`}
-                            style={{ width: `${client.adherenceRate}%` }}
-                          />
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-xs">
-                      {client.assessmentCompleted ? (
-                        <span className="text-[#2D5A43] font-semibold flex items-center gap-1">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Complete
-                        </span>
-                      ) : (
-                        <span className="text-[#A64B2A] font-semibold flex items-center gap-1">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          Pending
-                        </span>
-                      )}
-                    </td>
-
-                    <td className="py-3.5 px-4">
-                      <span
-                        className={`text-xs px-2.5 py-0.5 rounded-md font-medium ${
-                          client.status === 'On Track'
-                            ? 'bg-[#EBF2ED] text-[#244E38]'
-                            : client.status === 'Active'
-                            ? 'bg-[#E8F0F7] text-[#1E4E79]'
-                            : 'bg-[#FBF2EE] text-[#A64B2A]'
-                        }`}
-                      >
-                        {client.status}
-                      </span>
-                    </td>
-
-                    <td className="py-3.5 px-4 text-right">
-                      <button
-                        onClick={() => handleOpenClientDetail(client)}
-                        className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] hover:text-[#183626] border border-[#CCD5CB] hover:bg-[#EBF2ED] rounded-lg transition-colors whitespace-nowrap"
-                      >
-                        View Profile & Notes
-                      </button>
-                    </td>
+          {clientsLoading ? (
+            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+              <span>Loading assigned client records...</span>
+            </div>
+          ) : clientsError ? (
+            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+              {clientsError}
+            </div>
+          ) : filteredClients.length === 0 ? (
+            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+              No assigned seekers match the current filters for {practitioner.name}.
+            </div>
+          ) : (
+            <div className="overflow-x-auto border border-[#E0E7E1] rounded-xl">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="bg-[#FAFBF9] border-b border-[#E0E7E1] text-[#526B5C] font-semibold text-xs">
+                  <tr>
+                    <th className="py-3 px-4">Seeker Name</th>
+                    <th className="py-3 px-4">Primary Wellness Goal</th>
+                    <th className="py-3 px-4">Enrolled Regimen</th>
+                    <th className="py-3 px-4">Dinacharya Adherence</th>
+                    <th className="py-3 px-4">Baseline Assessment</th>
+                    <th className="py-3 px-4">Clinical Status</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-[#EEF2EC]">
+                  {filteredClients.map((client) => (
+                    <tr key={client.id} className="hover:bg-[#FAFBF9] transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-[#1E3F2E]">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span>{client.name}</span>
+                            {client.isSimulated !== false && (
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                                Demo Record
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-[#6B8576] font-normal">
+                            {client.age} yrs · {client.gender}
+                          </p>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-[#3C5345] max-w-xs">
+                        <span className="line-clamp-2 leading-relaxed">{client.primaryGoal}</span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-[#3C5345]">
+                        <div>
+                          <span className="font-medium text-[#1E3F2E]">{client.enrolledProgram}</span>
+                          <p className="text-[11px] text-[#6B8576]">{client.discipline}</p>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="space-y-1 w-28">
+                          <div className="flex justify-between text-[11px] font-semibold text-[#1E3F2E]">
+                            <span className="tabular-nums">{client.adherenceRate}%</span>
+                            <span className="text-[10px] text-[#526B5C]">Active</span>
+                          </div>
+                          <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full ${
+                                client.adherenceRate >= 80 ? 'bg-[#2D5A43]' : 'bg-[#D97746]'
+                              }`}
+                              style={{ width: `${client.adherenceRate}%` }}
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-xs">
+                        {client.assessmentCompleted ? (
+                          <span className="text-[#2D5A43] font-semibold flex items-center gap-1">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Complete
+                          </span>
+                        ) : (
+                          <span className="text-[#A64B2A] font-semibold flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            Pending
+                          </span>
+                        )}
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <span
+                          className={`text-xs px-2.5 py-0.5 rounded-md font-medium ${
+                            client.status === 'On Track'
+                              ? 'bg-[#EBF2ED] text-[#244E38]'
+                              : client.status === 'Active'
+                              ? 'bg-[#E8F0F7] text-[#1E4E79]'
+                              : 'bg-[#FBF2EE] text-[#A64B2A]'
+                          }`}
+                        >
+                          {client.status}
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <button
+                          onClick={() => handleOpenClientDetail(client)}
+                          className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] hover:text-[#183626] border border-[#CCD5CB] hover:bg-[#EBF2ED] rounded-lg transition-colors whitespace-nowrap"
+                        >
+                          View Profile &amp; Notes
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       )}
 
@@ -710,85 +921,126 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </span>
           </div>
 
-          <div className="space-y-4">
-            {consultations.map((item) => (
-              <div
-                key={item.id}
-                className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 hover:border-[#CAD7CC] transition-colors"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold text-sm flex items-center justify-center">
-                      {item.seekerName.substring(0, 2).toUpperCase()}
+          {consultationsLoading ? (
+            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+              <span>Loading consultation inbox...</span>
+            </div>
+          ) : consultationsError ? (
+            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+              {consultationsError}
+            </div>
+          ) : consultations.length === 0 ? (
+            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+              No consultation requests addressed to {practitioner.name} yet.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {consultations.map((item) => {
+                const statusBadgeMap: Record<
+                  ConsultationStatus,
+                  { label: string; className: string }
+                > = {
+                  pending: { label: 'Pending Review', className: 'bg-[#FEF3C7] text-[#92400E]' },
+                  confirmed: { label: 'Confirmed', className: 'bg-[#EBF2ED] text-[#244E38]' },
+                  rescheduled: { label: 'Rescheduled', className: 'bg-[#E8F0F7] text-[#1E4E79]' },
+                  rejected: { label: 'Declined', className: 'bg-[#FDF2F0] text-[#9B2C1B]' },
+                  completed: { label: 'Completed', className: 'bg-[#EBF2ED] text-[#244E38]' },
+                  cancelled: { label: 'Cancelled', className: 'bg-slate-100 text-slate-600' },
+                };
+                const badge = statusBadgeMap[item.status] || statusBadgeMap.pending;
+                const nameTokens = (item.userName || 'WS').match(/[a-zA-Z]+/g) || ['WS'];
+                const initials =
+                  nameTokens.length >= 2
+                    ? `${nameTokens[0][0]}${nameTokens[1][0]}`.toUpperCase()
+                    : nameTokens[0].slice(0, 2).toUpperCase();
+
+                return (
+                  <div
+                    key={item.id}
+                    className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 hover:border-[#CAD7CC] transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold text-sm flex items-center justify-center shrink-0">
+                          {initials}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm text-[#1E3F2E]">{item.userName}</h4>
+                          <p className="text-xs text-[#526B5C]">
+                            Seeker ID: <span className="font-mono">{item.userId}</span> · Preferred:{' '}
+                            {item.preferredDate ? `${item.preferredDate} · ` : ''}
+                            {getPreferredSlotLabel(item.preferredSlot)}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-start sm:self-auto">
+                        {item.isSimulated && (
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                            Demo Request
+                          </span>
+                        )}
+                        <span className={`text-xs px-2.5 py-0.5 rounded-md font-semibold ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-sm text-[#1E3F2E]">{item.seekerName}</h4>
-                      <p className="text-xs text-[#526B5C]">Preferred Time: {item.preferredSlot}</p>
+
+                    <div className="text-xs text-[#3C5345] space-y-1.5 bg-white p-3.5 rounded-lg border border-[#E5ECE7]">
+                      <p>
+                        <strong>Focus Area:</strong>{' '}
+                        {item.topicLabel || getConsultationTopicLabel(item.topic)}
+                      </p>
+                      <p>
+                        <strong>Seeker Observation Note:</strong>{' '}
+                        {item.notes ? `"${item.notes}"` : 'No additional observation note provided.'}
+                      </p>
+                      {item.scheduledTime && (
+                        <p className="text-[#2D5A43] font-semibold">
+                          Scheduled Appointment: {item.scheduledTime}
+                        </p>
+                      )}
+                      {item.practitionerNotes && (
+                        <p className="text-[#526B5C] italic">
+                          Physician Note: {item.practitionerNotes}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenConsultationModal(item, 'confirmed')}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
+                      >
+                        {item.status === 'pending' ? 'Accept & Confirm' : 'Confirm Slot'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenConsultationModal(item, 'rescheduled')}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-[#1E4E79] bg-[#E8F0F7] hover:bg-[#DCE8F2] border border-[#C6D8E8] rounded-lg transition-colors"
+                      >
+                        Reschedule
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleOpenConsultationModal(item, 'rejected')}
+                        className="px-3.5 py-1.5 text-xs font-semibold text-[#9B2C1B] bg-[#FDF2F0] hover:bg-[#F9E3DF] border border-[#ECC8C1] rounded-lg transition-colors"
+                      >
+                        Decline
+                      </button>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2 self-start sm:self-auto">
-                    {item.isSimulated && (
-                      <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
-                        Simulated Request
-                      </span>
-                    )}
-                    <span
-                      className={`text-xs px-2.5 py-0.5 rounded-md font-semibold ${
-                        item.status === 'Confirmed'
-                          ? 'bg-[#EBF2ED] text-[#244E38]'
-                          : 'bg-[#FEF3C7] text-[#92400E]'
-                      }`}
-                    >
-                      {item.status}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="text-xs text-[#3C5345] space-y-1.5 bg-white p-3.5 rounded-lg border border-[#E5ECE7]">
-                  <p>
-                    <strong>Focus Area:</strong> {item.topic}
-                  </p>
-                  <p>
-                    <strong>Seeker Observation Note:</strong> "{item.seekerNotes}"
-                  </p>
-                  {item.scheduledTime && (
-                    <p className="text-[#2D5A43] font-semibold">
-                      Confirmed Scheduled Slot: {item.scheduledTime}
-                    </p>
-                  )}
-                  {item.practitionerNotes && (
-                    <p className="text-[#526B5C] italic">
-                      Physician Note: {item.practitionerNotes}
-                    </p>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center justify-end gap-2.5 pt-1">
-                  {item.status === 'Pending Review' ? (
-                    <button
-                      onClick={() => setActiveConsultationModal(item)}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
-                    >
-                      Confirm Schedule & Add Notes
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => setActiveConsultationModal(item)}
-                      className="px-3.5 py-1.5 text-xs font-semibold text-[#2D5A43] hover:bg-[#EBF2ED] border border-[#CCD5CB] rounded-lg transition-colors"
-                    >
-                      Update Appointment Details
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="p-3 bg-[#F8FAF8] rounded-xl border border-[#DCE6DE] text-xs text-[#4F6858] flex items-start gap-2">
             <Info className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
             <span>
-              <strong>Consultation Authorization Rules:</strong> As the assigned physician, you are authorized to confirm appointment times and attach clinical review notes. Seekers cannot self-confirm or alter assigned doctors per Firestore rules.
+              <strong>Consultation Authorization Rules:</strong> As the assigned physician, you are authorized to confirm, reschedule, or decline appointment requests addressed to {practitioner.name} and attach review notes.
             </span>
           </div>
         </section>
@@ -800,17 +1052,18 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
             <div>
               <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
-                Regimen Architecture & Templates
+                Regimen Architecture &amp; Templates
               </span>
               <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
                 Wellness Programme Catalog
               </h2>
               <p className="text-xs text-[#526B5C]">
-                Educational lifestyle curricula authored by verified practitioners. Edits undergo Admin approval before public release.
+                Educational lifestyle curricula authored by {practitioner.name}. Edits and submissions undergo Admin approval before public release.
               </p>
             </div>
 
             <button
+              type="button"
               onClick={onOpenNewRegimen}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
             >
@@ -826,64 +1079,102 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
           )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {localPrograms.map((prog) => (
-              <div
-                key={prog.id}
-                className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs text-[#526B5C]">
-                    <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${
-                        prog.status === 'Published'
-                          ? 'bg-[#EBF2ED] text-[#244E38]'
-                          : prog.status === 'Pending Approval'
-                          ? 'bg-[#FEF3C7] text-[#92400E]'
-                          : 'bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      {prog.status}
-                    </span>
+          {programsLoading ? (
+            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+              <span>Loading wellness programmes...</span>
+            </div>
+          ) : programsError ? (
+            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+              {programsError}
+            </div>
+          ) : programList.length === 0 ? (
+            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+              No wellness programmes authored by {practitioner.name} yet. Create a regimen template to begin.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {programList.map((prog) => {
+                const badge = getProgramStatusMeta(prog.status);
+                return (
+                  <div
+                    key={prog.id}
+                    className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 flex flex-col justify-between"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#526B5C]">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                          {prog.isSimulated && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                              Demo Record
+                            </span>
+                          )}
+                        </div>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold ${badge.className}`}>
+                          {badge.label}
+                        </span>
+                      </div>
+
+                      <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                        {prog.title}
+                      </h3>
+
+                      <p className="text-xs text-[#4E6457] leading-relaxed line-clamp-3">
+                        {prog.description}
+                      </p>
+
+                      {prog.reviewNotes && (
+                        <div
+                          className={`p-2.5 rounded-lg border text-[11px] space-y-0.5 ${
+                            prog.status === 'revision_requested'
+                              ? 'bg-[#FDF2F0] border-[#ECC8C1] text-[#9B2C1B]'
+                              : 'bg-white border-[#E5ECE7] text-[#4E6457]'
+                          }`}
+                        >
+                          <p className="font-semibold">
+                            Admin Feedback{prog.reviewedAt ? ` (${formatReadableDate(prog.reviewedAt)})` : ''}:
+                          </p>
+                          <p>{prog.reviewNotes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="pt-2 border-t border-[#E8ECE6] space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
+                        <span>Duration: {prog.durationWeeks} Weeks</span>
+                        <span>Level: {prog.level}</span>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-[11px] text-[#2D5A43] font-medium">
+                          {prog.totalSessions} Total Sessions · Updated {formatReadableDate(prog.updatedAt)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setProgramEditError(null);
+                            setEditingProgram({ ...prog });
+                          }}
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#2D5A43] hover:underline"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>
+                            {prog.status === 'revision_requested' ? 'Revise & Resubmit' : 'Edit Template'}
+                          </span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-
-                  <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
-                    {prog.title}
-                  </h3>
-
-                  <p className="text-xs text-[#4E6457] leading-relaxed line-clamp-3">
-                    {prog.description}
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-[#E8ECE6] space-y-2">
-                  <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
-                    <span>Duration: {prog.durationWeeks} Weeks</span>
-                    <span>Level: {prog.level}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[11px] text-[#2D5A43] font-medium">
-                      {prog.totalSessions} Total Sessions
-                    </span>
-                    <button
-                      onClick={() => setEditingProgram(prog)}
-                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#2D5A43] hover:underline"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit Template</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] text-xs text-[#526B5C] flex items-start gap-2">
             <Lock className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
             <span>
-              <strong>Platform Governance Rule:</strong> Newly created or edited regimens are stored in <em>Pending Approval</em> status. Practitioners cannot bypass administrator verification to self-publish into the public seeker catalog.
+              <strong>Platform Governance Rule:</strong> Newly created or edited regimens are stored in <em>Draft</em> or <em>Pending Approval</em> status. Practitioners cannot bypass administrator verification to self-publish into the public seeker catalog.
             </span>
           </div>
         </section>
@@ -898,15 +1189,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 Health Education Authorship
               </span>
               <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
-                Authored Wellness Guides & Articles
+                Authored Wellness Guides &amp; Articles
               </h2>
               <p className="text-xs text-[#526B5C]">
-                Draft evidence-informed educational content for community review. Direct publication is restricted; submissions route to the Administrator Governance queue.
+                Draft evidence-informed educational content authored by {practitioner.name}. Direct publication is restricted; submissions route to the Administrator Governance queue.
               </p>
             </div>
 
             <button
-              onClick={() => setIsAuthorModalOpen(true)}
+              type="button"
+              onClick={handleOpenNewArticleModal}
               className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -921,83 +1213,139 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
           )}
 
-          <div className="space-y-3.5">
-            {authoredArticles.map((art) => (
-              <div
-                key={art.id}
-                className="p-4 sm:p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-2 hover:border-[#CAD7CC] transition-colors"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-2 text-[#526B5C]">
-                    <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
-                    <span>·</span>
-                    <span>{art.category}</span>
-                    <span>·</span>
-                    <span>{art.readTime}</span>
-                    <span>·</span>
-                    <span>Submitted: {art.submittedDate}</span>
+          {articlesLoading ? (
+            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+              <span>Loading authored wellness guides...</span>
+            </div>
+          ) : articlesError ? (
+            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+              {articlesError}
+            </div>
+          ) : authoredArticles.length === 0 ? (
+            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+              No educational articles authored by {practitioner.name} yet. Click &ldquo;Draft New Article&rdquo; to begin.
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {authoredArticles.map((art) => {
+                const badge = getArticleStatusMeta(art.status);
+                return (
+                  <div
+                    key={art.id}
+                    className="p-4 sm:p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-2.5 hover:border-[#CAD7CC] transition-colors"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex flex-wrap items-center gap-2 text-[#526B5C]">
+                        <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
+                        <span>·</span>
+                        <span>{art.category}</span>
+                        <span>·</span>
+                        <span>{art.readTime}</span>
+                        <span>·</span>
+                        <span>
+                          {art.submittedAt
+                            ? `Submitted: ${formatReadableDate(art.submittedAt)}`
+                            : `Updated: ${formatReadableDate(art.updatedAt)}`}
+                        </span>
+                        {art.isSimulated && (
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                            Demo Record
+                          </span>
+                        )}
+                      </div>
+                      <span className={`text-[10px] px-2.5 py-0.5 rounded-md font-semibold ${badge.className}`}>
+                        {badge.label}
+                      </span>
+                    </div>
+
+                    <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                      {art.title}
+                    </h3>
+
+                    <p className="text-xs text-[#4E6457] leading-relaxed">
+                      {art.summary}
+                    </p>
+
+                    {art.reviewNotes && (
+                      <div
+                        className={`p-3 rounded-lg border text-xs space-y-0.5 ${
+                          art.status === 'revision_requested'
+                            ? 'bg-[#FDF2F0] border-[#ECC8C1] text-[#9B2C1B]'
+                            : 'bg-white border-[#E5ECE7] text-[#4E6457]'
+                        }`}
+                      >
+                        <p className="font-semibold">
+                          Admin Review Feedback
+                          {art.reviewedAt ? ` · ${formatReadableDate(art.reviewedAt)}` : ''}:
+                        </p>
+                        <p>{art.reviewNotes}</p>
+                      </div>
+                    )}
+
+                    <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-[#526B5C] border-t border-[#EEF2EC]">
+                      <span>
+                        Status:{' '}
+                        <strong>
+                          {art.status === 'published'
+                            ? 'Approved & Published by Admin'
+                            : art.status === 'pending_approval'
+                            ? 'In Administrator Review Queue'
+                            : art.status === 'revision_requested'
+                            ? 'Revision Requested by Admin'
+                            : 'Saved as Private Draft'}
+                        </strong>
+                      </span>
+                      <div className="flex items-center gap-4">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditArticleModal(art)}
+                          className="inline-flex items-center gap-1 font-semibold text-[#2D5A43] hover:underline"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                          <span>
+                            {art.status === 'revision_requested'
+                              ? 'Edit & Resubmit'
+                              : art.status === 'draft'
+                              ? 'Edit / Submit'
+                              : 'Edit Guide'}
+                          </span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onReadArticle({
+                              id: art.id,
+                              title: art.title,
+                              discipline: art.discipline,
+                              category: art.category,
+                              readTime: art.readTime,
+                              author: art.authorName || practitioner.name,
+                              authorQualification: art.authorQualification || practitioner.qualification,
+                              summary: art.summary,
+                              fullContent: art.fullContent,
+                              keyTakeaways: art.keyTakeaways?.length
+                                ? art.keyTakeaways
+                                : [
+                                    'Focuses on classical non-diagnostic health cultivation.',
+                                    'Safe culinary doses of traditional herbs.',
+                                    'Consult with primary physician for acute conditions.',
+                                  ],
+                              reviewedDate: formatReadableDate(art.reviewedAt || art.submittedAt || art.updatedAt),
+                            });
+                          }}
+                          className="inline-flex items-center gap-1 font-semibold text-[#2D5A43] hover:underline"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Preview Article Content</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <span
-                    className={`text-[10px] px-2.5 py-0.5 rounded-md font-semibold ${
-                      art.status === 'Approved'
-                        ? 'bg-[#EBF2ED] text-[#244E38]'
-                        : art.status === 'Pending Review'
-                        ? 'bg-[#FEF3C7] text-[#92400E]'
-                        : 'bg-slate-100 text-slate-700'
-                    }`}
-                  >
-                    {art.status}
-                  </span>
-                </div>
-
-                <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
-                  {art.title}
-                </h3>
-
-                <p className="text-xs text-[#4E6457] leading-relaxed">
-                  {art.summary}
-                </p>
-
-                <div className="pt-2 flex items-center justify-between text-xs text-[#526B5C] border-t border-[#EEF2EC]">
-                  <span>
-                    Status:{' '}
-                    <strong>
-                      {art.status === 'Approved'
-                        ? 'Published in Public Catalog'
-                        : art.status === 'Pending Review'
-                        ? 'In Administrator Review Queue'
-                        : 'Saved as Private Draft'}
-                    </strong>
-                  </span>
-                  <button
-                    onClick={() => {
-                      onReadArticle({
-                        id: art.id,
-                        title: art.title,
-                        discipline: art.discipline,
-                        category: art.category,
-                        readTime: art.readTime,
-                        author: practitioner.name,
-                        authorQualification: practitioner.qualification,
-                        summary: art.summary,
-                        fullContent: art.content,
-                        keyTakeaways: [
-                          'Focuses on classical non-diagnostic health cultivation.',
-                          'Safe culinary doses of traditional herbs.',
-                          'Consult with primary physician for acute conditions.',
-                        ],
-                        reviewedDate: art.submittedDate,
-                      });
-                    }}
-                    className="inline-flex items-center gap-1 font-semibold text-[#2D5A43] hover:underline"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                    <span>Preview Article Content</span>
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] text-xs text-[#526B5C] flex items-start gap-2">
             <Lock className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
@@ -1123,6 +1471,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   className="w-full text-xs sm:text-sm p-3 rounded-xl border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
                 />
 
+                {notesError && (
+                  <div role="alert" className="p-2.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-[#9B2C1B] text-xs font-semibold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{notesError}</span>
+                  </div>
+                )}
+
                 {saveNotesToast && (
                   <div className="p-2.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] text-xs font-semibold flex items-center gap-1.5">
                     <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
@@ -1140,10 +1495,15 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   </button>
                   <button
                     type="submit"
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                    disabled={savingNotes}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] disabled:opacity-60 rounded-lg transition-colors shadow-xs"
                   >
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Save Observation Note</span>
+                    {savingNotes ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Check className="w-3.5 h-3.5" />
+                    )}
+                    <span>{savingNotes ? 'Saving...' : 'Save Observation Note'}</span>
                   </button>
                 </div>
               </form>
@@ -1171,19 +1531,49 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setEditingProgram(null)}
+                aria-label="Close edit programme dialog"
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSaveProgramEdit} className="p-6 space-y-4">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSaveProgramEdit(true);
+              }}
+              noValidate
+              className="p-6 space-y-4"
+            >
+              {editingProgram.reviewNotes && editingProgram.status === 'revision_requested' && (
+                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
+                  <p className="font-semibold">Admin Revision Feedback:</p>
+                  <p>{editingProgram.reviewNotes}</p>
+                </div>
+              )}
+
+              {programEditError && (
+                <div
+                  role="alert"
+                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium flex items-start gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{programEditError}</span>
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
-                  Programme Title
+                <label
+                  htmlFor="edit-program-name"
+                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                >
+                  Programme Title *
                 </label>
                 <input
+                  id="edit-program-name"
                   type="text"
                   required
                   value={editingProgram.title}
@@ -1194,25 +1584,40 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                  <label
+                    htmlFor="edit-program-weeks"
+                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  >
                     Duration (Weeks)
                   </label>
                   <input
+                    id="edit-program-weeks"
                     type="number"
                     min={1}
-                    max={12}
+                    max={52}
                     value={editingProgram.durationWeeks}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, durationWeeks: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setEditingProgram({
+                        ...editingProgram,
+                        durationWeeks: Number(e.target.value),
+                      })
+                    }
                     className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                  <label
+                    htmlFor="edit-program-level"
+                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  >
                     Level
                   </label>
                   <select
+                    id="edit-program-level"
                     value={editingProgram.level}
-                    onChange={(e) => setEditingProgram({ ...editingProgram, level: e.target.value as any })}
+                    onChange={(e) =>
+                      setEditingProgram({ ...editingProgram, level: e.target.value as any })
+                    }
                     className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
                   >
                     <option value="Beginner">Beginner</option>
@@ -1223,14 +1628,20 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
-                  Description & Clinical Objectives
+                <label
+                  htmlFor="edit-program-desc"
+                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                >
+                  Description &amp; Clinical Objectives *
                 </label>
                 <textarea
+                  id="edit-program-desc"
                   rows={3}
                   required
                   value={editingProgram.description}
-                  onChange={(e) => setEditingProgram({ ...editingProgram, description: e.target.value })}
+                  onChange={(e) =>
+                    setEditingProgram({ ...editingProgram, description: e.target.value })
+                  }
                   className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
                 />
               </div>
@@ -1238,23 +1649,37 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div className="p-3 bg-[#FBF2EE] rounded-lg border border-[#F0DCD5] text-xs text-[#A64B2A] flex items-start gap-2">
                 <AlertCircle className="w-4 h-4 text-[#A64B2A] shrink-0 mt-0.5" />
                 <span>
-                  <strong>Governance Requirement:</strong> Saving modifications moves the regimen to <em>Pending Approval</em>. Platform Admin approval is mandatory before published changes appear in seeker dashboards.
+                  <strong>Governance Requirement:</strong> Submitting moves the regimen to <em>Pending Approval</em>. Platform Admin approval is mandatory before published changes appear in seeker dashboards.
                 </span>
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-3">
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2.5">
                 <button
                   type="button"
                   onClick={() => setEditingProgram(null)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  type="submit"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                  type="button"
+                  disabled={isSavingProgramEdit}
+                  onClick={() => handleSaveProgramEdit(false)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#1E3F2E] bg-white hover:bg-[#F2F6F3] border border-[#CCD5CB] rounded-lg transition-colors disabled:opacity-60"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  <FileText className="w-3.5 h-3.5 text-[#2D5A43]" />
+                  <span>Save as Draft</span>
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProgramEdit}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                >
+                  {isSavingProgramEdit ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
                   <span>Submit for Admin Approval</span>
                 </button>
               </div>
@@ -1263,7 +1688,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
         </div>
       )}
 
-      {/* DRAFT EDUCATIONAL ARTICLE MODAL */}
+      {/* DRAFT / EDIT EDUCATIONAL ARTICLE MODAL */}
       {isAuthorModalOpen && (
         <div
           role="dialog"
@@ -1278,11 +1703,17 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   Health Education Authorship
                 </span>
                 <h3 id="author-modal-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
-                  Author Educational Wellness Guide
+                  {editingArticle ? 'Edit Educational Wellness Guide' : 'Author Educational Wellness Guide'}
                 </h3>
               </div>
               <button
-                onClick={() => setIsAuthorModalOpen(false)}
+                type="button"
+                onClick={() => {
+                  setIsAuthorModalOpen(false);
+                  setEditingArticle(null);
+                  setArticleModalError(null);
+                }}
+                aria-label="Close article authoring dialog"
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
@@ -1290,11 +1721,32 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
 
             <div className="p-6 space-y-4">
+              {editingArticle?.reviewNotes && editingArticle.status === 'revision_requested' && (
+                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
+                  <p className="font-semibold">Admin Revision Feedback:</p>
+                  <p>{editingArticle.reviewNotes}</p>
+                </div>
+              )}
+
+              {articleModalError && (
+                <div
+                  role="alert"
+                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium flex items-start gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{articleModalError}</span>
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
-                  Article Title
+                <label
+                  htmlFor="author-article-title"
+                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                >
+                  Article Title *
                 </label>
                 <input
+                  id="author-article-title"
                   type="text"
                   required
                   placeholder="e.g., Safe Culinary Herbal Teas for Autumn Transition"
@@ -1306,16 +1758,20 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                  <label
+                    htmlFor="author-article-discipline"
+                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  >
                     Discipline
                   </label>
                   <select
+                    id="author-article-discipline"
                     value={articleFormDiscipline}
                     onChange={(e) => setArticleFormDiscipline(e.target.value as any)}
                     className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-800"
                   >
                     <option value="Ayurveda">Ayurveda</option>
-                    <option value="Yoga & Naturopathy">Yoga & Naturopathy</option>
+                    <option value="Yoga & Naturopathy">Yoga &amp; Naturopathy</option>
                     <option value="Unani">Unani</option>
                     <option value="Siddha">Siddha</option>
                     <option value="Homeopathy">Homeopathy</option>
@@ -1323,10 +1779,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                  <label
+                    htmlFor="author-article-category"
+                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  >
                     Category
                   </label>
                   <select
+                    id="author-article-category"
                     value={articleFormCategory}
                     onChange={(e) => setArticleFormCategory(e.target.value as any)}
                     className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-800"
@@ -1340,10 +1800,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                  <label
+                    htmlFor="author-article-readtime"
+                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  >
                     Read Time
                   </label>
                   <input
+                    id="author-article-readtime"
                     type="text"
                     value={articleFormReadTime}
                     onChange={(e) => setArticleFormReadTime(e.target.value)}
@@ -1353,10 +1817,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
-                  Educational Thesis / Summary
+                <label
+                  htmlFor="author-article-summary"
+                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                >
+                  Educational Thesis / Summary *
                 </label>
                 <textarea
+                  id="author-article-summary"
                   rows={2}
                   required
                   placeholder="Summarize the core traditional concept, circadian relevance, and practical self-observation..."
@@ -1367,10 +1835,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                <label
+                  htmlFor="author-article-content"
+                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                >
                   Educational Content
                 </label>
                 <textarea
+                  id="author-article-content"
                   rows={4}
                   placeholder="Detailed guidelines, classical references (Charaka/Ashtanga), and non-diagnostic safe practices..."
                   value={articleFormContent}
@@ -1389,17 +1861,23 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div className="pt-2 flex items-center justify-end gap-3">
                 <button
                   type="button"
+                  disabled={isSavingArticle}
                   onClick={() => handleArticleSubmit(true)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-[#CCD5CB] disabled:opacity-60"
                 >
                   Save as Draft
                 </button>
                 <button
                   type="button"
+                  disabled={isSavingArticle}
                   onClick={() => handleArticleSubmit(false)}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                 >
-                  <Send className="w-3.5 h-3.5" />
+                  {isSavingArticle ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
                   <span>Submit for Admin Review</span>
                 </button>
               </div>
@@ -1408,7 +1886,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
         </div>
       )}
 
-      {/* CONFIRM / RESCHEDULE CONSULTATION MODAL */}
+      {/* CONFIRM / RESCHEDULE / DECLINE CONSULTATION MODAL */}
       {activeConsultationModal && (
         <div
           role="dialog"
@@ -1423,43 +1901,117 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   Care Scheduling
                 </span>
                 <h3 id="confirm-consult-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
-                  Confirm Consultation
+                  {consultationModalAction === 'confirmed'
+                    ? 'Confirm Consultation'
+                    : consultationModalAction === 'rescheduled'
+                    ? 'Reschedule Consultation'
+                    : 'Decline Consultation Request'}
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setActiveConsultationModal(null)}
+                aria-label="Close consultation review dialog"
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleConfirmConsultation} className="p-6 space-y-4 text-xs sm:text-sm">
+            <form onSubmit={handleUpdateConsultation} noValidate className="p-6 space-y-4 text-xs sm:text-sm">
               <div className="p-3 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
-                <p className="font-bold text-[#1E3F2E]">{activeConsultationModal.seekerName}</p>
-                <p className="text-xs text-[#526B5C]">Topic: {activeConsultationModal.topic}</p>
-                <p className="text-xs text-[#526B5C]">Preferred Time: {activeConsultationModal.preferredSlot}</p>
+                <p className="font-bold text-[#1E3F2E]">{activeConsultationModal.userName}</p>
+                <p className="text-xs text-[#526B5C]">
+                  Topic: {activeConsultationModal.topicLabel || getConsultationTopicLabel(activeConsultationModal.topic)}
+                </p>
+                <p className="text-xs text-[#526B5C]">
+                  Preferred Time:{' '}
+                  {activeConsultationModal.preferredDate ? `${activeConsultationModal.preferredDate} · ` : ''}
+                  {getPreferredSlotLabel(activeConsultationModal.preferredSlot)}
+                </p>
+                {activeConsultationModal.notes && (
+                  <p className="text-xs text-[#526B5C] italic">
+                    Seeker Note: &ldquo;{activeConsultationModal.notes}&rdquo;
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1E3F2E] mb-1">
-                  Confirmed Schedule Window
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={scheduledSlotInput}
-                  onChange={(e) => setScheduledSlotInput(e.target.value)}
-                  placeholder="e.g., Tomorrow at 10:30 AM (Virtual Review)"
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
-                />
+                <span className="block text-xs font-semibold text-[#1E3F2E] mb-1.5">
+                  Practitioner Decision
+                </span>
+                <div className="grid grid-cols-3 gap-2">
+                  {(
+                    [
+                      { value: 'confirmed', label: 'Accept / Confirm' },
+                      { value: 'rescheduled', label: 'Reschedule' },
+                      { value: 'rejected', label: 'Decline' },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => {
+                        setConsultationModalAction(opt.value);
+                        setConsultationModalError(null);
+                      }}
+                      className={`py-2 px-2 text-xs rounded-lg border font-semibold transition-colors ${
+                        consultationModalAction === opt.value
+                          ? opt.value === 'rejected'
+                            ? 'border-[#9B2C1B] bg-[#FDF2F0] text-[#9B2C1B]'
+                            : 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E]'
+                          : 'border-[#CCD5CB] bg-white text-slate-700 hover:bg-slate-50'
+                      }`}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
+              {consultationModalError && (
+                <div
+                  role="alert"
+                  className="p-2.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{consultationModalError}</span>
+                </div>
+              )}
+
+              {consultationModalAction !== 'rejected' && (
+                <div>
+                  <label
+                    htmlFor="practitioner-scheduled-slot"
+                    className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                  >
+                    {consultationModalAction === 'rescheduled'
+                      ? 'Proposed New Appointment Date & Time *'
+                      : 'Confirmed Schedule Window *'}
+                  </label>
+                  <input
+                    id="practitioner-scheduled-slot"
+                    type="text"
+                    required
+                    value={scheduledSlotInput}
+                    onChange={(e) => setScheduledSlotInput(e.target.value)}
+                    placeholder="e.g., 2026-11-28 at 10:30 AM (Virtual Review)"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  />
+                </div>
+              )}
+
               <div>
-                <label className="block text-xs font-semibold text-[#1E3F2E] mb-1">
-                  Physician Pre-Consultation Instructions
+                <label
+                  htmlFor="practitioner-consult-notes"
+                  className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                >
+                  {consultationModalAction === 'rejected'
+                    ? 'Reason / Alternative Guidance for Seeker'
+                    : 'Physician Pre-Consultation Instructions'}
                 </label>
                 <textarea
+                  id="practitioner-consult-notes"
                   rows={3}
                   value={consultationNoteInput}
                   onChange={(e) => setConsultationNoteInput(e.target.value)}
@@ -1478,10 +2030,25 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                  disabled={isUpdatingConsultation}
+                  className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-xs disabled:opacity-60 ${
+                    consultationModalAction === 'rejected'
+                      ? 'bg-[#9B2C1B] hover:bg-[#7F2315]'
+                      : 'bg-[#2D5A43] hover:bg-[#234835]'
+                  }`}
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Confirm Appointment</span>
+                  {isUpdatingConsultation ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  <span>
+                    {consultationModalAction === 'confirmed'
+                      ? 'Confirm Appointment'
+                      : consultationModalAction === 'rescheduled'
+                      ? 'Save Rescheduled Time'
+                      : 'Confirm Decline'}
+                  </span>
                 </button>
               </div>
             </form>

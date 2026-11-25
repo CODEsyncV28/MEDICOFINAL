@@ -38,6 +38,8 @@ export interface WellnessProgram {
   description: string;
   nextSession: string;
   level: 'Beginner' | 'Intermediate' | 'Deepening';
+  publishedAt?: string | null;
+  isSimulated?: boolean;
 }
 
 export interface EducationalArticle {
@@ -52,6 +54,8 @@ export interface EducationalArticle {
   fullContent: string;
   keyTakeaways: string[];
   reviewedDate: string;
+  publishedAt?: string | null;
+  isSimulated?: boolean;
 }
 
 export interface Practitioner {
@@ -81,6 +85,9 @@ export interface ClientRecord {
   lastCheckIn: string;
   practitionerNotes: string;
   status: 'Active' | 'Needs Review' | 'On Track';
+  assignedPractitionerId?: string;
+  isSimulated?: boolean;
+  updatedAt?: string;
 }
 
 export interface ContentApprovalItem {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   CheckCircle2,
@@ -7,16 +7,24 @@ import {
   Sparkles,
   AlertCircle,
   FileText,
-  Clock,
-  Compass,
   Check,
 } from 'lucide-react';
 import {
   EXPANDED_ASSESSMENT_QUESTIONS,
   ASSESSMENT_CATEGORIES,
 } from '../../data/assessmentQuestions';
-import { ExpandedAssessmentQuestion, QuestionOption } from '../../types/assessment';
+import {
+  AssessmentCategory,
+  ExpandedAssessmentQuestion,
+  QuestionOption,
+} from '../../types/assessment';
 import { calculateAssessmentSummary } from '../../utils/lifestyleLogic';
+import {
+  canNavigateToCategory,
+  createResetAssessmentModalState,
+  extractCanonicalAnswers,
+  validateAssessmentCompletion,
+} from '../../utils/assessmentValidation';
 
 interface AssessmentModalProps {
   isOpen: boolean;
@@ -31,20 +39,26 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
   onComplete,
   initialAnswers = {},
 }) => {
-  const [answers, setAnswers] = useState<Record<string, string>>(initialAnswers);
+  const [answers, setAnswers] = useState<Record<string, string>>(() => ({ ...(initialAnswers || {}) }));
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
-  const [showSectionIntro, setShowSectionIntro] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+  const [showValidationSummary, setShowValidationSummary] = useState(false);
+  const wasOpenRef = useRef(false);
 
-  // Synchronize state when modal opens
+  // Reset modal session state cleanly whenever modal transitions from closed -> open
   useEffect(() => {
-    if (isOpen) {
-      setAnswers(initialAnswers || {});
-      setCurrentQuestionIndex(0);
-      setIsFinished(false);
-      setShowSectionIntro(false);
+    if (isOpen && !wasOpenRef.current) {
+      const resetState = createResetAssessmentModalState(initialAnswers);
+      setAnswers(resetState.answers);
+      setCategoryNotes(resetState.categoryNotes);
+      setCurrentQuestionIndex(resetState.currentQuestionIndex);
+      setIsFinished(resetState.isFinished);
+      setValidationError(resetState.validationError);
+      setShowValidationSummary(resetState.showValidationSummary);
     }
+    wasOpenRef.current = isOpen;
   }, [isOpen, initialAnswers]);
 
   if (!isOpen) return null;
@@ -59,12 +73,15 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
   );
   const indexWithinCategory = currentCategoryQuestions.findIndex((q) => q.id === currentQ.id) + 1;
 
-  // Completion calculation
-  const answeredCount = Object.keys(answers).filter((k) => !!answers[k]).length;
+  // Canonical 20-question validation status
+  const validation = validateAssessmentCompletion(answers);
+  const answeredCount = validation.answeredCount;
   const progressPercentage = Math.round((answeredCount / totalQuestions) * 100);
+  const isCurrentAnswered = Boolean(answers[currentQ.id]?.trim());
 
   const handleSelectOption = (value: string) => {
     setAnswers((prev) => ({ ...prev, [currentQ.id]: value }));
+    setValidationError(null);
   };
 
   const handleNoteChange = (text: string) => {
@@ -72,30 +89,58 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
   };
 
   const handleNext = () => {
-    if (currentQuestionIndex < totalQuestions - 1) {
-      const nextIndex = currentQuestionIndex + 1;
-      const nextQ = EXPANDED_ASSESSMENT_QUESTIONS[nextIndex];
-      // If moving to a new category, optionally show brief category transition
-      if (nextQ.category !== currentQ.category) {
-        // category boundary crossed
-      }
-      setCurrentQuestionIndex(nextIndex);
-    } else {
-      setIsFinished(true);
-      onComplete(answers, categoryNotes);
+    if (!answers[currentQ.id]?.trim()) {
+      setValidationError(
+        `Please select an answer for Question #${currentQuestionIndex + 1} (${currentCatInfo?.name}) before proceeding.`
+      );
+      return;
     }
+
+    if (currentQuestionIndex < totalQuestions - 1) {
+      setValidationError(null);
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+      return;
+    }
+
+    // Final submission: strictly require all 20 questions to be answered
+    const fullCheck = validateAssessmentCompletion(answers);
+    if (!fullCheck.isValid) {
+      setValidationError(fullCheck.message);
+      setShowValidationSummary(true);
+      return;
+    }
+
+    setValidationError(null);
+    setShowValidationSummary(false);
+    setIsFinished(true);
+    onComplete(extractCanonicalAnswers(answers), categoryNotes);
   };
 
   const handlePrev = () => {
     if (currentQuestionIndex > 0) {
+      setValidationError(null);
       setCurrentQuestionIndex(currentQuestionIndex - 1);
     }
   };
 
-  const handleJumpToCategory = (catId: string) => {
-    const firstQIdx = EXPANDED_ASSESSMENT_QUESTIONS.findIndex((q) => q.category === catId);
-    if (firstQIdx !== -1) {
-      setCurrentQuestionIndex(firstQIdx);
+  const handleJumpToCategory = (catId: AssessmentCategory) => {
+    const navCheck = canNavigateToCategory(catId, answers);
+    if (!navCheck.allowed) {
+      setValidationError(navCheck.reason || 'Complete earlier unanswered questions before jumping ahead.');
+      setShowValidationSummary(true);
+      return;
+    }
+
+    if (typeof navCheck.redirectIndex === 'number' && navCheck.redirectIndex >= 0) {
+      setValidationError(null);
+      setCurrentQuestionIndex(navCheck.redirectIndex);
+    }
+  };
+
+  const handleJumpToFirstUnanswered = () => {
+    if (validation.firstUnansweredIndex >= 0) {
+      setCurrentQuestionIndex(validation.firstUnansweredIndex);
+      setValidationError(null);
     }
   };
 
@@ -127,6 +172,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
             </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close modal"
@@ -140,22 +186,26 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
           <div className="bg-[#F4F6F2] border-b border-[#E3E8E2] px-6 py-2 overflow-x-auto flex items-center gap-2 text-xs">
             {ASSESSMENT_CATEGORIES.map((cat) => {
               const catQs = EXPANDED_ASSESSMENT_QUESTIONS.filter((q) => q.category === cat.id);
-              const answeredInCat = catQs.filter((q) => !!answers[q.id]).length;
+              const answeredInCat = catQs.filter((q) => Boolean(answers[q.id]?.trim())).length;
               const isCurrentCat = cat.id === currentQ.category;
               const isCatComplete = answeredInCat === catQs.length;
+              const hasMissingNotice = showValidationSummary && !isCatComplete;
 
               return (
                 <button
                   key={cat.id}
+                  type="button"
                   onClick={() => handleJumpToCategory(cat.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
                     isCurrentCat
                       ? 'bg-[#2D5A43] text-white shadow-xs'
                       : isCatComplete
                       ? 'bg-[#E5ECE7] text-[#234834]'
+                      : hasMissingNotice
+                      ? 'bg-[#FFF5EE] text-[#A64B2A] border border-[#EBC7B2]'
                       : 'bg-white/80 text-[#556F5E] hover:bg-white'
                   }`}
-                  title={`${cat.name} (${answeredInCat}/${catQs.length})`}
+                  title={`${cat.name} (${answeredInCat}/${catQs.length} answered)`}
                 >
                   {isCatComplete ? (
                     <Check className="w-3 h-3 text-emerald-600" />
@@ -163,6 +213,15 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                     <span className="text-[10px] opacity-75">{cat.order}.</span>
                   )}
                   <span>{cat.name.split(' ')[0]}</span>
+                  {!isCatComplete && (
+                    <span
+                      className={`text-[10px] px-1 rounded ${
+                        isCurrentCat ? 'bg-white/20 text-white' : 'bg-[#EEF2ED] text-[#5B7263]'
+                      }`}
+                    >
+                      {answeredInCat}/{catQs.length}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -181,6 +240,48 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-6 flex-1">
           {!isFinished ? (
             <div className="space-y-6">
+              {/* Validation Error / Unanswered Questions Banner */}
+              {validationError && (
+                <div
+                  role="alert"
+                  className="p-4 rounded-xl bg-[#FDF4EF] border border-[#E8C5B0] text-xs text-[#8C3B1E] space-y-2.5"
+                >
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-[#A64B2A] shrink-0 mt-0.5" />
+                    <div className="space-y-1 flex-1">
+                      <p className="font-bold text-[#7A3117]">
+                        Incomplete Assessment — All 20 Questions Required
+                      </p>
+                      <p className="leading-relaxed">{validationError}</p>
+                    </div>
+                  </div>
+                  {validation.unansweredByCategory.length > 0 && (
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F1D8C8]">
+                      <div className="flex flex-wrap gap-1.5">
+                        {validation.unansweredByCategory.map((catSum) => (
+                          <span
+                            key={catSum.categoryId}
+                            className="px-2 py-0.5 rounded bg-white border border-[#E8C5B0] text-[10px] font-semibold text-[#8C3B1E]"
+                          >
+                            {catSum.order}. {catSum.categoryName.split(' ')[0]} ({catSum.unansweredCount} unanswered)
+                          </span>
+                        ))}
+                      </div>
+                      {validation.firstUnansweredIndex >= 0 &&
+                        validation.firstUnansweredIndex !== currentQuestionIndex && (
+                          <button
+                            type="button"
+                            onClick={handleJumpToFirstUnanswered}
+                            className="px-3 py-1 rounded-lg bg-[#A64B2A] text-white text-[11px] font-semibold hover:bg-[#8E3F22] transition-colors shrink-0"
+                          >
+                            Jump to Question #{validation.firstUnansweredIndex + 1}
+                          </button>
+                        )}
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* Category Breadcrumb & Pillar Badge */}
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAF0EB] pb-3">
                 <div className="flex items-center gap-2 text-xs">
@@ -192,9 +293,23 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                     {currentCatInfo?.traditionalPillar}
                   </span>
                 </div>
-                <div className="text-xs font-semibold text-[#526B5C]">
-                  Question {currentQuestionIndex + 1} of {totalQuestions}
-                  <span className="text-slate-400 font-normal"> ({indexWithinCategory} of {currentCategoryQuestions.length} in section)</span>
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#526B5C]">
+                  <span>
+                    Question {currentQuestionIndex + 1} of {totalQuestions}
+                    <span className="text-slate-400 font-normal">
+                      {' '}
+                      ({indexWithinCategory} of {currentCategoryQuestions.length} in section)
+                    </span>
+                  </span>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                      isCurrentAnswered
+                        ? 'bg-[#E5ECE7] text-[#224A34]'
+                        : 'bg-[#FFF5EE] text-[#A64B2A] border border-[#EBC7B2]'
+                    }`}
+                  >
+                    {isCurrentAnswered ? 'Answered' : 'Unanswered'}
+                  </span>
                 </div>
               </div>
 
@@ -345,15 +460,16 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
               <div className="hidden sm:block text-xs text-[#526B5C]">
                 {answeredCount} of {totalQuestions} answered
+                {!validation.isValid && ` (${totalQuestions - answeredCount} remaining)`}
               </div>
 
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!answers[currentQ.id]}
                 className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white rounded-lg transition-colors ${
-                  !answers[currentQ.id]
-                    ? 'opacity-50 cursor-not-allowed bg-slate-400'
+                  !isCurrentAnswered ||
+                  (currentQuestionIndex === totalQuestions - 1 && !validation.isValid)
+                    ? 'bg-slate-400 hover:bg-slate-500'
                     : 'bg-[#2D5A43] hover:bg-[#234835]'
                 }`}
               >

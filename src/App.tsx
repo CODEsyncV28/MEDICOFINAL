@@ -15,8 +15,20 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import {
   toggleActivityStatus,
   fetchDailyActivitiesForDate,
-  updateApprovalDecision,
 } from './services/firestoreService';
+import {
+  GUEST_DINACHARYA_USER_ID,
+  mergeDailyActivitiesWithRecords,
+} from './services/dinacharyaService';
+import {
+  fetchConsultationsForUser,
+  seedDemoConsultations,
+} from './services/consultationService';
+import { seedDemoClientProfiles } from './services/practitionerService';
+import { seedDemoArticles } from './services/contentService';
+import { seedDemoPrograms } from './services/programService';
+import { seedDemoAuditLog } from './services/adminService';
+import { canAccessPortal } from './utils/portalAccess';
 import {
   submitAssessment,
   fetchLatestAssessment,
@@ -32,21 +44,18 @@ import {
   DailyActivity,
   WellnessProgram,
   EducationalArticle,
-  ContentApprovalItem,
-  AYUSHDiscipline,
-  WellnessCategory,
 } from './types';
 import {
   WellnessPlan,
   AssessmentVersionRecord,
 } from './types/assessment';
+import { ConsultationDocument } from './types/firebase';
 import {
   INITIAL_DAILY_ACTIVITIES,
   INITIAL_PROGRAMS,
   INITIAL_ARTICLES,
   PRIMARY_PRACTITIONER,
   INITIAL_CLIENTS,
-  INITIAL_APPROVAL_ITEMS,
 } from './data/mockData';
 import { EXPANDED_ASSESSMENT_QUESTIONS } from './data/assessmentQuestions';
 
@@ -61,19 +70,20 @@ function AppContent() {
 
   // Application State
   const [activities, setActivities] = useState<DailyActivity[]>(INITIAL_DAILY_ACTIVITIES);
-  const [programs, setPrograms] = useState<WellnessProgram[]>(INITIAL_PROGRAMS);
-  const [articles, setArticles] = useState<EducationalArticle[]>(INITIAL_ARTICLES);
-  const [clients, setClients] = useState(INITIAL_CLIENTS);
-  const [approvalItems, setApprovalItems] = useState<ContentApprovalItem[]>(INITIAL_APPROVAL_ITEMS);
+  const [programs] = useState<WellnessProgram[]>(INITIAL_PROGRAMS);
+  const [articles] = useState<EducationalArticle[]>(INITIAL_ARTICLES);
+  const [userConsultations, setUserConsultations] = useState<ConsultationDocument[]>([]);
+  const [isLoadingConsultations, setIsLoadingConsultations] = useState<boolean>(false);
+  const [consultationsError, setConsultationsError] = useState<string | null>(null);
 
-  // Initial assessment: 3 answered for guest preview
+  // Explicit hackathon Demo Mode portal switcher (off by default)
+  const [demoPortalEnabled, setDemoPortalEnabled] = useState<boolean>(false);
+
+  // Initial assessment: 3 answered for guest preview (canonical question IDs only)
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({
     circadian_waking_energy: 'gradual',
     digestive_appetite_strength: 'robust',
     movement_daily_type: 'active',
-    q1: 'gradual',
-    q2: 'robust',
-    q3: 'active',
   });
 
   // Modular Wellness Plan & Assessment History State
@@ -88,6 +98,8 @@ function AppContent() {
   const [readingArticle, setReadingArticle] = useState<EducationalArticle | null>(null);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [isNewRegimenOpen, setIsNewRegimenOpen] = useState(false);
+  const [practitionerProgramsRefreshKey, setPractitionerProgramsRefreshKey] = useState(0);
+  const [userCatalogRefreshKey, setUserCatalogRefreshKey] = useState(0);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Quick feedback toast
@@ -100,13 +112,40 @@ function AppContent() {
     }, 3500);
   };
 
+  // Seed synthetic demo records once on startup
+  useEffect(() => {
+    seedDemoConsultations();
+    seedDemoClientProfiles(PRIMARY_PRACTITIONER.id, INITIAL_CLIENTS);
+    seedDemoArticles();
+    seedDemoPrograms();
+    seedDemoAuditLog();
+  }, []);
+
+  const refreshUserConsultations = async (uid?: string) => {
+    const targetUid = uid || (firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID);
+    setIsLoadingConsultations(true);
+    setConsultationsError(null);
+    try {
+      const records = await fetchConsultationsForUser(targetUid);
+      setUserConsultations(records);
+    } catch (err) {
+      setConsultationsError(
+        err instanceof Error ? err.message : 'Unable to load consultation requests.'
+      );
+    } finally {
+      setIsLoadingConsultations(false);
+    }
+  };
+
   // Hydrate user data from storage / Firestore
   useEffect(() => {
-    const effectiveUid = firebaseUser ? firebaseUser.uid : 'guest_seeker';
+    const effectiveUid = firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID;
 
     let isMounted = true;
     async function loadUserData() {
       setIsLoadingData(true);
+      setIsLoadingConsultations(true);
+      setConsultationsError(null);
       try {
         // 1. Fetch user assessment history & latest record
         const historyRecords = await fetchAssessmentHistory(effectiveUid);
@@ -121,20 +160,18 @@ function AppContent() {
             setAssessmentAnswers(historyRecords[0].answers);
             setActivePlan(latestPlan);
           } else if (!firebaseUser) {
-            // Guest mode: generate an initial demonstration baseline plan
+            // Guest mode: generate an initial demonstration baseline plan (canonical IDs)
+            const guestBaselineAnswers = {
+              circadian_waking_energy: 'gradual',
+              digestive_appetite_strength: 'robust',
+              movement_daily_type: 'active',
+            };
             const mockRecord: AssessmentVersionRecord = {
               id: 'assess_guest_v1',
-              userId: 'guest_seeker',
+              userId: GUEST_DINACHARYA_USER_ID,
               version: 1,
               completedAt: new Date().toISOString(),
-              answers: {
-                circadian_waking_energy: 'gradual',
-                digestive_appetite_strength: 'robust',
-                movement_daily_type: 'active',
-                q1: 'gradual',
-                q2: 'robust',
-                q3: 'active',
-              },
+              answers: guestBaselineAnswers,
               totalAnswered: 3,
               totalQuestions: 20,
               isComplete: false,
@@ -152,7 +189,8 @@ function AppContent() {
                 guidanceNote: 'Maintain midday cooling hydration and consistent sleep timing.',
               },
             };
-            const initialDemoPlan = generateWellnessPlan('guest_seeker', mockRecord);
+            const initialDemoPlan = generateWellnessPlan(GUEST_DINACHARYA_USER_ID, mockRecord);
+            setAssessmentAnswers(guestBaselineAnswers);
             setActivePlan(initialDemoPlan);
             setAssessmentHistory([mockRecord]);
             setPlanHistory([initialDemoPlan]);
@@ -165,28 +203,33 @@ function AppContent() {
           }
         }
 
-        // 2. Fetch daily activities for today
-        if (firebaseUser) {
-          const today = new Date().toISOString().split('T')[0];
-          const dailyDocs = await fetchDailyActivitiesForDate(firebaseUser.uid, today);
-          if (isMounted) {
-            if (dailyDocs && dailyDocs.length > 0) {
-              setActivities((prev) =>
-                prev.map((act) => {
-                  const recorded = dailyDocs.find((d) => d.activityKey === act.id);
-                  return recorded ? { ...act, completed: recorded.completed } : { ...act, completed: false };
-                })
-              );
-            } else {
-              setActivities((prev) => prev.map((act) => ({ ...act, completed: false })));
-            }
-          }
+        // 2. Fetch daily activities for today (isolated per effectiveUid: signed-in user vs guest)
+        const today = new Date().toISOString().split('T')[0];
+        const dailyDocs = await fetchDailyActivitiesForDate(effectiveUid, today);
+        if (isMounted) {
+          setActivities(
+            mergeDailyActivitiesWithRecords(
+              INITIAL_DAILY_ACTIVITIES,
+              dailyDocs || [],
+              !firebaseUser
+            )
+          );
+        }
+
+        // 3. Fetch persisted consultation requests for current seeker
+        const consultDocs = await fetchConsultationsForUser(effectiveUid);
+        if (isMounted) {
+          setUserConsultations(consultDocs);
         }
       } catch (err) {
         console.warn('Hydration skipped or offline:', err);
+        if (isMounted) {
+          setConsultationsError('Unable to load saved consultation requests.');
+        }
       } finally {
         if (isMounted) {
           setIsLoadingData(false);
+          setIsLoadingConsultations(false);
         }
       }
     }
@@ -197,6 +240,14 @@ function AppContent() {
     };
   }, [firebaseUser]);
 
+  // Refresh seeker consultations & published catalog whenever switching back to the seeker portal
+  useEffect(() => {
+    if (currentView === 'dashboard' && currentRole === 'user') {
+      refreshUserConsultations();
+      setUserCatalogRefreshKey((prev) => prev + 1);
+    }
+  }, [currentView, currentRole]);
+
   const prevUserRef = useRef<string | null>(null);
 
   // Redirect to appropriate dashboard according to user's assigned role after login,
@@ -204,11 +255,13 @@ function AppContent() {
   useEffect(() => {
     if (firebaseUser) {
       const assignedRole: RoleType = (userProfile?.role as RoleType) || 'user';
+      setDemoPortalEnabled(false);
       setCurrentRole(assignedRole);
       setCurrentView('dashboard');
       prevUserRef.current = firebaseUser.uid;
     } else if (prevUserRef.current) {
       prevUserRef.current = null;
+      setDemoPortalEnabled(false);
       setCurrentRole('user');
       setCurrentView('landing');
       showToast('Signed out successfully.');
@@ -217,6 +270,7 @@ function AppContent() {
 
   // Handlers
   const handleToggleActivity = async (id: string) => {
+    const effectiveUid = firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID;
     const currentActivity = activities.find((act) => act.id === id);
     const updatedStatus = currentActivity ? !currentActivity.completed : true;
 
@@ -230,17 +284,47 @@ function AppContent() {
       })
     );
 
-    if (firebaseUser) {
-      try {
-        const today = new Date().toISOString().split('T')[0];
-        await toggleActivityStatus(firebaseUser.uid, id, today, updatedStatus);
-      } catch (err) {
-        console.warn('Could not persist activity state to Firestore:', err);
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      await toggleActivityStatus(effectiveUid, id, today, updatedStatus);
+    } catch (err) {
+      console.warn('Could not persist activity state:', err);
+    }
+  };
+
+  const handleToggleDemoPortal = (enabled: boolean) => {
+    if (isConfigured && enabled) {
+      showToast('DEMO MODE portal switching is disabled when live Firebase is configured.');
+      return;
+    }
+    setDemoPortalEnabled(enabled);
+    if (!enabled) {
+      const fallbackRole: RoleType = (userProfile?.role as RoleType) || 'user';
+      if (currentRole !== fallbackRole) {
+        setCurrentRole(fallbackRole);
       }
+      showToast('DEMO MODE portal switcher disabled. Returned to standard account access.');
+    } else {
+      showToast('DEMO MODE portal switcher enabled for UI evaluation.');
     }
   };
 
   const handleSelectRole = (role: RoleType) => {
+    const access = canAccessPortal({
+      targetRole: role,
+      accountRole: (userProfile?.role as RoleType) || null,
+      isAuthenticated: Boolean(firebaseUser),
+      demoPortalEnabled,
+      isFirebaseConfigured: isConfigured,
+    });
+
+    if (!access.allowed) {
+      showToast(access.reason);
+      setCurrentView('roles');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setCurrentRole(role);
     setCurrentView('dashboard');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -250,7 +334,7 @@ function AppContent() {
     answers: Record<string, string>,
     categoryNotes?: Record<string, string>
   ) => {
-    const effectiveUid = firebaseUser ? firebaseUser.uid : 'guest_seeker';
+    const effectiveUid = firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID;
 
     try {
       // Versioned multi-record submission & revised plan generation
@@ -270,67 +354,6 @@ function AppContent() {
       console.warn('Error during submitAssessment:', err);
       showToast('Assessment submitted successfully.');
     }
-  };
-
-  const handleAddRegimen = (regimen: {
-    title: string;
-    discipline: AYUSHDiscipline;
-    category: WellnessCategory;
-    durationWeeks: number;
-    description: string;
-    level: 'Beginner' | 'Intermediate' | 'Deepening';
-  }) => {
-    const newProg: WellnessProgram = {
-      id: `prog-${Date.now()}`,
-      title: regimen.title,
-      discipline: regimen.discipline,
-      category: regimen.category,
-      durationWeeks: regimen.durationWeeks,
-      completedSessions: 0,
-      totalSessions: regimen.durationWeeks * 4,
-      practitionerName: PRIMARY_PRACTITIONER.name,
-      practitionerTitle: PRIMARY_PRACTITIONER.qualification,
-      description: regimen.description,
-      nextSession: 'Module 1: Orientation & Foundations',
-      level: regimen.level,
-    };
-    setPrograms((prev) => [newProg, ...prev]);
-    showToast(`Published template: "${regimen.title}"`);
-  };
-
-  const handleApproveItem = async (id: string) => {
-    setApprovalItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, status: 'Approved', reviewNotes: 'Approved by Platform Governance Administrator' }
-          : item
-      )
-    );
-    showToast('Educational item approved for platform catalog');
-
-    if (firebaseUser && isConfigured && userProfile?.role === 'admin') {
-      try {
-        await updateApprovalDecision(
-          id,
-          'Approved',
-          firebaseUser.uid,
-          'Approved by Platform Governance Administrator'
-        );
-      } catch (err) {
-        console.warn('Could not persist approval decision to Firestore:', err);
-      }
-    }
-  };
-
-  const handleRequestRevision = (id: string) => {
-    setApprovalItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? { ...item, status: 'Revision Requested', reviewNotes: 'Ensure culinary dosage safety is explicitly mentioned' }
-          : item
-      )
-    );
-    showToast('Revision request sent to authoring practitioner');
   };
 
   if (authLoading) {
@@ -362,6 +385,7 @@ function AppContent() {
       <Navbar
         currentView={currentView}
         currentRole={currentRole}
+        demoPortalEnabled={demoPortalEnabled}
         onNavigate={(view) => {
           setCurrentView(view);
           window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -387,6 +411,11 @@ function AppContent() {
         {currentView === 'roles' && (
           <RoleSelector
             currentRole={currentRole}
+            accountRole={(userProfile?.role as RoleType) || null}
+            isAuthenticated={Boolean(firebaseUser)}
+            isConfigured={isConfigured}
+            demoPortalEnabled={demoPortalEnabled}
+            onToggleDemoPortal={handleToggleDemoPortal}
             onSelectRole={handleSelectRole}
             onBackToLanding={() => {
               setCurrentView('landing');
@@ -412,7 +441,8 @@ function AppContent() {
                 onCompleteAssessment={handleAssessmentComplete}
                 onReadArticle={(art) => setReadingArticle(art)}
                 onConnectPractitioner={() => setIsConsultationOpen(true)}
-                onSwitchRole={() => setCurrentRole('practitioner')}
+                demoPortalEnabled={demoPortalEnabled}
+                onSwitchRole={() => handleSelectRole('practitioner')}
                 userName={userProfile?.displayName || undefined}
                 userEmail={firebaseUser?.email || null}
                 isLoggedIn={Boolean(firebaseUser)}
@@ -422,29 +452,51 @@ function AppContent() {
                 activePlan={activePlan}
                 assessmentHistory={assessmentHistory}
                 planHistory={planHistory}
+                consultations={userConsultations}
+                isLoadingConsultations={isLoadingConsultations}
+                consultationsError={consultationsError}
+                catalogRefreshKey={userCatalogRefreshKey}
               />
             )}
 
             {currentRole === 'practitioner' && (
               <PractitionerDashboard
                 practitioner={PRIMARY_PRACTITIONER}
-                clients={clients}
                 programs={programs}
                 articles={articles}
+                programsRefreshKey={practitionerProgramsRefreshKey}
                 onOpenNewRegimen={() => setIsNewRegimenOpen(true)}
                 onReadArticle={(art) => setReadingArticle(art)}
-                onSwitchRole={() => setCurrentRole('admin')}
+                onConsultationUpdated={() => refreshUserConsultations()}
+                canSwitchToAdmin={
+                  canAccessPortal({
+                    targetRole: 'admin',
+                    accountRole: (userProfile?.role as RoleType) || null,
+                    isAuthenticated: Boolean(firebaseUser),
+                    demoPortalEnabled,
+                    isFirebaseConfigured: isConfigured,
+                  }).allowed
+                }
+                isDemoMode={demoPortalEnabled && userProfile?.role !== 'practitioner'}
+                onSwitchRole={() => handleSelectRole('admin')}
               />
             )}
 
             {currentRole === 'admin' && (
               <AdminDashboard
-                approvalItems={approvalItems}
-                onApproveItem={handleApproveItem}
-                onRequestRevision={handleRequestRevision}
-                onSwitchRole={() => setCurrentRole('user')}
+                isDemoMode={demoPortalEnabled && userProfile?.role !== 'admin'}
+                onSwitchRole={() => handleSelectRole('user')}
                 programs={programs}
                 articles={articles}
+                reviewerId={firebaseUser ? firebaseUser.uid : 'admin_demo_governance'}
+                reviewerName={userProfile?.displayName || 'Platform Governance Admin'}
+                reviewerRole={
+                  userProfile?.role === 'admin'
+                    ? 'admin'
+                    : demoPortalEnabled
+                    ? 'admin'
+                    : (userProfile?.role as RoleType) || null
+                }
               />
             )}
           </>
@@ -467,13 +519,34 @@ function AppContent() {
       <ConsultationModal
         isOpen={isConsultationOpen}
         practitioner={PRIMARY_PRACTITIONER}
+        seekerUid={firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID}
+        seekerName={
+          userProfile?.displayName ||
+          firebaseUser?.email?.split('@')[0] ||
+          'Seeker (Demo Preview)'
+        }
         onClose={() => setIsConsultationOpen(false)}
+        onCreated={(created) => {
+          setUserConsultations((prev) => [
+            created,
+            ...prev.filter((item) => item.id !== created.id),
+          ]);
+          showToast(`Consultation request sent to ${created.practitionerName}.`);
+        }}
       />
 
       <NewRegimenModal
         isOpen={isNewRegimenOpen}
         onClose={() => setIsNewRegimenOpen(false)}
-        onAddRegimen={handleAddRegimen}
+        practitioner={PRIMARY_PRACTITIONER}
+        onSaved={(saved) => {
+          setPractitionerProgramsRefreshKey((prev) => prev + 1);
+          showToast(
+            saved.status === 'pending_approval'
+              ? `Submitted "${saved.title}" for Admin Governance review.`
+              : `Saved draft regimen: "${saved.title}".`
+          );
+        }}
       />
 
       <AuthModal

@@ -22,7 +22,8 @@ const LOCAL_SESSION_KEY = 'ayush_auth_session';
 interface StoredUser {
   uid: string;
   email: string;
-  password?: string;
+  passwordSalt?: string;
+  passwordHash?: string;
   displayName: string;
   role: RoleType;
   createdAt: string;
@@ -69,18 +70,81 @@ function removeStorageItem(key: string): void {
   }
 }
 
+function generateDemoSalt(): string {
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto?.getRandomValues) {
+      const bytes = new Uint8Array(16);
+      globalThis.crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch {
+    // fallback below
+  }
+  return `${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+/**
+ * Computes a salted one-way digest for local demo authentication.
+ * Note: Client-side demo hashing prevents storing plaintext secrets in localStorage,
+ * while real production authentication must use Firebase Auth or server-side verification.
+ */
+export async function hashDemoPassword(password: string, salt: string): Promise<string> {
+  const input = `${salt}::ayush_demo_v1::${password}`;
+  try {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto?.subtle) {
+      const encoded = new TextEncoder().encode(input);
+      const digest = await globalThis.crypto.subtle.digest('SHA-256', encoded);
+      return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+  } catch {
+    // fallback non-reversible mixer below
+  }
+
+  let h1 = 0x811c9dc5;
+  let h2 = 0x9e3779b9;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 0x01000193);
+    h2 = Math.imul(h2 ^ (ch + i), 0x85ebca6b);
+  }
+  return `f_${(h1 >>> 0).toString(16).padStart(8, '0')}${(h2 >>> 0).toString(16).padStart(8, '0')}`;
+}
+
+function sanitizeStoredUserRecord(record: StoredUser & { password?: unknown }): StoredUser {
+  const { password: _removedPlaintext, ...safeRecord } = record;
+  return safeRecord;
+}
+
 function getStoredUsers(): Record<string, StoredUser> {
   const raw = getStorageItem(LOCAL_USERS_KEY);
   if (!raw) return {};
   try {
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw) as Record<string, StoredUser & { password?: string }>;
+    const sanitized: Record<string, StoredUser> = {};
+    let hadLegacyPlaintext = false;
+    for (const [uid, user] of Object.entries(parsed)) {
+      if (user && typeof user === 'object') {
+        if ('password' in user) {
+          hadLegacyPlaintext = true;
+        }
+        sanitized[uid] = sanitizeStoredUserRecord(user);
+      }
+    }
+    if (hadLegacyPlaintext) {
+      saveStoredUsers(sanitized);
+    }
+    return sanitized;
   } catch {
     return {};
   }
 }
 
 function saveStoredUsers(users: Record<string, StoredUser>): void {
-  setStorageItem(LOCAL_USERS_KEY, JSON.stringify(users));
+  const safeUsers: Record<string, StoredUser> = {};
+  for (const [uid, user] of Object.entries(users)) {
+    safeUsers[uid] = sanitizeStoredUserRecord(user as StoredUser & { password?: unknown });
+  }
+  setStorageItem(LOCAL_USERS_KEY, JSON.stringify(safeUsers));
 }
 
 // Simple subscriber list for auth state changes in demo mode
@@ -201,10 +265,13 @@ export async function signUpUser(
   }
 
   const uid = `user_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+  const passwordSalt = generateDemoSalt();
+  const passwordHash = await hashDemoPassword(pass, passwordSalt);
   const newUser: StoredUser = {
     uid,
     email: normalizedEmail,
-    password: pass,
+    passwordSalt,
+    passwordHash,
     displayName: displayName.trim() || normalizedEmail.split('@')[0] || 'Wellness Seeker',
     role: 'user', // Always strictly 'user'
     createdAt: new Date().toISOString(),
@@ -217,8 +284,11 @@ export async function signUpUser(
   users[uid] = newUser;
   saveStoredUsers(users);
 
-  // Set active session
-  setStorageItem(LOCAL_SESSION_KEY, JSON.stringify({ uid }));
+  // Set active demo session (stores only UID + metadata, never credentials)
+  setStorageItem(
+    LOCAL_SESSION_KEY,
+    JSON.stringify({ uid, issuedAt: new Date().toISOString(), mode: 'demo-local' })
+  );
 
   const profileDoc: UserProfileDocument = {
     uid: newUser.uid,
@@ -269,11 +339,19 @@ export async function signInUser(
   }
 
   const storedUser = users[foundUid];
-  if (storedUser.password && storedUser.password !== pass) {
-    return { user: null, firebaseUser: null, error: 'Incorrect password. Please verify and try again.' };
+  if (storedUser.passwordHash && storedUser.passwordSalt) {
+    const candidateHash = await hashDemoPassword(pass, storedUser.passwordSalt);
+    if (candidateHash !== storedUser.passwordHash) {
+      return { user: null, firebaseUser: null, error: 'Incorrect password. Please verify and try again.' };
+    }
+  } else if (!pass || pass.length < 6) {
+    return { user: null, firebaseUser: null, error: 'Please enter a valid password (minimum 6 characters).' };
   }
 
-  setStorageItem(LOCAL_SESSION_KEY, JSON.stringify({ uid: storedUser.uid }));
+  setStorageItem(
+    LOCAL_SESSION_KEY,
+    JSON.stringify({ uid: storedUser.uid, issuedAt: new Date().toISOString(), mode: 'demo-local' })
+  );
 
   const profileDoc: UserProfileDocument = {
     uid: storedUser.uid,
