@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
 import { isFirebaseConfigured, testFirestoreConnection } from '../lib/firebase';
 import {
@@ -17,6 +17,7 @@ interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   userProfile: UserProfileDocument | null;
   role: RoleType;
+  initializing: boolean;
   loading: boolean;
   isConfigured: boolean;
   connectionStatus: { connected: boolean; message: string } | null;
@@ -36,7 +37,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const initialSession = !isFirebaseConfigured ? getLocalSessionUser() : { firebaseUser: null, profile: null };
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(initialSession.firebaseUser);
   const [userProfile, setUserProfile] = useState<UserProfileDocument | null>(initialSession.profile);
-  const [loading, setLoading] = useState(isFirebaseConfigured);
+  const [initializing, setInitializing] = useState(isFirebaseConfigured);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<{
     connected: boolean;
@@ -47,7 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = subscribeAuthState((fbUser, profile) => {
       setFirebaseUser(fbUser);
       setUserProfile(profile);
-      setLoading(false);
+      setInitializing(false);
     });
 
     return () => unsubscribe();
@@ -62,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return profile;
   };
 
-  const clearError = () => setError(null);
+  const clearError = useCallback(() => setError(null), []);
 
   const checkConnection = async () => {
     const res = await testFirestoreConnection();
@@ -143,6 +145,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         firebaseUser,
         userProfile,
         role,
+        initializing,
         loading,
         isConfigured: isFirebaseConfigured,
         connectionStatus,

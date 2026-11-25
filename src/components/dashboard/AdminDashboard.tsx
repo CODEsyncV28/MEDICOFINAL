@@ -562,7 +562,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <span className="text-xs text-[#526B5C]">Physicians</span>
             </div>
             <p className="text-[11px] text-[#5E7869]">
-              100% Statutory CCIM/State Medical Board Verified
+              Simulated demo metric · Council registry preview
             </p>
           </div>
 
@@ -1310,25 +1310,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           aria-labelledby="inspect-prac-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
-                  Licensure Verification
+                  Licensure Verification (Demo Preview)
                 </span>
                 <h3 id="inspect-prac-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
                   {selectedPractitioner.name}
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedPractitioner(null)}
+                aria-label="Close practitioner inspection dialog"
                 className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 text-xs sm:text-sm">
+            <div className="p-6 space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
               <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-1.5">
                 <p><strong>Statutory Qualification:</strong> {selectedPractitioner.qualification}</p>
                 <p><strong>Discipline:</strong> {selectedPractitioner.discipline}</p>
@@ -1349,7 +1351,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div className="p-3 bg-[#F0F5F1] rounded-lg border border-[#CCDCD2] text-xs text-[#244E38]">
-                <strong>Statutory Check:</strong> Verified against the official central registry of the Ministry of AYUSH & respective State Medical Councils.
+                <strong>Simulated Demo Registry Check:</strong> Illustrative AYUSH council preview data only; not connected to live statutory or government verification registries.
               </div>
 
               <div className="pt-2 flex items-center justify-end gap-3">

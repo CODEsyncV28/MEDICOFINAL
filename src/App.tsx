@@ -60,7 +60,7 @@ import {
 import { EXPANDED_ASSESSMENT_QUESTIONS } from './data/assessmentQuestions';
 
 function AppContent() {
-  const { isConfigured, firebaseUser, userProfile, loading: authLoading } = useAuth();
+  const { isConfigured, firebaseUser, userProfile, initializing: authLoading } = useAuth();
   const [currentView, setCurrentView] = useState<'landing' | 'roles' | 'dashboard'>(() => {
     return firebaseUser ? 'dashboard' : 'landing';
   });

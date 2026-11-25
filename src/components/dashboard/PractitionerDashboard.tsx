@@ -1520,8 +1520,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="edit-program-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
                   Regimen Architecture
@@ -1546,7 +1546,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 handleSaveProgramEdit(true);
               }}
               noValidate
-              className="p-6 space-y-4"
+              className="p-6 space-y-4 overflow-y-auto flex-1"
             >
               {editingProgram.reviewNotes && editingProgram.status === 'revision_requested' && (
                 <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
@@ -1696,8 +1696,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="author-modal-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#FAFAF7] w-full max-w-xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
                   Health Education Authorship
@@ -1720,7 +1720,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {editingArticle?.reviewNotes && editingArticle.status === 'revision_requested' && (
                 <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
                   <p className="font-semibold">Admin Revision Feedback:</p>
@@ -1894,8 +1894,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="confirm-consult-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-md rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#FAFAF7] w-full max-w-md rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
               <div>
                 <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
                   Care Scheduling
@@ -1918,7 +1918,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               </button>
             </div>
 
-            <form onSubmit={handleUpdateConsultation} noValidate className="p-6 space-y-4 text-xs sm:text-sm">
+            <form onSubmit={handleUpdateConsultation} noValidate className="p-6 space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
               <div className="p-3 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
                 <p className="font-bold text-[#1E3F2E]">{activeConsultationModal.userName}</p>
                 <p className="text-xs text-[#526B5C]">

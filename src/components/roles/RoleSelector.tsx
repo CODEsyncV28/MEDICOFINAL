@@ -67,7 +67,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         'Regimen Template Creation & Customization',
         'Virtual Lifestyle Consultation Schedule',
         'Educational Content Authoring & Submissions',
-        'Verified CCIM / State Council Profile',
+        'Demo CCIM / State Council Profile Preview',
       ],
       sampleProfile: 'Simulated practitioner preview: Dr. Ananya Sharma (BAMS, MD Ayurveda)',
       ctaText: 'Enter Practitioner Portal',

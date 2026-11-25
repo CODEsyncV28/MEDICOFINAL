@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Mail, Lock, User, AlertCircle, CheckCircle2, Shield, ArrowRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { X, Mail, Lock, User, AlertCircle, Shield, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface AuthModalProps {
@@ -22,6 +22,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      clearError();
+      setMode('signin');
+      setEmail('');
+      setPassword('');
+      setDisplayName('');
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, clearError]);
 
   if (!isOpen) return null;
 
@@ -56,9 +68,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
       aria-labelledby="auth-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
     >
-      <div className="bg-[#FAFAF7] w-full max-w-md rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
+      <div className="bg-[#FAFAF7] w-full max-w-md rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
           <div>
             <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
               {isConfigured ? 'Firebase Authentication' : 'Demo Authentication Preview'}
@@ -68,6 +80,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </h2>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100 transition-colors"
             aria-label="Close dialog"
@@ -77,7 +90,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-4 overflow-y-auto flex-1">
           {!isConfigured ? (
             <div className="p-3 bg-[#F0F6F2] rounded-xl border border-[#CCE0D3] flex items-start gap-2.5 text-xs text-[#214D35]">
               <Shield className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
@@ -101,7 +114,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           )}
 
           {error && (
-            <div className="p-3 bg-[#FBF2EE] rounded-xl border border-[#F0D5C9] text-xs text-[#A64B2A] flex items-center gap-2">
+            <div role="alert" className="p-3 bg-[#FBF2EE] rounded-xl border border-[#F0D5C9] text-xs text-[#A64B2A] flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{error}</span>
             </div>
@@ -110,12 +123,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {mode === 'signup' && (
               <div>
-                <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+                <label htmlFor="auth-fullname" className="block text-xs font-semibold text-[#2C4035] mb-1">
                   Full Name
                 </label>
                 <div className="relative">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                   <input
+                    id="auth-fullname"
                     type="text"
                     required
                     value={displayName}
@@ -128,12 +142,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             )}
 
             <div>
-              <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+              <label htmlFor="auth-email" className="block text-xs font-semibold text-[#2C4035] mb-1">
                 Email Address
               </label>
               <div className="relative">
                 <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
+                  id="auth-email"
                   type="email"
                   required
                   value={email}
@@ -145,12 +160,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#2C4035] mb-1">
+              <label htmlFor="auth-password" className="block text-xs font-semibold text-[#2C4035] mb-1">
                 Password
               </label>
               <div className="relative">
                 <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
+                  id="auth-password"
                   type="password"
                   required
                   minLength={6}

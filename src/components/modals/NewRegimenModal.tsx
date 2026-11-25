@@ -78,9 +78,9 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
       aria-labelledby="regimen-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
     >
-      <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col">
+      <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
           <div>
             <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
               Practitioner Protocol · {practitioner.name}
@@ -100,7 +100,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {!savedProgram ? (
             <form
               onSubmit={(e) => {
