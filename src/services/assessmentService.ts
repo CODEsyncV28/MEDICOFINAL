@@ -7,7 +7,11 @@ import { generateWellnessPlan, saveWellnessPlan } from './wellnessPlanService';
 import { db, isFirebaseConfigured } from '../lib/firebase';
 import { Firestore, doc, setDoc, collection, getDocs, serverTimestamp } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -150,9 +154,10 @@ export async function submitAssessment(
  */
 export async function fetchLatestAssessment(
   userId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<AssessmentVersionRecord | null> {
-  const history = await fetchAssessmentHistory(userId, firestoreOverride);
+  const history = await fetchAssessmentHistory(userId, firestoreOverride, useDemoStorage);
   return history.length > 0 ? history[0] : null;
 }
 
@@ -161,9 +166,10 @@ export async function fetchLatestAssessment(
  */
 export async function fetchAssessmentHistory(
   userId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<AssessmentVersionRecord[]> {
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
 
   // 1. Cloud Firestore branch (authoritative; surfaces errors instead of falling back to localStorage)
   if (activeDb) {

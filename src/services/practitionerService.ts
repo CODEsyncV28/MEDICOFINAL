@@ -12,7 +12,11 @@ import {
   where,
 } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -133,11 +137,12 @@ export function seedDemoClientProfiles(
  */
 export async function fetchClientsForPractitioner(
   practitionerId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<ClientRecord[]> {
   if (!practitionerId || !practitionerId.trim()) return [];
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     if (practitionerId.trim() === 'prac-1') {
       return [];
@@ -179,7 +184,8 @@ export async function updateClientObservationNotes(
   status: 'Active' | 'Needs Review' | 'On Track',
   practitionerId: string = 'prac-1',
   fallbackClient?: Partial<ClientRecord>,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<ClientRecord> {
   if (!userId || !userId.trim()) {
     throw new Error('Client identifier is required.');
@@ -189,7 +195,7 @@ export async function updateClientObservationNotes(
   }
 
   const now = new Date().toISOString();
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
 
   // 1. Cloud Firestore branch (authoritative in live mode)
   if (activeDb) {
@@ -273,11 +279,12 @@ export async function updateClientObservationNotes(
 export async function fetchClientProfile(
   userId: string,
   practitionerId: string = 'prac-1',
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<ClientProfileDocument | null> {
   if (!userId || !userId.trim()) return null;
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     if (practitionerId.trim() === 'prac-1') {
       return null;

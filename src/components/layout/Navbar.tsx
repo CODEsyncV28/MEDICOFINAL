@@ -26,9 +26,9 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const isDemoPreviewActive =
     demoPortalEnabled &&
-    !isConfigured &&
     (currentRole === 'practitioner' || currentRole === 'admin') &&
-    userProfile?.role !== currentRole;
+    userProfile?.role !== currentRole &&
+    !(currentRole === 'practitioner' && userProfile?.role === 'admin');
 
   const canEnterPractitioner = canAccessPortal({
     targetRole: 'practitioner',
@@ -358,12 +358,24 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
                     currentRole === 'practitioner' && currentView === 'dashboard'
-                      ? 'bg-amber-600 text-white font-medium'
+                      ? userProfile?.role === 'practitioner' || userProfile?.role === 'admin'
+                        ? 'bg-[#0284C7] text-white font-medium'
+                        : 'bg-amber-600 text-white font-medium'
+                      : userProfile?.role === 'practitioner' || userProfile?.role === 'admin'
+                      ? 'bg-white text-[#0F172A] border border-[#E2E8F0]'
                       : 'bg-amber-50 text-amber-950 border border-amber-300'
                   }`}
                 >
-                  <span>DEMO MODE: Practitioner Portal</span>
-                  <span className="text-xs opacity-75">Preview</span>
+                  <span>
+                    {userProfile?.role === 'practitioner' || userProfile?.role === 'admin'
+                      ? 'Practitioner Portal'
+                      : 'DEMO MODE: Practitioner Portal'}
+                  </span>
+                  <span className="text-xs opacity-75">
+                    {userProfile?.role === 'practitioner' || userProfile?.role === 'admin'
+                      ? 'Clinical'
+                      : 'Preview'}
+                  </span>
                 </button>
               )}
               {canEnterAdmin && (
@@ -376,12 +388,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                   }}
                   className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
                     currentRole === 'admin' && currentView === 'dashboard'
-                      ? 'bg-amber-600 text-white font-medium'
+                      ? userProfile?.role === 'admin'
+                        ? 'bg-[#0284C7] text-white font-medium'
+                        : 'bg-amber-600 text-white font-medium'
+                      : userProfile?.role === 'admin'
+                      ? 'bg-white text-[#0F172A] border border-[#E2E8F0]'
                       : 'bg-amber-50 text-amber-950 border border-amber-300'
                   }`}
                 >
-                  <span>DEMO MODE: Admin Portal</span>
-                  <span className="text-xs opacity-75">Preview</span>
+                  <span>
+                    {userProfile?.role === 'admin'
+                      ? 'Admin Portal'
+                      : 'DEMO MODE: Admin Portal'}
+                  </span>
+                  <span className="text-xs opacity-75">
+                    {userProfile?.role === 'admin' ? 'Governance' : 'Preview'}
+                  </span>
                 </button>
               )}
               <button

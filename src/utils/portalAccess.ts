@@ -1,7 +1,7 @@
 import { RoleType } from '../types';
 
 export const PORTAL_SECURITY_DISCLAIMER =
-  'Client-side role controls and the DEMO MODE portal switcher are for hackathon demonstration and UI preview only—they do not provide production-grade security. Real role authorization and data isolation must be enforced server-side via authenticated tokens and Firebase Security Rules.';
+  'Client-side Demo Sandbox switching is for UI evaluation on local browser demo data only—it never grants live Firebase privileges or modifies account roles. Real role authorization, clinical record access, and administrative governance actions are strictly enforced server-side via authenticated tokens and Firebase Security Rules.';
 
 export interface PortalAccessInput {
   targetRole: RoleType;
@@ -20,15 +20,14 @@ export interface PortalAccessDecision {
 /**
  * Evaluates whether a user may enter the requested portal.
  * - Wellness User portal ('user') is open to seekers and guests.
- * - Practitioner and Administrator portals require matching verified account privileges
- *   or an explicit local DEMO MODE portal switcher opt-in (when Firebase is not configured).
+ * - Practitioner and Administrator portals grant full live access to verified account roles,
+ *   or isolated local sandbox UI preview when demoPortalEnabled is active (never granting live privileges).
  */
 export function canAccessPortal({
   targetRole,
   accountRole,
   isAuthenticated,
   demoPortalEnabled,
-  isFirebaseConfigured,
 }: PortalAccessInput): PortalAccessDecision {
   if (targetRole === 'user') {
     return {
@@ -58,12 +57,14 @@ export function canAccessPortal({
     };
   }
 
-  if (!isFirebaseConfigured && demoPortalEnabled) {
+  if (demoPortalEnabled) {
     return {
       allowed: true,
       isDemoOverride: true,
       reason:
-        'Entered via explicit DEMO MODE portal switcher (UI preview only; account role remains unchanged).',
+        targetRole === 'admin'
+          ? 'Entered Admin Portal in Demo Sandbox mode (local preview data only; live administrative privileges require an authorized admin account).'
+          : 'Entered Practitioner Portal in Demo Sandbox mode (local preview data only; live clinical records require a verified practitioner account).',
     };
   }
 
@@ -72,7 +73,7 @@ export function canAccessPortal({
     isDemoOverride: false,
     reason:
       targetRole === 'admin'
-        ? 'Administrator portal requires an admin account (enforced by Firebase Security Rules in production). Enable the explicit DEMO MODE portal switcher for hackathon preview.'
-        : 'Practitioner portal requires a verified practitioner account (enforced by Firebase Security Rules in production). Enable the explicit DEMO MODE portal switcher for hackathon preview.',
+        ? 'Administrator portal requires an admin account (enforced by Firebase Security Rules in production). Enable the Portal Switcher for sandbox preview.'
+        : 'Practitioner portal requires a verified practitioner account (enforced by Firebase Security Rules in production). Enable the Portal Switcher for sandbox preview.',
   };
 }

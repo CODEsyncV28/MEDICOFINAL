@@ -44,15 +44,18 @@ import {
 import {
   fetchArticlesForAdminModeration,
   reviewArticleDecision,
+  seedDemoArticles,
 } from '../../services/contentService';
 import {
   fetchProgramsForAdminApproval,
   reviewProgramDecision,
+  seedDemoPrograms,
 } from '../../services/programService';
 import {
   GovernanceAuditEntry,
   appendGovernanceAuditLog,
   fetchGovernanceAuditLog,
+  seedDemoAuditLog,
 } from '../../services/adminService';
 import { SafetyBanner } from '../common/SafetyBanner';
 
@@ -216,9 +219,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setProgramsError(null);
 
       try {
+        if (isDemoMode) {
+          seedDemoArticles();
+          seedDemoPrograms();
+          seedDemoAuditLog();
+        }
+
         const [loadedArticles, loadedPrograms, loadedLogs] = await Promise.all([
-          fetchArticlesForAdminModeration(),
-          fetchProgramsForAdminApproval(),
+          fetchArticlesForAdminModeration(undefined, isDemoMode),
+          fetchProgramsForAdminApproval(undefined, isDemoMode),
           fetchGovernanceAuditLog(),
         ]);
         if (!isMounted) return;
@@ -242,7 +251,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isDemoMode]);
 
   // Discipline distribution data (Simulated Demo Metrics)
   const disciplineStats = [
@@ -342,13 +351,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setArticleActionError(null);
     setIsModeratingArticle(true);
     try {
-      const updated = await reviewArticleDecision({
-        articleId,
-        decision,
-        reviewerId,
-        reviewerRole,
-        reviewNotes: notesOverride !== undefined ? notesOverride : articleReviewNotes,
-      });
+      const updated = await reviewArticleDecision(
+        {
+          articleId,
+          decision,
+          reviewerId,
+          reviewerRole,
+          reviewNotes: notesOverride !== undefined ? notesOverride : articleReviewNotes,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setSubmittedArticles((prev) =>
         prev.map((item) => (item.id === updated.id ? updated : item))
@@ -399,13 +412,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProgramActionError(null);
     setIsModeratingProgram(true);
     try {
-      const updated = await reviewProgramDecision({
-        programId,
-        decision,
-        reviewerId,
-        reviewerRole,
-        reviewNotes: notesOverride !== undefined ? notesOverride : programReviewNotes,
-      });
+      const updated = await reviewProgramDecision(
+        {
+          programId,
+          decision,
+          reviewerId,
+          reviewerRole,
+          reviewNotes: notesOverride !== undefined ? notesOverride : programReviewNotes,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setProgramApprovalList((prev) =>
         prev.map((p) => (p.id === updated.id ? updated : p))
@@ -448,13 +465,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <Shield className="w-4 h-4 text-[#0284C7] shrink-0" />
           <span>
-            <strong>Platform Governance Workspace:</strong> Super Admin access for Statutory Quality Assurance & Verification.
+            <strong>Platform Governance Workspace:</strong>{' '}
+            {isDemoMode
+              ? 'Demo Sandbox Preview (Local Demo Data Only) — Admin Authorization Required for Live Governance.'
+              : 'Super Admin access for Statutory Quality Assurance & Verification.'}
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
-            Full Administrative Privileges
-          </span>
-          {isDemoMode && (
+          {!isDemoMode ? (
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
+              Full Administrative Privileges
+            </span>
+          ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-300">
               DEMO MODE · UI Preview Only
             </span>
@@ -1303,7 +1324,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs text-[#475569]">
-            <strong>Audit Storage Scope:</strong> Administrative moderation decisions (content articles and wellness programmes) persist across sessions in Cloud Firestore, while this Governance Audit Log timeline is stored in browser-local session storage as a prototype activity feed and is not synced across devices.
+            <strong>Audit Storage Scope:</strong>{' '}
+            {isDemoMode
+              ? 'Demo Sandbox moderation actions and this Governance Audit Log run strictly against local browser storage and never modify live Cloud Firestore data or grant real administrative permissions.'
+              : 'Administrative moderation decisions (content articles and wellness programmes) persist across sessions in Cloud Firestore, while this Governance Audit Log timeline is stored in browser-local session storage as a prototype activity feed and is not synced across devices.'}
           </div>
         </section>
       )}

@@ -12,7 +12,11 @@ import {
 import { db, isFirebaseConfigured } from '../lib/firebase';
 import { Firestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -318,9 +322,10 @@ export async function saveWellnessPlan(
  */
 export async function fetchLatestWellnessPlan(
   userId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessPlan | null> {
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
 
   // 1. Cloud Firestore branch
   if (activeDb) {
@@ -345,9 +350,10 @@ export async function fetchLatestWellnessPlan(
  */
 export async function fetchWellnessPlanHistory(
   userId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessPlan[]> {
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
 
   // 1. Cloud Firestore branch
   if (activeDb) {

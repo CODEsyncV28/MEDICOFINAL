@@ -16,7 +16,11 @@ import {
   where,
 } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -320,7 +324,8 @@ export function seedDemoArticles(): EducationalArticleDocument[] {
  */
 export async function saveOrSubmitArticle(
   input: SaveOrSubmitArticleInput,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<EducationalArticleDocument> {
   const validation = validateArticleInput(input);
   if (!validation.isValid) {
@@ -338,7 +343,7 @@ export async function saveOrSubmitArticle(
     ? 'pending_approval'
     : 'draft';
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
 
   if (activeDb) {
@@ -576,11 +581,12 @@ export async function saveOrSubmitArticle(
  */
 export async function fetchArticlesForPractitioner(
   practitionerId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<EducationalArticleDocument[]> {
   if (!practitionerId?.trim()) return [];
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     const q = query(
       collection(activeDb, 'educationalArticles'),
@@ -603,9 +609,10 @@ export async function fetchArticlesForPractitioner(
  * Private practitioner drafts ('draft') are excluded until submitted for review.
  */
 export async function fetchArticlesForAdminModeration(
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<EducationalArticleDocument[]> {
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     const snap = await getDocs(collection(activeDb, 'educationalArticles'));
     return snap.docs
@@ -638,7 +645,8 @@ export async function fetchArticlesForAdminModeration(
  */
 export async function reviewArticleDecision(
   input: ReviewArticleDecisionInput,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<EducationalArticleDocument> {
   if (input.reviewerRole !== 'admin') {
     throw new Error(
@@ -656,7 +664,7 @@ export async function reviewArticleDecision(
       : 'Ensure culinary dosage safety and non-diagnostic framing are explicitly stated.';
   const finalNotes = input.reviewNotes?.trim() || defaultNote;
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
 
   if (activeDb) {

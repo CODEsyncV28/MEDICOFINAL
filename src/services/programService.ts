@@ -16,7 +16,11 @@ import {
   where,
 } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -298,7 +302,8 @@ export function seedDemoPrograms(): WellnessProgramDocument[] {
  */
 export async function saveOrSubmitProgram(
   input: SaveOrSubmitProgramInput,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessProgramDocument> {
   const validation = validateProgramInput(input);
   if (!validation.isValid) {
@@ -314,7 +319,7 @@ export async function saveOrSubmitProgram(
     ? 'pending_approval'
     : 'draft';
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
 
   if (activeDb) {
@@ -550,11 +555,12 @@ export async function saveOrSubmitProgram(
  */
 export async function fetchProgramsForPractitioner(
   practitionerId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessProgramDocument[]> {
   if (!practitionerId?.trim()) return [];
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     const q = query(
       collection(activeDb, 'wellnessPrograms'),
@@ -577,9 +583,10 @@ export async function fetchProgramsForPractitioner(
  * Private practitioner drafts ('draft') are excluded until submitted.
  */
 export async function fetchProgramsForAdminApproval(
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessProgramDocument[]> {
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     const snap = await getDocs(collection(activeDb, 'wellnessPrograms'));
     return snap.docs
@@ -612,7 +619,8 @@ export async function fetchProgramsForAdminApproval(
  */
 export async function reviewProgramDecision(
   input: ReviewProgramDecisionInput,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<WellnessProgramDocument> {
   if (input.reviewerRole !== 'admin') {
     throw new Error(
@@ -630,7 +638,7 @@ export async function reviewProgramDecision(
       : 'Ensure safety disclaimers specify non-diagnostic scope and contraindication notes.';
   const finalNotes = input.reviewNotes?.trim() || defaultNote;
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
 
   if (activeDb) {

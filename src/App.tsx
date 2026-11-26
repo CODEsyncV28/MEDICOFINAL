@@ -84,8 +84,8 @@ function AppContent() {
   const [isLoadingConsultations, setIsLoadingConsultations] = useState<boolean>(false);
   const [consultationsError, setConsultationsError] = useState<string | null>(null);
 
-  // Explicit hackathon Demo Mode portal switcher (off by default)
-  const [demoPortalEnabled, setDemoPortalEnabled] = useState<boolean>(false);
+  // Portal sandbox switcher (enabled by default for UI preview; never grants live Firebase privileges)
+  const [demoPortalEnabled, setDemoPortalEnabled] = useState<boolean>(true);
   const [verifiedPractitioners, setVerifiedPractitioners] = useState<PractitionerDocument[]>([]);
   const [practitionersLoading, setPractitionersLoading] = useState<boolean>(isConfigured);
   const [practitionersError, setPractitionersError] = useState<string | null>(null);
@@ -124,14 +124,17 @@ function AppContent() {
     }, 3500);
   };
 
-  // Seed synthetic demo records ONLY in Demo Mode, and hydrate verified Firestore practitioners in live mode
+  // Seed synthetic demo records for Demo Mode / UI Sandbox evaluation, and hydrate verified Firestore practitioners in live mode
   useEffect(() => {
-    if (!isConfigured) {
+    if (!isConfigured || demoPortalEnabled) {
       seedDemoConsultations();
       seedDemoClientProfiles(PRIMARY_PRACTITIONER.id, INITIAL_CLIENTS);
       seedDemoArticles();
       seedDemoPrograms();
       seedDemoAuditLog();
+    }
+
+    if (!isConfigured) {
       setPractitionersLoading(false);
       setPractitionersError(null);
       return;
@@ -164,7 +167,7 @@ function AppContent() {
     return () => {
       isMounted = false;
     };
-  }, [isConfigured]);
+  }, [isConfigured, demoPortalEnabled]);
 
   const workspacePractitioner = resolvePractitionerForWorkspace(
     PRIMARY_PRACTITIONER,
@@ -321,13 +324,11 @@ function AppContent() {
   useEffect(() => {
     if (firebaseUser) {
       const assignedRole: RoleType = (userProfile?.role as RoleType) || 'user';
-      setDemoPortalEnabled(false);
       setCurrentRole(assignedRole);
       setCurrentView('dashboard');
       prevUserRef.current = firebaseUser.uid;
     } else if (prevUserRef.current) {
       prevUserRef.current = null;
-      setDemoPortalEnabled(false);
       setCurrentRole('user');
       setCurrentView('landing');
       showToast('Signed out successfully.');
@@ -359,19 +360,15 @@ function AppContent() {
   };
 
   const handleToggleDemoPortal = (enabled: boolean) => {
-    if (isConfigured && enabled) {
-      showToast('DEMO MODE portal switching is disabled when live Firebase is configured.');
-      return;
-    }
     setDemoPortalEnabled(enabled);
     if (!enabled) {
       const fallbackRole: RoleType = (userProfile?.role as RoleType) || 'user';
       if (currentRole !== fallbackRole) {
         setCurrentRole(fallbackRole);
       }
-      showToast('DEMO MODE portal switcher disabled. Returned to standard account access.');
+      showToast('Sandbox portal switcher disabled. Returned to standard role-restricted access.');
     } else {
-      showToast('DEMO MODE portal switcher enabled for UI evaluation.');
+      showToast('Sandbox portal switcher enabled for UI evaluation (local demo data only).');
     }
   };
 
@@ -557,12 +554,20 @@ function AppContent() {
 
             {currentRole === 'admin' && (
               <AdminDashboard
-                isDemoMode={demoPortalEnabled && userProfile?.role !== 'admin'}
+                isDemoMode={userProfile?.role !== 'admin'}
                 onSwitchRole={() => handleSelectRole('user')}
                 programs={programs}
                 articles={articles}
-                reviewerId={firebaseUser ? firebaseUser.uid : 'admin_demo_governance'}
-                reviewerName={userProfile?.displayName || 'Platform Governance Admin'}
+                reviewerId={
+                  userProfile?.role === 'admin' && firebaseUser
+                    ? firebaseUser.uid
+                    : 'admin_demo_governance'
+                }
+                reviewerName={
+                  userProfile?.role === 'admin'
+                    ? userProfile?.displayName || 'Platform Governance Admin'
+                    : 'Platform Governance Admin (Demo Sandbox)'
+                }
                 reviewerRole={
                   userProfile?.role === 'admin'
                     ? 'admin'
@@ -612,6 +617,7 @@ function AppContent() {
         isOpen={isNewRegimenOpen}
         onClose={() => setIsNewRegimenOpen(false)}
         practitioner={workspacePractitioner}
+        isDemoMode={userProfile?.role !== 'practitioner'}
         onSaved={(saved) => {
           setPractitionerProgramsRefreshKey((prev) => prev + 1);
           showToast(

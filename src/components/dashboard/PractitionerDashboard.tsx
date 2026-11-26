@@ -51,12 +51,14 @@ import {
   getConsultationTopicLabel,
   getPreferredSlotLabel,
   isValidPractitionerConsultationTransition,
+  seedDemoConsultations,
   updateConsultationStatus,
 } from '../../services/consultationService';
 import {
   AssignedClientWellnessSnapshot,
   fetchAssignedClientWellnessSnapshot,
   fetchClientsForPractitioner,
+  seedDemoClientProfiles,
   updateClientObservationNotes,
 } from '../../services/practitionerService';
 import { fetchLatestAssessment } from '../../services/assessmentService';
@@ -65,11 +67,14 @@ import { isFirebaseConfigured } from '../../lib/firebase';
 import {
   fetchArticlesForPractitioner,
   saveOrSubmitArticle,
+  seedDemoArticles,
 } from '../../services/contentService';
 import {
   fetchProgramsForPractitioner,
   saveOrSubmitProgram,
+  seedDemoPrograms,
 } from '../../services/programService';
+import { INITIAL_CLIENTS } from '../../data/mockData';
 import { SafetyBanner } from '../common/SafetyBanner';
 
 function getPractitionerInitials(name: string): string {
@@ -217,12 +222,22 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
       setArticlesError(null);
 
       try {
+        if (isDemoMode) {
+          seedDemoClientProfiles(
+            practitioner.id,
+            clients.length > 0 ? clients : INITIAL_CLIENTS
+          );
+          seedDemoConsultations();
+          seedDemoArticles();
+          seedDemoPrograms();
+        }
+
         const [loadedClients, loadedConsultations, loadedPrograms, loadedArticles] =
           await Promise.all([
-            fetchClientsForPractitioner(practitioner.id),
-            fetchConsultationsForPractitioner(practitioner.id),
-            fetchProgramsForPractitioner(practitioner.id),
-            fetchArticlesForPractitioner(practitioner.id),
+            fetchClientsForPractitioner(practitioner.id, undefined, isDemoMode),
+            fetchConsultationsForPractitioner(practitioner.id, undefined, isDemoMode),
+            fetchProgramsForPractitioner(practitioner.id, undefined, isDemoMode),
+            fetchArticlesForPractitioner(practitioner.id, undefined, isDemoMode),
           ]);
 
         if (!isMounted) return;
@@ -251,13 +266,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [practitioner.id]);
+  }, [practitioner.id, isDemoMode]);
 
   // Refresh practitioner programmes immediately after NewRegimenModal saves a new programme
   useEffect(() => {
     if (programsRefreshKey <= 0) return;
     let isMounted = true;
-    fetchProgramsForPractitioner(practitioner.id)
+    fetchProgramsForPractitioner(practitioner.id, undefined, isDemoMode)
       .then((loaded) => {
         if (isMounted) {
           setProgramList(loaded);
@@ -274,7 +289,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     return () => {
       isMounted = false;
     };
-  }, [programsRefreshKey, practitioner.id]);
+  }, [programsRefreshKey, practitioner.id, isDemoMode]);
 
   // Filtered Client Roster
   const filteredClients = useMemo(() => {
@@ -301,13 +316,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     setClientWellnessLoading(true);
 
     try {
-      if (isFirebaseConfigured) {
+      if (isFirebaseConfigured && !isDemoMode) {
         const snapshot = await fetchAssignedClientWellnessSnapshot(client.id);
         setClientWellnessSnapshot(snapshot);
       } else {
         const [latestAssess, latestPlan] = await Promise.all([
-          fetchLatestAssessment(client.id),
-          fetchLatestWellnessPlan(client.id),
+          fetchLatestAssessment(client.id, undefined, isDemoMode),
+          fetchLatestWellnessPlan(client.id, undefined, isDemoMode),
         ]);
         if (latestAssess || latestPlan) {
           setClientWellnessSnapshot({
@@ -351,7 +366,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
         editingNotes,
         editingStatus,
         practitioner.id,
-        selectedClient
+        selectedClient,
+        undefined,
+        isDemoMode
       );
 
       setClientList((prev) => {
@@ -403,20 +420,24 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     setIsSavingProgramEdit(true);
 
     try {
-      const saved = await saveOrSubmitProgram({
-        id: editingProgram.id,
-        title: editingProgram.title,
-        discipline: editingProgram.discipline,
-        category: editingProgram.category,
-        durationWeeks: Number(editingProgram.durationWeeks),
-        level: editingProgram.level,
-        description: editingProgram.description,
-        nextSessionTemplate: editingProgram.nextSessionTemplate,
-        creatorPractitionerId: practitioner.id,
-        practitionerName: practitioner.name,
-        practitionerTitle: practitioner.qualification,
-        submitForReview,
-      });
+      const saved = await saveOrSubmitProgram(
+        {
+          id: editingProgram.id,
+          title: editingProgram.title,
+          discipline: editingProgram.discipline,
+          category: editingProgram.category,
+          durationWeeks: Number(editingProgram.durationWeeks),
+          level: editingProgram.level,
+          description: editingProgram.description,
+          nextSessionTemplate: editingProgram.nextSessionTemplate,
+          creatorPractitionerId: practitioner.id,
+          practitionerName: practitioner.name,
+          practitionerTitle: practitioner.qualification,
+          submitForReview,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setProgramList((prev) =>
         prev.some((p) => p.id === saved.id)
@@ -445,19 +466,23 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     setIsSavingArticle(true);
 
     try {
-      const saved = await saveOrSubmitArticle({
-        id: editingArticle?.id,
-        title: articleFormTitle,
-        discipline: articleFormDiscipline,
-        category: articleFormCategory,
-        readTime: articleFormReadTime,
-        summary: articleFormSummary,
-        fullContent: articleFormContent,
-        authorId: practitioner.id,
-        authorName: practitioner.name,
-        authorQualification: practitioner.qualification,
-        submitForReview: !asDraft,
-      });
+      const saved = await saveOrSubmitArticle(
+        {
+          id: editingArticle?.id,
+          title: articleFormTitle,
+          discipline: articleFormDiscipline,
+          category: articleFormCategory,
+          readTime: articleFormReadTime,
+          summary: articleFormSummary,
+          fullContent: articleFormContent,
+          authorId: practitioner.id,
+          authorName: practitioner.name,
+          authorQualification: practitioner.qualification,
+          submitForReview: !asDraft,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setAuthoredArticles((prev) =>
         prev.some((a) => a.id === saved.id)
@@ -528,12 +553,17 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           ? activeConsultationModal.scheduledTime || scheduledSlotInput.trim() || null
           : scheduledSlotInput.trim();
 
-      const updated = await updateConsultationStatus(activeConsultationModal.id, {
-        status: consultationModalAction,
-        practitionerId: practitioner.id,
-        scheduledTime: nextScheduledTime,
-        practitionerNotes: consultationNoteInput.trim() || null,
-      });
+      const updated = await updateConsultationStatus(
+        activeConsultationModal.id,
+        {
+          status: consultationModalAction,
+          practitionerId: practitioner.id,
+          scheduledTime: nextScheduledTime,
+          practitionerNotes: consultationNoteInput.trim() || null,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setConsultations((prev) =>
         prev.map((item) => (item.id === updated.id ? updated : item))

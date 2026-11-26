@@ -8,16 +8,56 @@ import {
   User as FirebaseUser,
   updateProfile,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db, isFirebaseConfigured } from '../lib/firebase';
 import { UserProfileDocument } from '../types/firebase';
 import { RoleType } from '../types';
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Local storage keys for persistent demo/offline mode
 const LOCAL_USERS_KEY = 'ayush_auth_users';
 const LOCAL_SESSION_KEY = 'ayush_auth_session';
+const inFlightProfileEnsures = new Map<string, Promise<UserProfileDocument>>();
+
+export function formatFirebaseAuthError(err: unknown, fallbackMessage: string): string {
+  const code = typeof err === 'object' && err !== null && 'code' in err ? String((err as { code?: unknown }).code || '') : '';
+  const rawMessage = err instanceof Error ? err.message : typeof err === 'string' ? err : '';
+
+  switch (code) {
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+    case 'auth/user-not-found':
+      return 'Invalid email or password. Please check your credentials and try again.';
+    case 'auth/email-already-in-use':
+      return 'An account with this email already exists. Please sign in instead.';
+    case 'auth/invalid-email':
+      return 'Please enter a valid email address.';
+    case 'auth/weak-password':
+      return 'Password must be at least 6 characters long.';
+    case 'auth/user-disabled':
+      return 'This account has been disabled. Please contact an administrator.';
+    case 'auth/popup-closed-by-user':
+      return 'Google sign-in window was closed before completing authentication.';
+    case 'auth/cancelled-popup-request':
+      return 'Google sign-in was cancelled. Please try again.';
+    case 'auth/popup-blocked':
+      return 'Sign-in popup was blocked by your browser. Please allow popups and try again.';
+    case 'auth/account-exists-with-different-credential':
+      return 'An account already exists with this email using another sign-in method.';
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized for Firebase sign-in in the project settings.';
+    case 'auth/too-many-requests':
+      return 'Too many authentication attempts. Please wait a few minutes and try again.';
+    case 'auth/operation-not-allowed':
+      return 'This sign-in method is not enabled in Firebase Authentication Console yet.';
+    case 'auth/network-request-failed':
+      return 'Network error while contacting Firebase Authentication. Check your connection and try again.';
+    default:
+      return rawMessage || fallbackMessage;
+  }
+}
 
 interface StoredUser {
   uid: string;
@@ -225,33 +265,40 @@ export async function signUpUser(
   // --- Real Firebase Auth branch if credentials exist ---
   if (isFirebaseConfigured && auth && db) {
     try {
+      const cleanedName = displayName.trim().slice(0, 80);
       const cred = await createUserWithEmailAndPassword(auth, normalizedEmail, pass);
       const fbUser = cred.user;
 
-      if (displayName) {
-        await updateProfile(fbUser, { displayName });
+      if (cleanedName) {
+        await updateProfile(fbUser, { displayName: cleanedName });
       }
 
-      const userProfile: UserProfileDocument = {
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: displayName || fbUser.email?.split('@')[0] || 'Wellness Seeker',
-        role: 'user', // Enforced default role
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        agreedToTerms: true,
-        prakritiBaseline: null,
-      };
+      let userProfile = await ensureUserProfile(
+        fbUser,
+        cleanedName || fbUser.email?.split('@')[0] || 'Wellness Seeker'
+      );
 
-      await setDoc(doc(db, 'users', fbUser.uid), {
-        ...userProfile,
-        createdAtServer: serverTimestamp(),
-        updatedAtServer: serverTimestamp(),
-      });
+      if (cleanedName && userProfile.displayName !== cleanedName) {
+        try {
+          const updatedAt = new Date().toISOString();
+          await updateDoc(doc(db, 'users', fbUser.uid), {
+            displayName: cleanedName,
+            updatedAt,
+            updatedAtServer: serverTimestamp(),
+          });
+          userProfile = { ...userProfile, displayName: cleanedName, updatedAt };
+        } catch (updateErr) {
+          console.warn('Could not sync signup displayName:', updateErr);
+        }
+      }
 
       return { user: userProfile, firebaseUser: fbUser, error: null };
-    } catch (err: any) {
-      return { user: null, firebaseUser: null, error: err?.message || 'Failed to complete registration.' };
+    } catch (err: unknown) {
+      return {
+        user: null,
+        firebaseUser: null,
+        error: formatFirebaseAuthError(err, 'Failed to complete registration.'),
+      };
     }
   }
 
@@ -323,8 +370,12 @@ export async function signInUser(
       const fbUser = cred.user;
       const profile = await ensureUserProfile(fbUser);
       return { user: profile, firebaseUser: fbUser, error: null };
-    } catch (err: any) {
-      return { user: null, firebaseUser: null, error: err?.message || 'Invalid credentials or sign-in failed.' };
+    } catch (err: unknown) {
+      return {
+        user: null,
+        firebaseUser: null,
+        error: formatFirebaseAuthError(err, 'Invalid credentials or sign-in failed.'),
+      };
     }
   }
 
@@ -382,30 +433,18 @@ export async function signInWithGoogle(): Promise<{
     try {
       const cred = await signInWithPopup(auth, googleProvider);
       const fbUser = cred.user;
-
-      let profile = await fetchUserProfile(fbUser.uid);
-      if (!profile) {
-        profile = {
-          uid: fbUser.uid,
-          email: fbUser.email,
-          displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Seeker',
-          role: 'user',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          agreedToTerms: true,
-          avatarUrl: fbUser.photoURL,
-        };
-
-        await setDoc(doc(db, 'users', fbUser.uid), {
-          ...profile,
-          createdAtServer: serverTimestamp(),
-          updatedAtServer: serverTimestamp(),
-        });
-      }
+      const profile = await ensureUserProfile(
+        fbUser,
+        fbUser.displayName || fbUser.email?.split('@')[0] || 'Wellness Seeker'
+      );
 
       return { user: profile, firebaseUser: fbUser, error: null };
-    } catch (err: any) {
-      return { user: null, firebaseUser: null, error: err?.message || 'Google sign-in cancelled or failed.' };
+    } catch (err: unknown) {
+      return {
+        user: null,
+        firebaseUser: null,
+        error: formatFirebaseAuthError(err, 'Google sign-in cancelled or failed.'),
+      };
     }
   }
 
@@ -468,7 +507,6 @@ export async function signOutCurrentUser(): Promise<{ error: string | null }> {
  * Retrieves the currently persisted local session user and profile synchronously.
  */
 export function getLocalSessionUser(): { firebaseUser: FirebaseUser | null; profile: UserProfileDocument | null } {
-  if (typeof window === 'undefined') return { firebaseUser: null, profile: null };
   const sessionRaw = getStorageItem(LOCAL_SESSION_KEY);
   if (!sessionRaw) return { firebaseUser: null, profile: null };
   try {
@@ -505,51 +543,78 @@ export async function ensureUserProfile(
   fbUser: FirebaseUser,
   fallbackDisplayName?: string
 ): Promise<UserProfileDocument> {
-  // First attempt to fetch existing document
-  let profile = await fetchUserProfile(fbUser.uid);
-  if (profile) return profile;
+  const existingInFlight = inFlightProfileEnsures.get(fbUser.uid);
+  if (existingInFlight) {
+    return existingInFlight;
+  }
 
-  // Short pause in case Firestore write is in-flight
-  if (isFirebaseConfigured) {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    profile = await fetchUserProfile(fbUser.uid);
+  const task = (async (): Promise<UserProfileDocument> => {
+    // 1. Always check existing profile first to avoid overwriting existing roles or duplicating profiles
+    let profile = await fetchUserProfile(fbUser.uid);
     if (profile) return profile;
-  }
 
-  // Still not found: construct default profile with authenticated user UID
-  const newProfile: UserProfileDocument = {
-    uid: fbUser.uid,
-    email: fbUser.email,
-    displayName: fallbackDisplayName || fbUser.displayName || fbUser.email?.split('@')[0] || 'Wellness Seeker',
-    role: 'user', // Enforce strictly 'user'
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    agreedToTerms: true,
-    prakritiBaseline: null,
-  };
-
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'users', fbUser.uid), {
-        ...newProfile,
-        createdAtServer: serverTimestamp(),
-        updatedAtServer: serverTimestamp(),
-      }, { merge: true });
-    } catch (err) {
-      console.error('Failed to create fallback user profile in Firestore:', err);
+    if (isFirebaseConfigured) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      profile = await fetchUserProfile(fbUser.uid);
+      if (profile) return profile;
     }
-  } else {
-    const users = getStoredUsers();
-    users[fbUser.uid] = {
-      ...newProfile,
-      email: newProfile.email || fbUser.email || `${fbUser.uid}@demo.local`,
-      displayName: newProfile.displayName || 'Wellness Seeker',
-      assignedPractitionerId: null,
-    };
-    saveStoredUsers(users);
-  }
 
-  return newProfile;
+    const rawDisplayName =
+      fallbackDisplayName?.trim() ||
+      fbUser.displayName?.trim() ||
+      fbUser.email?.split('@')[0] ||
+      'Wellness Seeker';
+    const safeDisplayName = rawDisplayName.slice(0, 80);
+    const safeAvatarUrl =
+      fbUser.photoURL && fbUser.photoURL.length <= 500 ? fbUser.photoURL : null;
+    const nowIso = new Date().toISOString();
+
+    const newProfile: UserProfileDocument = {
+      uid: fbUser.uid,
+      email: fbUser.email || null,
+      displayName: safeDisplayName,
+      role: 'user', // Enforce strictly 'user'
+      createdAt: nowIso,
+      updatedAt: nowIso,
+      agreedToTerms: true,
+      avatarUrl: safeAvatarUrl,
+      prakritiBaseline: null,
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'users', fbUser.uid), {
+          ...newProfile,
+          createdAtServer: serverTimestamp(),
+          updatedAtServer: serverTimestamp(),
+        });
+      } catch (err) {
+        // Re-check if another concurrent auth event created it first
+        const retryExisting = await fetchUserProfile(fbUser.uid);
+        if (retryExisting) return retryExisting;
+        console.error('Failed to create user profile in Firestore:', err);
+        throw err;
+      }
+    } else {
+      const users = getStoredUsers();
+      users[fbUser.uid] = {
+        ...newProfile,
+        email: newProfile.email || fbUser.email || `${fbUser.uid}@demo.local`,
+        displayName: newProfile.displayName || 'Wellness Seeker',
+        assignedPractitionerId: null,
+      };
+      saveStoredUsers(users);
+    }
+
+    return newProfile;
+  })();
+
+  inFlightProfileEnsures.set(fbUser.uid, task);
+  try {
+    return await task;
+  } finally {
+    inFlightProfileEnsures.delete(fbUser.uid);
+  }
 }
 
 /**

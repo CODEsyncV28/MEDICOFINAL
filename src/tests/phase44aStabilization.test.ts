@@ -241,15 +241,38 @@ describe('Phase 4.4A Stabilization Tests', () => {
     assert.equal(demoPractitioner.allowed, true);
     assert.equal(demoPractitioner.isDemoOverride, true);
 
-    // When Firebase IS configured, client-side Demo Mode never unlocks restricted portals
-    const firebaseLocked = canAccessPortal({
+    // When Firebase IS configured, Demo Sandbox still unlocks UI preview (marked isDemoOverride: true) without elevating account role
+    const firebaseSandboxAdmin = canAccessPortal({
       targetRole: 'admin',
       accountRole: 'user',
       isAuthenticated: true,
       demoPortalEnabled: true,
       isFirebaseConfigured: true,
     });
-    assert.equal(firebaseLocked.allowed, false);
+    assert.equal(firebaseSandboxAdmin.allowed, true);
+    assert.equal(firebaseSandboxAdmin.isDemoOverride, true);
+
+    // When Demo Sandbox is turned off, ordinary users and guests remain blocked even when Firebase is configured
+    const firebaseLockedAdmin = canAccessPortal({
+      targetRole: 'admin',
+      accountRole: 'user',
+      isAuthenticated: true,
+      demoPortalEnabled: false,
+      isFirebaseConfigured: true,
+    });
+    assert.equal(firebaseLockedAdmin.allowed, false);
+
+    // Verified Firebase Admin gets direct access without Demo Override
+    const verifiedAdmin = canAccessPortal({
+      targetRole: 'admin',
+      accountRole: 'admin',
+      isAuthenticated: true,
+      demoPortalEnabled: true,
+      isFirebaseConfigured: true,
+    });
+    assert.equal(verifiedAdmin.allowed, true);
+    assert.equal(verifiedAdmin.isDemoOverride, false);
+
     assert.ok(PORTAL_SECURITY_DISCLAIMER.includes('Firebase Security Rules'));
   });
 

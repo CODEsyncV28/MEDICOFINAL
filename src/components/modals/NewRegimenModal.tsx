@@ -8,6 +8,7 @@ interface NewRegimenModalProps {
   isOpen: boolean;
   onClose: () => void;
   practitioner: Practitioner;
+  isDemoMode?: boolean;
   onSaved?: (savedProgram: WellnessProgramDocument) => void;
 }
 
@@ -15,6 +16,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
   isOpen,
   onClose,
   practitioner,
+  isDemoMode = false,
   onSaved,
 }) => {
   const [title, setTitle] = useState('');
@@ -47,18 +49,22 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
     setErrorMsg(null);
     setIsSaving(true);
     try {
-      const saved = await saveOrSubmitProgram({
-        title,
-        discipline,
-        category,
-        durationWeeks: Number(durationWeeks),
-        level,
-        description,
-        creatorPractitionerId: practitioner.id,
-        practitionerName: practitioner.name,
-        practitionerTitle: practitioner.qualification,
-        submitForReview,
-      });
+      const saved = await saveOrSubmitProgram(
+        {
+          title,
+          discipline,
+          category,
+          durationWeeks: Number(durationWeeks),
+          level,
+          description,
+          creatorPractitionerId: practitioner.id,
+          practitionerName: practitioner.name,
+          practitionerTitle: practitioner.qualification,
+          submitForReview,
+        },
+        undefined,
+        isDemoMode
+      );
 
       setSavedProgram(saved);
       onSaved?.(saved);

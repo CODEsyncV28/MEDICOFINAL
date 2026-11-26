@@ -116,7 +116,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
             <div className="space-y-1">
               <p className="font-bold text-[#0F172A]">
                 {demoPortalEnabled
-                  ? 'DEMO MODE Portal Switcher Active (UI Evaluation Only)'
+                  ? 'Portal Sandbox Switcher Active · All Portals Accessible (UI Preview Only)'
                   : 'Standard Role Access Active · Restricted Portals Locked'}
               </p>
               <p className="text-xs text-[#475569] leading-relaxed">
@@ -125,41 +125,39 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
               <p className="text-[11px] font-medium text-[#0284C7]">
                 Current Account Identity:{' '}
                 {isAuthenticated
-                  ? `Signed-in Demo Account (role: "${accountRole || 'user'}")`
+                  ? `Signed-in Account (role: "${accountRole || 'user'}")`
                   : 'Unauthenticated Guest Preview'}
               </p>
             </div>
           </div>
 
-          {!isConfigured && (
-            <div className="shrink-0 flex flex-col items-start md:items-end gap-1.5">
-              <button
-                type="button"
-                role="switch"
-                aria-checked={demoPortalEnabled}
-                onClick={() => onToggleDemoPortal(!demoPortalEnabled)}
-                className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${
-                  demoPortalEnabled
-                    ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
-                    : 'bg-[#F1F5F9] text-[#0F172A] border-[#CBD5E1] hover:bg-[#E2E8F0]'
+          <div className="shrink-0 flex flex-col items-start md:items-end gap-1.5">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={demoPortalEnabled}
+              onClick={() => onToggleDemoPortal(!demoPortalEnabled)}
+              className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${
+                demoPortalEnabled
+                  ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
+                  : 'bg-[#F1F5F9] text-[#0F172A] border-[#CBD5E1] hover:bg-[#E2E8F0]'
+              }`}
+            >
+              <span
+                className={`w-2.5 h-2.5 rounded-full ${
+                  demoPortalEnabled ? 'bg-amber-600' : 'bg-slate-400'
                 }`}
-              >
-                <span
-                  className={`w-2.5 h-2.5 rounded-full ${
-                    demoPortalEnabled ? 'bg-amber-600' : 'bg-slate-400'
-                  }`}
-                />
-                <span>
-                  {demoPortalEnabled
-                    ? 'DEMO MODE Portal Switcher: ON (Disable)'
-                    : 'Enable DEMO MODE Portal Switcher'}
-                </span>
-              </button>
-              <span className="text-[10px] text-[#64748B]">
-                For hackathon jury preview only · Does not change account role
+              />
+              <span>
+                {demoPortalEnabled
+                  ? 'DEMO MODE Portal Switcher: ON (Disable)'
+                  : 'Enable DEMO MODE Portal Switcher'}
               </span>
-            </div>
-          )}
+            </button>
+            <span className="text-[10px] text-[#64748B]">
+              Uses isolated local demo data · Never grants live Firebase privileges
+            </span>
+          </div>
         </div>
       </div>
 

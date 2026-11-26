@@ -12,7 +12,11 @@ import {
   where,
 } from 'firebase/firestore';
 
-function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+function resolveActiveDb(
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Firestore | null {
+  if (useDemoStorage) return null;
   if (firestoreOverride) return firestoreOverride;
   return isFirebaseConfigured && db ? db : null;
 }
@@ -317,11 +321,12 @@ export async function fetchConsultationsForUser(
  */
 export async function fetchConsultationsForPractitioner(
   practitionerId: string,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<ConsultationDocument[]> {
   if (!practitionerId || !practitionerId.trim()) return [];
 
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   if (activeDb) {
     if (practitionerId.trim() === 'prac-1') {
       return [];
@@ -386,7 +391,8 @@ export function isValidPractitionerConsultationTransition(
 export async function updateConsultationStatus(
   consultationId: string,
   payload: UpdateConsultationStatusPayload,
-  firestoreOverride?: Firestore | null
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
 ): Promise<ConsultationDocument> {
   if (!consultationId || !consultationId.trim()) {
     throw new Error('Consultation ID is required.');
@@ -400,7 +406,7 @@ export async function updateConsultationStatus(
   }
 
   const now = new Date().toISOString();
-  const activeDb = resolveActiveDb(firestoreOverride);
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
   const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
 
   if (activeDb) {
