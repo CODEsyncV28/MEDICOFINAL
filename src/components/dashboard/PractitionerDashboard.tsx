@@ -108,11 +108,11 @@ function formatReadableDate(iso?: string | null): string {
 function getArticleStatusMeta(status: ArticleApprovalStatus): { label: string; className: string } {
   switch (status) {
     case 'published':
-      return { label: 'Approved', className: 'bg-[#EBF2ED] text-[#244E38]' };
+      return { label: 'Approved', className: 'bg-[#CCFBF1] text-[#0F766E]' };
     case 'pending_approval':
       return { label: 'Pending Review', className: 'bg-[#FEF3C7] text-[#92400E]' };
     case 'revision_requested':
-      return { label: 'Revision Requested', className: 'bg-[#FBF2EE] text-[#A64B2A]' };
+      return { label: 'Revision Requested', className: 'bg-[#FFDAD6] text-[#93000A]' };
     default:
       return { label: 'Draft', className: 'bg-slate-100 text-slate-700' };
   }
@@ -121,11 +121,11 @@ function getArticleStatusMeta(status: ArticleApprovalStatus): { label: string; c
 function getProgramStatusMeta(status: ProgramApprovalStatus): { label: string; className: string } {
   switch (status) {
     case 'published':
-      return { label: 'Published', className: 'bg-[#EBF2ED] text-[#244E38]' };
+      return { label: 'Published', className: 'bg-[#CCFBF1] text-[#0F766E]' };
     case 'pending_approval':
       return { label: 'Pending Approval', className: 'bg-[#FEF3C7] text-[#92400E]' };
     case 'revision_requested':
-      return { label: 'Revision Requested', className: 'bg-[#FBF2EE] text-[#A64B2A]' };
+      return { label: 'Revision Requested', className: 'bg-[#FFDAD6] text-[#93000A]' };
     default:
       return { label: 'Draft', className: 'bg-slate-100 text-slate-700' };
   }
@@ -559,15 +559,15 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Demonstration / Governance Top Bar */}
-      <div className="p-3.5 rounded-xl bg-[#F4F7F4] border border-[#D5E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#224A34]">
+      <div className="p-3.5 rounded-xl bg-[#F1F5F9] border border-[#CBD5E1] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#475569]">
         <div className="flex flex-wrap items-center gap-2">
-          <Stethoscope className="w-4 h-4 text-[#2D5A43] shrink-0" />
+          <Stethoscope className="w-4 h-4 text-[#0284C7] shrink-0" />
           <span>
             <strong>Practitioner Console:</strong> Licensed AYUSH Physician Workspace for{' '}
-            <span className="font-semibold text-[#183625]">{practitioner.name}</span> ({practitioner.qualification}).
+            <span className="font-semibold text-[#0F172A]">{practitioner.name}</span> ({practitioner.qualification}).
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E2EBE4] text-[#1E3F2E] border border-[#C8D7CD]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
             Verified Statutory License
           </span>
           {isDemoMode && (
@@ -577,7 +577,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           )}
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-[11px] text-[#526B5C] hidden md:inline">
+          <span className="text-[11px] text-[#475569] hidden md:inline">
             RBAC: /clientProfiles restricted
           </span>
           {canSwitchToAdmin && onSwitchRole && (
@@ -587,7 +587,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               className={`font-bold whitespace-nowrap transition-colors ${
                 isDemoMode
                   ? 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100'
-                  : 'text-[#2D5A43] hover:text-[#183626] underline underline-offset-2'
+                  : 'text-[#0284C7] hover:text-[#075985] underline underline-offset-2'
               }`}
             >
               {isDemoMode ? 'DEMO MODE: Switch to Administrator Portal →' : 'Switch to Administrator Portal →'}
@@ -597,31 +597,31 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
       </div>
 
       {/* 1. PRACTITIONER OVERVIEW & PROFILE HEADER */}
-      <section className="bg-gradient-to-br from-[#FAFAF7] via-[#F6F8F5] to-[#EEF4F0] rounded-2xl p-6 sm:p-8 border border-[#E0E7E1] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <section className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#CCFBF1]/30 rounded-2xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold text-2xl flex items-center justify-center shrink-0 border border-[#D0DDD3] shadow-xs">
+          <div className="w-16 h-16 rounded-2xl bg-[#CCFBF1] text-[#0F766E] font-serif font-bold text-2xl flex items-center justify-center shrink-0 border border-[#99F6E4] shadow-xs">
             {getPractitionerInitials(practitioner.name)}
           </div>
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#142A1E]">
+              <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#0F172A]">
                 {practitioner.name}
               </h1>
-              <span className="text-xs font-semibold text-[#2D5A43] bg-[#E5EDE7] px-2.5 py-0.5 rounded-md border border-[#CCDCD2]">
+              <span className="text-xs font-semibold text-[#0F766E] bg-[#CCFBF1] px-2.5 py-0.5 rounded-md border border-[#99F6E4]">
                 Verified AYUSH Physician
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-[#4E6457] font-medium">
+            <p className="text-xs sm:text-sm text-[#475569] font-medium">
               {practitioner.qualification} · {practitioner.experienceYears} Years Clinical & Circadian Supervision
             </p>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-[#5E7969]">
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
               <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#2D5A43]" />
+                <ShieldCheck className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>{practitioner.councilRegistration}</span>
               </span>
               <span>·</span>
               <span className="flex items-center gap-1">
-                <Clock className="w-3.5 h-3.5 text-[#2D5A43]" />
+                <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>{practitioner.nextAvailableSlot}</span>
               </span>
             </div>
@@ -633,15 +633,15 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           <button
             type="button"
             onClick={handleOpenNewArticleModal}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-[#1E3F2E] bg-white hover:bg-[#F2F6F3] border border-[#CCD5CB] rounded-xl shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-[#0F172A] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-xl shadow-xs transition-colors"
           >
-            <FileText className="w-4 h-4 text-[#2D5A43]" />
+            <FileText className="w-4 h-4 text-[#0284C7]" />
             <span>Author Wellness Guide</span>
           </button>
           <button
             type="button"
             onClick={onOpenNewRegimen}
-            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-xl shadow-xs transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-xl shadow-xs transition-colors"
           >
             <Plus className="w-4 h-4" />
             <span>Create Regimen Template</span>
@@ -652,91 +652,91 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
       {/* PRACTITIONER OVERVIEW STATISTIC CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Assigned Clients */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Assigned Client Cohort
             </span>
-            <Users className="w-4 h-4 text-[#2D5A43]" />
+            <Users className="w-4 h-4 text-[#0284C7]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
               {clientList.length}
             </span>
-            <span className="text-xs text-[#526B5C]">Seekers Assigned</span>
+            <span className="text-xs text-[#475569]">Seekers Assigned</span>
           </div>
-          <p className="text-[11px] text-[#5E7869]">
+          <p className="text-[11px] text-[#64748B]">
             Avg. Cohort Adherence: <strong>86.4%</strong> across daily rituals
           </p>
         </div>
 
         {/* Card 2: Active Programmes */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Wellness Programmes
             </span>
-            <Award className="w-4 h-4 text-[#2D5A43]" />
+            <Award className="w-4 h-4 text-[#0284C7]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
               {programList.length}
             </span>
-            <span className="text-xs text-[#526B5C]">Curated Regimens</span>
+            <span className="text-xs text-[#475569]">Curated Regimens</span>
           </div>
-          <p className="text-[11px] text-[#5E7869]">
+          <p className="text-[11px] text-[#64748B]">
             {programList.filter((p) => p.status === 'published').length} Published ·{' '}
             {programList.filter((p) => p.status === 'pending_approval').length} In Review
           </p>
         </div>
 
         {/* Card 3: Pending Consultations */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#A64B2A]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-amber-700">
               Consultation Requests
             </span>
-            <Video className="w-4 h-4 text-[#A64B2A]" />
+            <Video className="w-4 h-4 text-amber-700" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
               {pendingConsultationsCount}
             </span>
-            <span className="text-xs text-[#A64B2A] font-semibold">Pending Review</span>
+            <span className="text-xs text-amber-700 font-semibold">Pending Review</span>
           </div>
-          <p className="text-[11px] text-[#6E544B]">
+          <p className="text-[11px] text-[#64748B]">
             {consultations.filter((c) => c.status === 'confirmed' || c.status === 'rescheduled').length} Confirmed or Rescheduled
           </p>
         </div>
 
         {/* Card 4: Governance & Submissions */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Admin Governance Queue
             </span>
-            <ShieldCheck className="w-4 h-4 text-[#2D5A43]" />
+            <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
               {pendingSubmissionsCount}
             </span>
-            <span className="text-xs text-[#526B5C]">Awaiting Admin Sign-off</span>
+            <span className="text-xs text-[#475569]">Awaiting Admin Sign-off</span>
           </div>
-          <p className="text-[11px] text-[#5E7869]">
+          <p className="text-[11px] text-[#64748B]">
             Strict RBAC: Direct publishing restricted
           </p>
         </div>
       </section>
 
       {/* NAVIGATION TABS WITHIN PRACTITIONER WORKSPACE */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#E0E7E1] pb-3 text-xs sm:text-sm font-medium">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3 text-xs sm:text-sm font-medium">
         <button
           onClick={() => setActiveTab('roster')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'roster'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -747,14 +747,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           onClick={() => setActiveTab('consultations')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'consultations'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Video className="w-4 h-4" />
           <span>Consultation Requests ({consultations.length})</span>
           {pendingConsultationsCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#A64B2A] text-white">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">
               {pendingConsultationsCount}
             </span>
           )}
@@ -764,8 +764,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           onClick={() => setActiveTab('programs')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'programs'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Award className="w-4 h-4" />
@@ -776,8 +776,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           onClick={() => setActiveTab('authoring')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'authoring'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <FileText className="w-4 h-4" />
@@ -787,21 +787,21 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
       {/* 2. CLIENT ROSTER TAB */}
       {activeTab === 'roster' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Care Management
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5]">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
                   Simulated Cohort Data (Demo Records)
                 </span>
               </div>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E] mt-0.5">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A] mt-0.5">
                 Assigned Seekers Roster
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Exclusively displaying seekers assigned to {practitioner.name}. Private user contact info is strictly excluded.
               </p>
             </div>
@@ -815,7 +815,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   placeholder="Search seeker, goal, program..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[#CCD5CB] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A43] w-full sm:w-64"
+                  className="pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[#CBD5E1] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0284C7] w-full sm:w-64"
                 />
               </div>
 
@@ -824,7 +824,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value as any)}
                 aria-label="Filter seekers by status"
-                className="text-xs p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                className="text-xs p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
               >
                 <option value="All">All Statuses</option>
                 <option value="On Track">On Track</option>
@@ -837,7 +837,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 value={disciplineFilter}
                 onChange={(e) => setDisciplineFilter(e.target.value)}
                 aria-label="Filter seekers by discipline"
-                className="text-xs p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                className="text-xs p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
               >
                 <option value="All">All Disciplines</option>
                 <option value="Ayurveda">Ayurveda</option>
@@ -849,22 +849,22 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
           {/* Roster Table */}
           {clientsLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading assigned client records...</span>
             </div>
           ) : clientsError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {clientsError}
             </div>
           ) : filteredClients.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No assigned seekers match the current filters for {practitioner.name}.
             </div>
           ) : (
-            <div className="overflow-x-auto border border-[#E0E7E1] rounded-xl">
+            <div className="overflow-x-auto border border-[#E2E8F0] rounded-xl">
               <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-[#FAFBF9] border-b border-[#E0E7E1] text-[#526B5C] font-semibold text-xs">
+                <thead className="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[#475569] font-semibold text-xs">
                   <tr>
                     <th className="py-3 px-4">Seeker Name</th>
                     <th className="py-3 px-4">Primary Wellness Goal</th>
@@ -875,46 +875,46 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EEF2EC]">
+                <tbody className="divide-y divide-[#E2E8F0]">
                   {filteredClients.map((client) => (
-                    <tr key={client.id} className="hover:bg-[#FAFBF9] transition-colors">
-                      <td className="py-3.5 px-4 font-semibold text-[#1E3F2E]">
+                    <tr key={client.id} className="hover:bg-[#F8FAFC] transition-colors">
+                      <td className="py-3.5 px-4 font-semibold text-[#0F172A]">
                         <div>
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span>{client.name}</span>
                             {client.isSimulated !== false && (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                                 Demo Record
                               </span>
                             )}
                           </div>
-                          <p className="text-[11px] text-[#6B8576] font-normal">
+                          <p className="text-[11px] text-[#64748B] font-normal">
                             {client.age} yrs · {client.gender}
                           </p>
                         </div>
                       </td>
 
-                      <td className="py-3.5 px-4 text-[#3C5345] max-w-xs">
+                      <td className="py-3.5 px-4 text-[#475569] max-w-xs">
                         <span className="line-clamp-2 leading-relaxed">{client.primaryGoal}</span>
                       </td>
 
-                      <td className="py-3.5 px-4 text-[#3C5345]">
+                      <td className="py-3.5 px-4 text-[#475569]">
                         <div>
-                          <span className="font-medium text-[#1E3F2E]">{client.enrolledProgram}</span>
-                          <p className="text-[11px] text-[#6B8576]">{client.discipline}</p>
+                          <span className="font-medium text-[#0F172A]">{client.enrolledProgram}</span>
+                          <p className="text-[11px] text-[#64748B]">{client.discipline}</p>
                         </div>
                       </td>
 
                       <td className="py-3.5 px-4">
                         <div className="space-y-1 w-28">
-                          <div className="flex justify-between text-[11px] font-semibold text-[#1E3F2E]">
+                          <div className="flex justify-between text-[11px] font-semibold text-[#0F172A]">
                             <span className="tabular-nums">{client.adherenceRate}%</span>
-                            <span className="text-[10px] text-[#526B5C]">Active</span>
+                            <span className="text-[10px] text-[#475569]">Active</span>
                           </div>
-                          <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
                             <div
                               className={`h-full ${
-                                client.adherenceRate >= 80 ? 'bg-[#2D5A43]' : 'bg-[#D97746]'
+                                client.adherenceRate >= 80 ? 'bg-[#0284C7]' : 'bg-amber-600'
                               }`}
                               style={{ width: `${client.adherenceRate}%` }}
                             />
@@ -924,12 +924,12 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
                       <td className="py-3.5 px-4 text-xs">
                         {client.assessmentCompleted ? (
-                          <span className="text-[#2D5A43] font-semibold flex items-center gap-1">
+                          <span className="text-[#0D9488] font-semibold flex items-center gap-1">
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Complete
                           </span>
                         ) : (
-                          <span className="text-[#A64B2A] font-semibold flex items-center gap-1">
+                          <span className="text-amber-700 font-semibold flex items-center gap-1">
                             <AlertCircle className="w-3.5 h-3.5" />
                             Pending
                           </span>
@@ -940,10 +940,10 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         <span
                           className={`text-xs px-2.5 py-0.5 rounded-md font-medium ${
                             client.status === 'On Track'
-                              ? 'bg-[#EBF2ED] text-[#244E38]'
+                              ? 'bg-[#CCFBF1] text-[#0F766E]'
                               : client.status === 'Active'
-                              ? 'bg-[#E8F0F7] text-[#1E4E79]'
-                              : 'bg-[#FBF2EE] text-[#A64B2A]'
+                              ? 'bg-[#F1F5F9] text-[#075985]'
+                              : 'bg-amber-50 text-amber-800'
                           }`}
                         >
                           {client.status}
@@ -953,7 +953,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleOpenClientDetail(client)}
-                          className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] hover:text-[#183626] border border-[#CCD5CB] hover:bg-[#EBF2ED] rounded-lg transition-colors whitespace-nowrap"
+                          className="px-3 py-1.5 text-xs font-semibold text-[#0284C7] hover:text-[#075985] border border-[#CBD5E1] hover:bg-[#F1F5F9] rounded-lg transition-colors whitespace-nowrap"
                         >
                           View Profile &amp; Notes
                         </button>
@@ -969,40 +969,40 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
       {/* 6. CONSULTATION REQUESTS TAB */}
       {activeTab === 'consultations' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Direct Care Coordination
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#E8EFEA] text-[#244E38] border border-[#CCDCD2]">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
                   Authorized Care Channel
                 </span>
               </div>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E] mt-0.5">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A] mt-0.5">
                 Virtual Consultation Requests
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Seekers requesting personalized lifestyle guidance and routine review with {practitioner.name}.
               </p>
             </div>
-            <span className="text-xs text-[#526B5C]">
+            <span className="text-xs text-[#475569]">
               {consultations.length} Total Requests Recorded
             </span>
           </div>
 
           {consultationsLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading consultation inbox...</span>
             </div>
           ) : consultationsError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {consultationsError}
             </div>
           ) : consultations.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No consultation requests addressed to {practitioner.name} yet.
             </div>
           ) : (
@@ -1013,10 +1013,10 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   { label: string; className: string }
                 > = {
                   pending: { label: 'Pending Review', className: 'bg-[#FEF3C7] text-[#92400E]' },
-                  confirmed: { label: 'Confirmed', className: 'bg-[#EBF2ED] text-[#244E38]' },
-                  rescheduled: { label: 'Rescheduled', className: 'bg-[#E8F0F7] text-[#1E4E79]' },
-                  rejected: { label: 'Declined', className: 'bg-[#FDF2F0] text-[#9B2C1B]' },
-                  completed: { label: 'Completed', className: 'bg-[#EBF2ED] text-[#244E38]' },
+                  confirmed: { label: 'Confirmed', className: 'bg-[#CCFBF1] text-[#0F766E]' },
+                  rescheduled: { label: 'Rescheduled', className: 'bg-[#F1F5F9] text-[#075985]' },
+                  rejected: { label: 'Declined', className: 'bg-[#FFDAD6] text-[#93000A]' },
+                  completed: { label: 'Completed', className: 'bg-[#CCFBF1] text-[#0F766E]' },
                   cancelled: { label: 'Cancelled', className: 'bg-slate-100 text-slate-600' },
                 };
                 const badge = statusBadgeMap[item.status] || statusBadgeMap.pending;
@@ -1029,16 +1029,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 hover:border-[#CAD7CC] transition-colors"
+                    className="p-5 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-3 hover:border-[#CBD5E1] transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold text-sm flex items-center justify-center shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-[#CCFBF1] text-[#0F766E] font-serif font-bold text-sm flex items-center justify-center shrink-0">
                           {initials}
                         </div>
                         <div>
-                          <h4 className="font-bold text-sm text-[#1E3F2E]">{item.userName}</h4>
-                          <p className="text-xs text-[#526B5C]">
+                          <h4 className="font-bold text-sm text-[#0F172A]">{item.userName}</h4>
+                          <p className="text-xs text-[#475569]">
                             Seeker ID: <span className="font-mono">{item.userId}</span> · Preferred:{' '}
                             {item.preferredDate ? `${item.preferredDate} · ` : ''}
                             {getPreferredSlotLabel(item.preferredSlot)}
@@ -1048,7 +1048,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
                       <div className="flex items-center gap-2 self-start sm:self-auto">
                         {item.isSimulated && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                          <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                             Demo Request
                           </span>
                         )}
@@ -1058,7 +1058,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-xs text-[#3C5345] space-y-1.5 bg-white p-3.5 rounded-lg border border-[#E5ECE7]">
+                    <div className="text-xs text-[#475569] space-y-1.5 bg-white p-3.5 rounded-lg border border-[#E2E8F0]">
                       <p>
                         <strong>Focus Area:</strong>{' '}
                         {item.topicLabel || getConsultationTopicLabel(item.topic)}
@@ -1068,12 +1068,12 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         {item.notes ? `"${item.notes}"` : 'No additional observation note provided.'}
                       </p>
                       {item.scheduledTime && (
-                        <p className="text-[#2D5A43] font-semibold">
+                        <p className="text-[#0284C7] font-semibold">
                           Scheduled Appointment: {item.scheduledTime}
                         </p>
                       )}
                       {item.practitionerNotes && (
-                        <p className="text-[#526B5C] italic">
+                        <p className="text-[#475569] italic">
                           Physician Note: {item.practitionerNotes}
                         </p>
                       )}
@@ -1092,7 +1092,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleOpenConsultationModal(item, 'confirmed')}
-                            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
+                            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg shadow-xs transition-colors"
                           >
                             {item.status === 'pending' ? 'Accept & Confirm' : 'Confirm Slot'}
                           </button>
@@ -1101,7 +1101,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleOpenConsultationModal(item, 'rescheduled')}
-                            className="px-3.5 py-1.5 text-xs font-semibold text-[#1E4E79] bg-[#E8F0F7] hover:bg-[#DCE8F2] border border-[#C6D8E8] rounded-lg transition-colors"
+                            className="px-3.5 py-1.5 text-xs font-semibold text-[#075985] bg-white hover:bg-[#E2E8F0] border border-[#CBD5E1] rounded-lg transition-colors"
                           >
                             Reschedule
                           </button>
@@ -1111,7 +1111,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                             <button
                               type="button"
                               onClick={() => handleOpenConsultationModal(item, 'completed')}
-                              className="px-3.5 py-1.5 text-xs font-semibold text-[#244E38] bg-[#EBF2ED] hover:bg-[#DCE9E0] border border-[#C8D8CE] rounded-lg transition-colors"
+                              className="px-3.5 py-1.5 text-xs font-semibold text-[#0F766E] bg-[#CCFBF1] hover:bg-[#99F6E4]/60 border border-[#99F6E4] rounded-lg transition-colors"
                             >
                               Mark Completed
                             </button>
@@ -1120,7 +1120,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                           <button
                             type="button"
                             onClick={() => handleOpenConsultationModal(item, 'rejected')}
-                            className="px-3.5 py-1.5 text-xs font-semibold text-[#9B2C1B] bg-[#FDF2F0] hover:bg-[#F9E3DF] border border-[#ECC8C1] rounded-lg transition-colors"
+                            className="px-3.5 py-1.5 text-xs font-semibold text-[#BA1A1A] bg-[#FFDAD6] hover:bg-[#FFDAD6]/80 border border-[#BA1A1A]/30 rounded-lg transition-colors"
                           >
                             Decline
                           </button>
@@ -1133,8 +1133,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
           )}
 
-          <div className="p-3 bg-[#F8FAF8] rounded-xl border border-[#DCE6DE] text-xs text-[#4F6858] flex items-start gap-2">
-            <Info className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+          <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs text-[#475569] flex items-start gap-2">
+            <Info className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
             <span>
               <strong>Consultation Authorization Rules:</strong> As the assigned physician, you may confirm, reschedule, or decline pending requests, or mark active sessions completed. Finalized (declined, completed, or cancelled) consultations remain locked.
             </span>
@@ -1144,16 +1144,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
       {/* 4. WELLNESS PROGRAMME MANAGEMENT TAB */}
       {activeTab === 'programs' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
-              <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                 Regimen Architecture &amp; Templates
               </span>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                 Wellness Programme Catalog
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Educational lifestyle curricula authored by {practitioner.name}. Edits and submissions undergo Admin approval before public release.
               </p>
             </div>
@@ -1161,7 +1161,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             <button
               type="button"
               onClick={onOpenNewRegimen}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Create Regimen Template</span>
@@ -1169,23 +1169,23 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           </div>
 
           {programEditSuccess && (
-            <div className="p-3.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] border border-[#CCDCD2] text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+            <div className="p-3.5 rounded-lg bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
               <span>{programEditSuccess}</span>
             </div>
           )}
 
           {programsLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading wellness programmes...</span>
             </div>
           ) : programsError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {programsError}
             </div>
           ) : programList.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No wellness programmes authored by {practitioner.name} yet. Create a regimen template to begin.
             </div>
           ) : (
@@ -1195,14 +1195,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 return (
                   <div
                     key={prog.id}
-                    className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 flex flex-col justify-between"
+                    className="p-5 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-3 flex flex-col justify-between"
                   >
                     <div className="space-y-2">
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#526B5C]">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#475569]">
                         <div className="flex items-center gap-1.5">
-                          <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                          <span className="font-semibold text-[#0284C7]">{prog.discipline}</span>
                           {prog.isSimulated && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                               Demo Record
                             </span>
                           )}
@@ -1212,11 +1212,11 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         </span>
                       </div>
 
-                      <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                      <h3 className="font-serif font-bold text-base text-[#0F172A]">
                         {prog.title}
                       </h3>
 
-                      <p className="text-xs text-[#4E6457] leading-relaxed line-clamp-3">
+                      <p className="text-xs text-[#475569] leading-relaxed line-clamp-3">
                         {prog.description}
                       </p>
 
@@ -1224,8 +1224,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         <div
                           className={`p-2.5 rounded-lg border text-[11px] space-y-0.5 ${
                             prog.status === 'revision_requested'
-                              ? 'bg-[#FDF2F0] border-[#ECC8C1] text-[#9B2C1B]'
-                              : 'bg-white border-[#E5ECE7] text-[#4E6457]'
+                              ? 'bg-[#FFDAD6] border-[#BA1A1A]/30 text-[#93000A]'
+                              : 'bg-white border-[#E2E8F0] text-[#475569]'
                           }`}
                         >
                           <p className="font-semibold">
@@ -1236,14 +1236,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       )}
                     </div>
 
-                    <div className="pt-2 border-t border-[#E8ECE6] space-y-2">
-                      <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
+                    <div className="pt-2 border-t border-[#E2E8F0] space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-[#475569]">
                         <span>Duration: {prog.durationWeeks} Weeks</span>
                         <span>Level: {prog.level}</span>
                       </div>
 
                       <div className="flex items-center justify-between pt-1">
-                        <span className="text-[11px] text-[#2D5A43] font-medium">
+                        <span className="text-[11px] text-[#0284C7] font-medium">
                           {prog.totalSessions} Total Sessions · Updated {formatReadableDate(prog.updatedAt)}
                         </span>
                         <button
@@ -1252,7 +1252,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                             setProgramEditError(null);
                             setEditingProgram({ ...prog });
                           }}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#2D5A43] hover:underline"
+                          className="inline-flex items-center gap-1 text-xs font-semibold text-[#0284C7] hover:underline"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>
@@ -1267,8 +1267,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
           )}
 
-          <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] text-xs text-[#526B5C] flex items-start gap-2">
-            <Lock className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs text-[#475569] flex items-start gap-2">
+            <Lock className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
             <span>
               <strong>Platform Governance Rule:</strong> Newly created or edited regimens are stored in <em>Draft</em> or <em>Pending Approval</em> status. Practitioners cannot bypass administrator verification to self-publish into the public seeker catalog.
             </span>
@@ -1278,16 +1278,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
       {/* 5. EDUCATIONAL CONTENT AUTHORING TAB */}
       {activeTab === 'authoring' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
-              <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                 Health Education Authorship
               </span>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                 Authored Wellness Guides &amp; Articles
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Draft evidence-informed educational content authored by {practitioner.name}. Direct publication is restricted; submissions route to the Administrator Governance queue.
               </p>
             </div>
@@ -1295,7 +1295,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             <button
               type="button"
               onClick={handleOpenNewArticleModal}
-              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Draft New Article</span>
@@ -1303,23 +1303,23 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           </div>
 
           {authorSuccessMsg && (
-            <div className="p-3.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] border border-[#CCDCD2] text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+            <div className="p-3.5 rounded-lg bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
               <span>{authorSuccessMsg}</span>
             </div>
           )}
 
           {articlesLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading authored wellness guides...</span>
             </div>
           ) : articlesError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {articlesError}
             </div>
           ) : authoredArticles.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No educational articles authored by {practitioner.name} yet. Click &ldquo;Draft New Article&rdquo; to begin.
             </div>
           ) : (
@@ -1329,11 +1329,11 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 return (
                   <div
                     key={art.id}
-                    className="p-4 sm:p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-2.5 hover:border-[#CAD7CC] transition-colors"
+                    className="p-4 sm:p-5 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2.5 hover:border-[#CBD5E1] transition-colors"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                      <div className="flex flex-wrap items-center gap-2 text-[#526B5C]">
-                        <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
+                      <div className="flex flex-wrap items-center gap-2 text-[#475569]">
+                        <span className="font-semibold text-[#0284C7]">{art.discipline}</span>
                         <span>·</span>
                         <span>{art.category}</span>
                         <span>·</span>
@@ -1345,7 +1345,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                             : `Updated: ${formatReadableDate(art.updatedAt)}`}
                         </span>
                         {art.isSimulated && (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                             Demo Record
                           </span>
                         )}
@@ -1355,11 +1355,11 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       </span>
                     </div>
 
-                    <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                    <h3 className="font-serif font-bold text-base text-[#0F172A]">
                       {art.title}
                     </h3>
 
-                    <p className="text-xs text-[#4E6457] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {art.summary}
                     </p>
 
@@ -1367,8 +1367,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       <div
                         className={`p-3 rounded-lg border text-xs space-y-0.5 ${
                           art.status === 'revision_requested'
-                            ? 'bg-[#FDF2F0] border-[#ECC8C1] text-[#9B2C1B]'
-                            : 'bg-white border-[#E5ECE7] text-[#4E6457]'
+                            ? 'bg-[#FFDAD6] border-[#BA1A1A]/30 text-[#93000A]'
+                            : 'bg-white border-[#E2E8F0] text-[#475569]'
                         }`}
                       >
                         <p className="font-semibold">
@@ -1379,7 +1379,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       </div>
                     )}
 
-                    <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-[#526B5C] border-t border-[#EEF2EC]">
+                    <div className="pt-2 flex flex-wrap items-center justify-between gap-3 text-xs text-[#475569] border-t border-[#E2E8F0]">
                       <span>
                         Status:{' '}
                         <strong>
@@ -1396,7 +1396,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenEditArticleModal(art)}
-                          className="inline-flex items-center gap-1 font-semibold text-[#2D5A43] hover:underline"
+                          className="inline-flex items-center gap-1 font-semibold text-[#0284C7] hover:underline"
                         >
                           <Edit3 className="w-3.5 h-3.5" />
                           <span>
@@ -1430,7 +1430,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                               reviewedDate: formatReadableDate(art.reviewedAt || art.submittedAt || art.updatedAt),
                             });
                           }}
-                          className="inline-flex items-center gap-1 font-semibold text-[#2D5A43] hover:underline"
+                          className="inline-flex items-center gap-1 font-semibold text-[#0284C7] hover:underline"
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Preview Article Content</span>
@@ -1443,8 +1443,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
           )}
 
-          <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] text-xs text-[#526B5C] flex items-start gap-2">
-            <Lock className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs text-[#475569] flex items-start gap-2">
+            <Lock className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
             <span>
               <strong>Content Publishing Constraint:</strong> Under platform security rules (`/educationalArticles`), practitioner authors can create drafts and submit for review, but only Administrators can change status to <code>published</code>.
             </span>
@@ -1460,22 +1460,22 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="client-detail-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-2xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-[#F8FAFC] w-full max-w-2xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
             {/* Header */}
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                  <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                     Client Profile & Clinical Record
                   </span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#E8EFEA] text-[#244E38] font-bold">
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[#CCFBF1] text-[#0F766E] font-bold">
                     /clientProfiles/{selectedClient.id}
                   </span>
                 </div>
-                <h3 id="client-detail-title" className="text-xl font-serif font-bold text-[#1E3F2E]">
+                <h3 id="client-detail-title" className="text-xl font-serif font-bold text-[#0F172A]">
                   {selectedClient.name}
                 </h3>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   {selectedClient.age} yrs · {selectedClient.gender} · Assigned to {practitioner.name}
                 </p>
               </div>
@@ -1491,8 +1491,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             {/* Scrollable Content */}
             <div className="p-6 overflow-y-auto space-y-5 text-xs sm:text-sm">
               {/* Privacy Notice Banner */}
-              <div className="p-3 bg-[#F0F5F1] rounded-xl border border-[#CCDCD2] text-xs text-[#234B36] flex items-start gap-2.5">
-                <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+              <div className="p-3 bg-[#CCFBF1]/45 rounded-xl border border-[#99F6E4] text-xs text-[#0F766E] flex items-start gap-2.5">
+                <ShieldCheck className="w-4 h-4 text-[#0D9488] shrink-0 mt-0.5" />
                 <p className="leading-relaxed">
                   <strong>Strict Privacy Architecture:</strong> Practitioner view accesses only non-sensitive records in <code>/clientProfiles/{selectedClient.id}</code>. Private user credentials, passwords, and personal email addresses in <code>/users</code> are blocked by Firestore security rules.
                 </p>
@@ -1500,70 +1500,70 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
               {/* Status and Metric Overview */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
-                  <span className="text-[11px] font-semibold text-[#526B5C] uppercase">Habit Adherence</span>
-                  <p className="text-2xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+                <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-[11px] font-semibold text-[#475569] uppercase">Habit Adherence</span>
+                  <p className="text-2xl font-serif font-bold text-[#0F172A] tabular-nums">
                     {selectedClient.adherenceRate}%
                   </p>
-                  <p className="text-[11px] text-[#526B5C]">Check-in: {selectedClient.lastCheckIn}</p>
+                  <p className="text-[11px] text-[#475569]">Check-in: {selectedClient.lastCheckIn}</p>
                 </div>
 
-                <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
-                  <span className="text-[11px] font-semibold text-[#526B5C] uppercase">Baseline Assessment</span>
-                  <p className="text-sm font-bold text-[#1E3F2E]">
+                <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-[11px] font-semibold text-[#475569] uppercase">Baseline Assessment</span>
+                  <p className="text-sm font-bold text-[#0F172A]">
                     {selectedClient.assessmentCompleted ? 'Completed (100%)' : 'Incomplete / Pending'}
                   </p>
-                  <p className="text-[11px] text-[#526B5C]">
+                  <p className="text-[11px] text-[#475569]">
                     {selectedClient.assessmentCompleted ? 'Prakriti Profile Saved' : 'Section 3/4 unlogged'}
                   </p>
                 </div>
 
-                <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
-                  <span className="text-[11px] font-semibold text-[#526B5C] uppercase">Supervision Status</span>
-                  <p className="text-sm font-bold text-[#1E3F2E]">{selectedClient.status}</p>
-                  <p className="text-[11px] text-[#526B5C]">{selectedClient.discipline}</p>
+                <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-[11px] font-semibold text-[#475569] uppercase">Supervision Status</span>
+                  <p className="text-sm font-bold text-[#0F172A]">{selectedClient.status}</p>
+                  <p className="text-[11px] text-[#475569]">{selectedClient.discipline}</p>
                 </div>
               </div>
 
               {/* Goal and Enrolled Program */}
-              <div className="p-4 bg-white rounded-xl border border-[#E0E7E1] space-y-2">
+              <div className="p-4 bg-white rounded-xl border border-[#E2E8F0] space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                     Primary Wellness Objective
                   </span>
-                  <span className="text-xs text-[#526B5C] font-medium">{selectedClient.enrolledProgram}</span>
+                  <span className="text-xs text-[#475569] font-medium">{selectedClient.enrolledProgram}</span>
                 </div>
-                <p className="text-sm font-semibold text-[#1E3F2E]">
+                <p className="text-sm font-semibold text-[#0F172A]">
                   {selectedClient.primaryGoal}
                 </p>
               </div>
 
               {/* Permitted Assessment & Active Wellness Plan Summary */}
-              <div className="p-4 bg-white rounded-xl border border-[#E0E7E1] space-y-2.5">
+              <div className="p-4 bg-white rounded-xl border border-[#E2E8F0] space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                  <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                     Permitted Assessment &amp; Active Wellness Plan Summary
                   </span>
                   {clientWellnessSnapshot?.latestVersion && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] font-semibold">
                       Version {clientWellnessSnapshot.latestVersion}
                     </span>
                   )}
                 </div>
 
                 {clientWellnessLoading ? (
-                  <div className="flex items-center gap-2 text-xs text-[#526B5C] py-1">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2D5A43]" />
+                  <div className="flex items-center gap-2 text-xs text-[#475569] py-1">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0284C7]" />
                     <span>Loading permitted wellness records...</span>
                   </div>
                 ) : clientWellnessError ? (
-                  <p className="text-xs text-[#9B2C1B]">{clientWellnessError}</p>
+                  <p className="text-xs text-[#93000A]">{clientWellnessError}</p>
                 ) : !clientWellnessSnapshot ? (
-                  <p className="text-xs text-[#526B5C]">
+                  <p className="text-xs text-[#475569]">
                     No completed assessment or personalized wellness plan recorded for this client yet.
                   </p>
                 ) : (
-                  <div className="space-y-2 text-xs text-[#3C5345]">
+                  <div className="space-y-2 text-xs text-[#475569]">
                     {clientWellnessSnapshot.constitutionTendency && (
                       <p>
                         <strong>Constitutional Tendency:</strong>{' '}
@@ -1572,38 +1572,38 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {clientWellnessSnapshot.circadianBalanceCategory && (
-                        <div className="p-2 rounded-lg bg-[#FAFBF9] border border-[#E5ECE7]">
-                          <span className="text-[10px] font-semibold uppercase text-[#526B5C] block">
+                        <div className="p-2 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0]">
+                          <span className="text-[10px] font-semibold uppercase text-[#475569] block">
                             Circadian Rhythm
                           </span>
-                          <span className="font-semibold text-[#1E3F2E]">
+                          <span className="font-semibold text-[#0F172A]">
                             {clientWellnessSnapshot.circadianBalanceCategory}
                           </span>
                         </div>
                       )}
                       {clientWellnessSnapshot.digestiveAgniCategory && (
-                        <div className="p-2 rounded-lg bg-[#FAFBF9] border border-[#E5ECE7]">
-                          <span className="text-[10px] font-semibold uppercase text-[#526B5C] block">
+                        <div className="p-2 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0]">
+                          <span className="text-[10px] font-semibold uppercase text-[#475569] block">
                             Digestive Agni
                           </span>
-                          <span className="font-semibold text-[#1E3F2E]">
+                          <span className="font-semibold text-[#0F172A]">
                             {clientWellnessSnapshot.digestiveAgniCategory}
                           </span>
                         </div>
                       )}
                     </div>
                     {clientWellnessSnapshot.planTitle && (
-                      <div className="p-2.5 rounded-lg bg-[#F7FAF8] border border-[#D5E2D8] space-y-1">
-                        <p className="font-semibold text-[#1E3F2E]">
+                      <div className="p-2.5 rounded-lg bg-[#CCFBF1]/35 border border-[#99F6E4] space-y-1">
+                        <p className="font-semibold text-[#0F172A]">
                           {clientWellnessSnapshot.planTitle}
                         </p>
                         {clientWellnessSnapshot.planPrimaryFocus && (
-                          <p className="text-[11px] text-[#2D5A43] font-medium">
+                          <p className="text-[11px] text-[#0284C7] font-medium">
                             Primary Focus: {clientWellnessSnapshot.planPrimaryFocus}
                           </p>
                         )}
                         {clientWellnessSnapshot.planSummary && (
-                          <p className="text-[11px] text-[#526B5C] leading-relaxed">
+                          <p className="text-[11px] text-[#475569] leading-relaxed">
                             {clientWellnessSnapshot.planSummary}
                           </p>
                         )}
@@ -1616,16 +1616,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               {/* Practitioner Observation Notes Editor */}
               <form onSubmit={handleSaveClientNotes} className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="block text-xs font-semibold text-[#1E3F2E]">
+                  <label className="block text-xs font-semibold text-[#0F172A]">
                     Physician Clinical Observation & Regimen Guidance Notes
                   </label>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#526B5C]">Status:</span>
+                    <span className="text-xs text-[#475569]">Status:</span>
                     <select
                       value={editingStatus}
                       onChange={(e) => setEditingStatus(e.target.value as any)}
                       aria-label="Seeker status"
-                      className="text-xs p-1 rounded-md border border-[#CCD5CB] bg-white text-slate-800"
+                      className="text-xs p-1 rounded-md border border-[#CBD5E1] bg-white text-slate-800"
                     >
                       <option value="On Track">On Track</option>
                       <option value="Active">Active</option>
@@ -1639,19 +1639,19 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   value={editingNotes}
                   onChange={(e) => setEditingNotes(e.target.value)}
                   placeholder="Record observational feedback on Agni, sleep transitions, herbal tea responses, or posture resets..."
-                  className="w-full text-xs sm:text-sm p-3 rounded-xl border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-3 rounded-xl border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
 
                 {notesError && (
-                  <div role="alert" className="p-2.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-[#9B2C1B] text-xs font-semibold flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
+                  <div role="alert" className="p-2.5 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-[#93000A] text-xs font-semibold flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-[#BA1A1A]" />
                     <span>{notesError}</span>
                   </div>
                 )}
 
                 {saveNotesToast && (
-                  <div className="p-2.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] text-xs font-semibold flex items-center gap-1.5">
-                    <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+                  <div className="p-2.5 rounded-lg bg-[#CCFBF1] border border-[#99F6E4] text-[#0F766E] text-xs font-semibold flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
                     <span>{saveNotesToast}</span>
                   </div>
                 )}
@@ -1667,7 +1667,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   <button
                     type="submit"
                     disabled={savingNotes}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] disabled:opacity-60 rounded-lg transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-60 rounded-lg transition-colors shadow-xs"
                   >
                     {savingNotes ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1691,13 +1691,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="edit-program-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+          <div className="bg-[#F8FAFC] w-full max-w-lg rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Regimen Architecture
                 </span>
-                <h3 id="edit-program-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="edit-program-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   Edit Programme Template
                 </h3>
               </div>
@@ -1720,7 +1720,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               className="p-6 space-y-4 overflow-y-auto flex-1"
             >
               {editingProgram.reviewNotes && editingProgram.status === 'revision_requested' && (
-                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
+                <div className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] space-y-0.5">
                   <p className="font-semibold">Admin Revision Feedback:</p>
                   <p>{editingProgram.reviewNotes}</p>
                 </div>
@@ -1729,9 +1729,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               {programEditError && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium flex items-start gap-2"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium flex items-start gap-2"
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#BA1A1A]" />
                   <span>{programEditError}</span>
                 </div>
               )}
@@ -1739,7 +1739,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div>
                 <label
                   htmlFor="edit-program-name"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Programme Title *
                 </label>
@@ -1749,7 +1749,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   required
                   value={editingProgram.title}
                   onChange={(e) => setEditingProgram({ ...editingProgram, title: e.target.value })}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -1757,7 +1757,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <div>
                   <label
                     htmlFor="edit-program-weeks"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Duration (Weeks)
                   </label>
@@ -1773,13 +1773,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         durationWeeks: Number(e.target.value),
                       })
                     }
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   />
                 </div>
                 <div>
                   <label
                     htmlFor="edit-program-level"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Level
                   </label>
@@ -1789,7 +1789,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     onChange={(e) =>
                       setEditingProgram({ ...editingProgram, level: e.target.value as any })
                     }
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -1801,7 +1801,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div>
                 <label
                   htmlFor="edit-program-desc"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Description &amp; Clinical Objectives *
                 </label>
@@ -1813,12 +1813,12 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   onChange={(e) =>
                     setEditingProgram({ ...editingProgram, description: e.target.value })
                   }
-                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
-              <div className="p-3 bg-[#FBF2EE] rounded-lg border border-[#F0DCD5] text-xs text-[#A64B2A] flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-[#A64B2A] shrink-0 mt-0.5" />
+              <div className="p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs text-amber-900 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
                 <span>
                   <strong>Governance Requirement:</strong> Submitting moves the regimen to <em>Pending Approval</em>. Platform Admin approval is mandatory before published changes appear in seeker dashboards.
                 </span>
@@ -1836,15 +1836,15 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   type="button"
                   disabled={isSavingProgramEdit}
                   onClick={() => handleSaveProgramEdit(false)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#1E3F2E] bg-white hover:bg-[#F2F6F3] border border-[#CCD5CB] rounded-lg transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#0F172A] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors disabled:opacity-60"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#2D5A43]" />
+                  <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Save as Draft</span>
                 </button>
                 <button
                   type="submit"
                   disabled={isSavingProgramEdit}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                 >
                   {isSavingProgramEdit ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -1867,13 +1867,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="author-modal-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+          <div className="bg-[#F8FAFC] w-full max-w-xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Health Education Authorship
                 </span>
-                <h3 id="author-modal-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="author-modal-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   {editingArticle ? 'Edit Educational Wellness Guide' : 'Author Educational Wellness Guide'}
                 </h3>
               </div>
@@ -1893,7 +1893,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
             <div className="p-6 space-y-4 overflow-y-auto flex-1">
               {editingArticle?.reviewNotes && editingArticle.status === 'revision_requested' && (
-                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-0.5">
+                <div className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] space-y-0.5">
                   <p className="font-semibold">Admin Revision Feedback:</p>
                   <p>{editingArticle.reviewNotes}</p>
                 </div>
@@ -1902,9 +1902,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               {articleModalError && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium flex items-start gap-2"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium flex items-start gap-2"
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#BA1A1A]" />
                   <span>{articleModalError}</span>
                 </div>
               )}
@@ -1912,7 +1912,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div>
                 <label
                   htmlFor="author-article-title"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Article Title *
                 </label>
@@ -1923,7 +1923,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   placeholder="e.g., Safe Culinary Herbal Teas for Autumn Transition"
                   value={articleFormTitle}
                   onChange={(e) => setArticleFormTitle(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -1931,7 +1931,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <div>
                   <label
                     htmlFor="author-article-discipline"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Discipline
                   </label>
@@ -1939,7 +1939,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     id="author-article-discipline"
                     value={articleFormDiscipline}
                     onChange={(e) => setArticleFormDiscipline(e.target.value as any)}
-                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-800"
+                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
                   >
                     <option value="Ayurveda">Ayurveda</option>
                     <option value="Yoga & Naturopathy">Yoga &amp; Naturopathy</option>
@@ -1952,7 +1952,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <div>
                   <label
                     htmlFor="author-article-category"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Category
                   </label>
@@ -1960,7 +1960,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     id="author-article-category"
                     value={articleFormCategory}
                     onChange={(e) => setArticleFormCategory(e.target.value as any)}
-                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-800"
+                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
                   >
                     <option value="Lifestyle Education">Lifestyle</option>
                     <option value="Nutrition">Nutrition</option>
@@ -1973,7 +1973,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <div>
                   <label
                     htmlFor="author-article-readtime"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Read Time
                   </label>
@@ -1982,7 +1982,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     type="text"
                     value={articleFormReadTime}
                     onChange={(e) => setArticleFormReadTime(e.target.value)}
-                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-800"
+                    className="w-full text-xs sm:text-sm p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
                   />
                 </div>
               </div>
@@ -1990,7 +1990,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div>
                 <label
                   htmlFor="author-article-summary"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Educational Thesis / Summary *
                 </label>
@@ -2001,14 +2001,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   placeholder="Summarize the core traditional concept, circadian relevance, and practical self-observation..."
                   value={articleFormSummary}
                   onChange={(e) => setArticleFormSummary(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
               <div>
                 <label
                   htmlFor="author-article-content"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Educational Content
                 </label>
@@ -2018,12 +2018,12 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   placeholder="Detailed guidelines, classical references (Charaka/Ashtanga), and non-diagnostic safe practices..."
                   value={articleFormContent}
                   onChange={(e) => setArticleFormContent(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
-              <div className="p-3 bg-[#F0F5F1] rounded-lg border border-[#CCDCD2] text-xs text-[#234B36] flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+              <div className="p-3 bg-[#CCFBF1]/45 rounded-lg border border-[#99F6E4] text-xs text-[#0F766E] flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#0D9488] shrink-0 mt-0.5" />
                 <span>
                   <strong>Governance Workflow:</strong> Submitting routes this article directly to the Platform Administrator for review. Practitioners cannot self-publish.
                 </span>
@@ -2034,7 +2034,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   type="button"
                   disabled={isSavingArticle}
                   onClick={() => handleArticleSubmit(true)}
-                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-[#CCD5CB] disabled:opacity-60"
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg transition-colors border border-[#CBD5E1] disabled:opacity-60"
                 >
                   Save as Draft
                 </button>
@@ -2042,7 +2042,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   type="button"
                   disabled={isSavingArticle}
                   onClick={() => handleArticleSubmit(false)}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                 >
                   {isSavingArticle ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -2065,13 +2065,13 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           aria-labelledby="confirm-consult-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-md rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+          <div className="bg-[#F8FAFC] w-full max-w-md rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Care Scheduling
                 </span>
-                <h3 id="confirm-consult-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="confirm-consult-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   {consultationModalAction === 'confirmed'
                     ? 'Confirm Consultation'
                     : consultationModalAction === 'rescheduled'
@@ -2092,25 +2092,25 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
             </div>
 
             <form onSubmit={handleUpdateConsultation} noValidate className="p-6 space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
-              <div className="p-3 bg-white rounded-xl border border-[#E0E7E1] space-y-1">
-                <p className="font-bold text-[#1E3F2E]">{activeConsultationModal.userName}</p>
-                <p className="text-xs text-[#526B5C]">
+              <div className="p-3 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                <p className="font-bold text-[#0F172A]">{activeConsultationModal.userName}</p>
+                <p className="text-xs text-[#475569]">
                   Topic: {activeConsultationModal.topicLabel || getConsultationTopicLabel(activeConsultationModal.topic)}
                 </p>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   Preferred Time:{' '}
                   {activeConsultationModal.preferredDate ? `${activeConsultationModal.preferredDate} · ` : ''}
                   {getPreferredSlotLabel(activeConsultationModal.preferredSlot)}
                 </p>
                 {activeConsultationModal.notes && (
-                  <p className="text-xs text-[#526B5C] italic">
+                  <p className="text-xs text-[#475569] italic">
                     Seeker Note: &ldquo;{activeConsultationModal.notes}&rdquo;
                   </p>
                 )}
               </div>
 
               <div>
-                <span className="block text-xs font-semibold text-[#1E3F2E] mb-1.5">
+                <span className="block text-xs font-semibold text-[#0F172A] mb-1.5">
                   Practitioner Decision
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -2139,9 +2139,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                         className={`flex-1 min-w-[100px] py-2 px-2 text-xs rounded-lg border font-semibold transition-colors ${
                           consultationModalAction === opt.value
                             ? opt.value === 'rejected'
-                              ? 'border-[#9B2C1B] bg-[#FDF2F0] text-[#9B2C1B]'
-                              : 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E]'
-                            : 'border-[#CCD5CB] bg-white text-slate-700 hover:bg-slate-50'
+                              ? 'border-[#BA1A1A] bg-[#FFDAD6] text-[#93000A]'
+                              : 'border-[#0284C7] bg-[#CCFBF1] text-[#0F766E]'
+                            : 'border-[#CBD5E1] bg-white text-slate-700 hover:bg-slate-50'
                         }`}
                       >
                         {opt.label}
@@ -2153,9 +2153,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               {consultationModalError && (
                 <div
                   role="alert"
-                  className="p-2.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] flex items-center gap-2"
+                  className="p-2.5 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] flex items-center gap-2"
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-[#BA1A1A]" />
                   <span>{consultationModalError}</span>
                 </div>
               )}
@@ -2165,7 +2165,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <div>
                   <label
                     htmlFor="practitioner-scheduled-slot"
-                    className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     {consultationModalAction === 'rescheduled'
                       ? 'Proposed New Appointment Date & Time *'
@@ -2178,7 +2178,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     value={scheduledSlotInput}
                     onChange={(e) => setScheduledSlotInput(e.target.value)}
                     placeholder="e.g., 2026-11-28 at 10:30 AM (Virtual Review)"
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   />
                 </div>
               )}
@@ -2186,7 +2186,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
               <div>
                 <label
                   htmlFor="practitioner-consult-notes"
-                  className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   {consultationModalAction === 'rejected'
                     ? 'Reason / Alternative Guidance for Seeker'
@@ -2200,7 +2200,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   value={consultationNoteInput}
                   onChange={(e) => setConsultationNoteInput(e.target.value)}
                   placeholder="e.g., Please have a warm cup of water ready and track morning wakefulness patterns..."
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -2217,8 +2217,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                   disabled={isUpdatingConsultation}
                   className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white rounded-lg transition-colors shadow-xs disabled:opacity-60 ${
                     consultationModalAction === 'rejected'
-                      ? 'bg-[#9B2C1B] hover:bg-[#7F2315]'
-                      : 'bg-[#2D5A43] hover:bg-[#234835]'
+                      ? 'bg-[#BA1A1A] hover:bg-[#93000A]'
+                      : 'bg-[#0284C7] hover:bg-[#0369A1]'
                   }`}
                 >
                   {isUpdatingConsultation ? (

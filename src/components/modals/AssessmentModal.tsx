@@ -166,19 +166,19 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
       aria-labelledby="assessment-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
     >
-      <div className="bg-[#FAFAF7] w-full max-w-3xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-[#F8FAFC] w-full max-w-3xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Top Header */}
-        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                 Lifestyle & Dinacharya Assessment
               </span>
-              <span className="text-[10px] bg-[#EBF2ED] text-[#224A34] px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] bg-[#CCFBF1] text-[#0F766E] px-2 py-0.5 rounded-full font-bold">
                 20 Questions · 8 Dimensions
               </span>
             </div>
-            <h2 id="assessment-modal-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+            <h2 id="assessment-modal-title" className="text-lg font-serif font-bold text-[#0F172A]">
               {isFinished
                 ? 'Your Comprehensive Lifestyle Rhythm Profile'
                 : `Section ${currentCatInfo?.order || 1} of 8: ${currentCatInfo?.name}`}
@@ -196,7 +196,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
         {/* 8-Category Mini Stepper Bar */}
         {!isFinished && (
-          <div className="bg-[#F4F6F2] border-b border-[#E3E8E2] px-6 py-2 overflow-x-auto flex items-center gap-2 text-xs">
+          <div className="bg-[#F1F5F9] border-b border-[#E2E8F0] px-6 py-2 overflow-x-auto flex items-center gap-2 text-xs">
             {ASSESSMENT_CATEGORIES.map((cat) => {
               const catQs = EXPANDED_ASSESSMENT_QUESTIONS.filter((q) => q.category === cat.id);
               const answeredInCat = catQs.filter((q) => Boolean(answers[q.id]?.trim())).length;
@@ -211,17 +211,17 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                   onClick={() => handleJumpToCategory(cat.id)}
                   className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
                     isCurrentCat
-                      ? 'bg-[#2D5A43] text-white shadow-xs'
+                      ? 'bg-[#0284C7] text-white shadow-xs'
                       : isCatComplete
-                      ? 'bg-[#E5ECE7] text-[#234834]'
+                      ? 'bg-[#CCFBF1] text-[#0F766E]'
                       : hasMissingNotice
-                      ? 'bg-[#FFF5EE] text-[#A64B2A] border border-[#EBC7B2]'
-                      : 'bg-white/80 text-[#556F5E] hover:bg-white'
+                      ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                      : 'bg-white/80 text-[#475569] hover:bg-white'
                   }`}
                   title={`${cat.name} (${answeredInCat}/${catQs.length} answered)`}
                 >
                   {isCatComplete ? (
-                    <Check className="w-3 h-3 text-emerald-600" />
+                    <Check className="w-3 h-3 text-[#0D9488]" />
                   ) : (
                     <span className="text-[10px] opacity-75">{cat.order}.</span>
                   )}
@@ -229,7 +229,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                   {!isCatComplete && (
                     <span
                       className={`text-[10px] px-1 rounded ${
-                        isCurrentCat ? 'bg-white/20 text-white' : 'bg-[#EEF2ED] text-[#5B7263]'
+                        isCurrentCat ? 'bg-white/20 text-white' : 'bg-[#E2E8F0] text-[#475569]'
                       }`}
                     >
                       {answeredInCat}/{catQs.length}
@@ -242,9 +242,9 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
         )}
 
         {/* Continuous Progress Indicator */}
-        <div className="w-full bg-[#E5EDE7] h-1.5">
+        <div className="w-full bg-[#E2E8F0] h-1.5">
           <div
-            className="bg-[#2D5A43] h-1.5 transition-all duration-300"
+            className="bg-[#0284C7] h-1.5 transition-all duration-300"
             style={{ width: `${isFinished ? 100 : Math.max(5, progressPercentage)}%` }}
           />
         </div>
@@ -257,24 +257,24 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
               {validationError && (
                 <div
                   role="alert"
-                  className="p-4 rounded-xl bg-[#FDF4EF] border border-[#E8C5B0] text-xs text-[#8C3B1E] space-y-2.5"
+                  className="p-4 rounded-xl bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] space-y-2.5"
                 >
                   <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-[#A64B2A] shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-[#BA1A1A] shrink-0 mt-0.5" />
                     <div className="space-y-1 flex-1">
-                      <p className="font-bold text-[#7A3117]">
+                      <p className="font-bold text-[#93000A]">
                         Incomplete Assessment — All 20 Questions Required
                       </p>
                       <p className="leading-relaxed">{validationError}</p>
                     </div>
                   </div>
                   {validation.unansweredByCategory.length > 0 && (
-                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F1D8C8]">
+                    <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#BA1A1A]/20">
                       <div className="flex flex-wrap gap-1.5">
                         {validation.unansweredByCategory.map((catSum) => (
                           <span
                             key={catSum.categoryId}
-                            className="px-2 py-0.5 rounded bg-white border border-[#E8C5B0] text-[10px] font-semibold text-[#8C3B1E]"
+                            className="px-2 py-0.5 rounded bg-white border border-[#BA1A1A]/30 text-[10px] font-semibold text-[#93000A]"
                           >
                             {catSum.order}. {catSum.categoryName.split(' ')[0]} ({catSum.unansweredCount} unanswered)
                           </span>
@@ -285,7 +285,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                           <button
                             type="button"
                             onClick={handleJumpToFirstUnanswered}
-                            className="px-3 py-1 rounded-lg bg-[#A64B2A] text-white text-[11px] font-semibold hover:bg-[#8E3F22] transition-colors shrink-0"
+                            className="px-3 py-1 rounded-lg bg-[#BA1A1A] text-white text-[11px] font-semibold hover:bg-[#93000A] transition-colors shrink-0"
                           >
                             Jump to Question #{validation.firstUnansweredIndex + 1}
                           </button>
@@ -296,17 +296,17 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
               )}
 
               {/* Category Breadcrumb & Pillar Badge */}
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#EAF0EB] pb-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E2E8F0] pb-3">
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="font-semibold text-[#2D5A43]">
+                  <span className="font-semibold text-[#0284C7]">
                     {currentCatInfo?.name}
                   </span>
-                  <span className="text-[#849C8C]">·</span>
-                  <span className="text-[#597464] italic">
+                  <span className="text-[#64748B]">·</span>
+                  <span className="text-[#64748B] italic">
                     {currentCatInfo?.traditionalPillar}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs font-semibold text-[#526B5C]">
+                <div className="flex items-center gap-2 text-xs font-semibold text-[#475569]">
                   <span>
                     Question {currentQuestionIndex + 1} of {totalQuestions}
                     <span className="text-slate-400 font-normal">
@@ -317,8 +317,8 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                   <span
                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       isCurrentAnswered
-                        ? 'bg-[#E5ECE7] text-[#224A34]'
-                        : 'bg-[#FFF5EE] text-[#A64B2A] border border-[#EBC7B2]'
+                        ? 'bg-[#CCFBF1] text-[#0F766E]'
+                        : 'bg-amber-50 text-amber-800 border border-amber-200'
                     }`}
                   >
                     {isCurrentAnswered ? 'Answered' : 'Unanswered'}
@@ -328,11 +328,11 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
               {/* Question Headline */}
               <div className="space-y-1">
-                <h3 className="text-base sm:text-lg font-serif font-bold text-[#142A1E] leading-snug">
+                <h3 className="text-base sm:text-lg font-serif font-bold text-[#0F172A] leading-snug">
                   {currentQ.question}
                 </h3>
                 {currentQ.subtitle && (
-                  <p className="text-xs text-[#526B5C] leading-relaxed">
+                  <p className="text-xs text-[#475569] leading-relaxed">
                     {currentQ.subtitle}
                   </p>
                 )}
@@ -349,23 +349,23 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                       onClick={() => handleSelectOption(option.value)}
                       className={`w-full text-left p-4 rounded-xl border transition-all ${
                         selected
-                          ? 'border-[#2D5A43] bg-[#EBF2ED]/80 shadow-xs ring-1 ring-[#2D5A43]'
-                          : 'border-[#E3E8E2] bg-white hover:border-[#CCD5CB] hover:bg-[#F9FAF8]'
+                          ? 'border-[#0284C7] bg-[#CCFBF1]/35 shadow-xs ring-1 ring-[#0284C7]'
+                          : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1] hover:bg-[#F1F5F9]'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1 flex-1">
-                          <p className={`font-semibold text-sm ${selected ? 'text-[#1E3F2E]' : 'text-slate-800'}`}>
+                          <p className={`font-semibold text-sm ${selected ? 'text-[#0F172A]' : 'text-slate-800'}`}>
                             {option.label}
                           </p>
-                          <p className="text-xs text-[#526B5C] leading-relaxed">
+                          <p className="text-xs text-[#475569] leading-relaxed">
                             {option.description}
                           </p>
                         </div>
                         <div
                           className={`w-5 h-5 rounded-full border flex items-center justify-center shrink-0 mt-0.5 transition-colors ${
                             selected
-                              ? 'border-[#2D5A43] bg-[#2D5A43] text-white'
+                              ? 'border-[#0284C7] bg-[#0284C7] text-white'
                               : 'border-slate-300 bg-white'
                           }`}
                         >
@@ -379,15 +379,15 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
               {/* Optional Note field if question is last in section or has note prompt */}
               {currentQ.optionalNotePrompt && (
-                <div className="p-4 rounded-xl bg-white border border-[#E3E8E2] space-y-2">
+                <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2">
                   <label
                     htmlFor={`note-${currentQ.category}`}
-                    className="flex items-center gap-1.5 text-xs font-semibold text-[#2D5A43]"
+                    className="flex items-center gap-1.5 text-xs font-semibold text-[#0284C7]"
                   >
                     <FileText className="w-3.5 h-3.5" />
                     <span>Optional Observation for this Section:</span>
                   </label>
-                  <p className="text-[11px] text-[#526B5C]">
+                  <p className="text-[11px] text-[#475569]">
                     {currentQ.optionalNotePrompt}
                   </p>
                   <textarea
@@ -396,14 +396,14 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                     value={categoryNotes[currentQ.category] || ''}
                     onChange={(e) => handleNoteChange(e.target.value)}
                     placeholder="Enter any brief subjective observations (e.g., wake early on weekends, seasonal shifts)..."
-                    className="w-full text-xs p-2.5 rounded-lg border border-[#D5DFD7] focus:outline-none focus:ring-1 focus:ring-[#2D5A43] bg-[#FAFBF9]"
+                    className="w-full text-xs p-2.5 rounded-lg border border-[#CBD5E1] focus:outline-none focus:ring-1 focus:ring-[#0284C7] bg-[#F8FAFC]"
                   />
                 </div>
               )}
 
               {/* Educational Scope Notice */}
-              <div className="bg-[#F4F6F2] p-3 rounded-lg border border-[#E1E7DF] flex items-center gap-2 text-xs text-[#455D4E]">
-                <AlertCircle className="w-4 h-4 text-[#2D5A43] shrink-0" />
+              <div className="bg-[#F1F5F9] p-3 rounded-lg border border-[#E2E8F0] flex items-center gap-2 text-xs text-[#475569]">
+                <AlertCircle className="w-4 h-4 text-[#0284C7] shrink-0" />
                 <span>
                   Responses generate an educational self-care Dinacharya plan. Not a clinical diagnosis or medical prescription.
                 </span>
@@ -413,39 +413,39 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
             /* Completed Screen with Multi-Category Insights */
             <div className="space-y-6 py-2">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 bg-[#EBF2ED] text-[#2D5A43] rounded-full flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 bg-[#CCFBF1] text-[#0F766E] rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
-                <h3 className="text-xl font-serif font-bold text-[#1E3F2E]">
+                <h3 className="text-xl font-serif font-bold text-[#0F172A]">
                   Comprehensive Assessment Complete!
                 </h3>
-                <p className="text-xs sm:text-sm text-[#526B5C] max-w-lg mx-auto">
+                <p className="text-xs sm:text-sm text-[#475569] max-w-lg mx-auto">
                   Your 20-question lifestyle profile across all 8 dimensions has been saved. A revised, personalized AYUSH Wellness Plan has been generated and activated.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-white rounded-xl border border-[#E4E8E3] space-y-1">
-                  <span className="text-[11px] text-[#526B5C] uppercase font-semibold">Constitutional Tendency</span>
-                  <p className="font-serif font-bold text-[#1E3F2E] text-base">{summary.constitutionTendency}</p>
-                  <p className="text-xs text-[#6B7D72]">Evaluated across 8 circadian and metabolic vectors</p>
+                <div className="p-4 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-[11px] text-[#64748B] uppercase font-semibold">Constitutional Tendency</span>
+                  <p className="font-serif font-bold text-[#0F172A] text-base">{summary.constitutionTendency}</p>
+                  <p className="text-xs text-[#64748B]">Evaluated across 8 circadian and metabolic vectors</p>
                 </div>
-                <div className="p-4 bg-white rounded-xl border border-[#E4E8E3] space-y-1">
-                  <span className="text-[11px] text-[#526B5C] uppercase font-semibold">Circadian & Agni Rhythm</span>
-                  <p className="font-serif font-bold text-[#1E3F2E] text-base">{summary.circadianBalanceCategory}</p>
-                  <p className="text-xs text-[#6B7D72]">{summary.digestiveAgniCategory}</p>
+                <div className="p-4 bg-white rounded-xl border border-[#E2E8F0] space-y-1">
+                  <span className="text-[11px] text-[#64748B] uppercase font-semibold">Circadian & Agni Rhythm</span>
+                  <p className="font-serif font-bold text-[#0F172A] text-base">{summary.circadianBalanceCategory}</p>
+                  <p className="text-xs text-[#64748B]">{summary.digestiveAgniCategory}</p>
                 </div>
               </div>
 
-              <div className="p-4 bg-[#EBF2ED] rounded-xl border border-[#D5E1D8] space-y-2 text-xs text-[#2A4837]">
+              <div className="p-4 bg-[#CCFBF1]/45 rounded-xl border border-[#99F6E4] space-y-2 text-xs text-[#0F766E]">
                 <p className="font-semibold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-[#2D5A43]" />
+                  <Sparkles className="w-4 h-4 text-[#0D9488]" />
                   <span>Revised Wellness Plan Generated:</span>
                 </p>
                 <p>
                   Your daily routine (Dinacharya), morning & evening habits, sleep suggestions, meal timing, and weekly goals have been tailored to your latest answers. All past assessment records and plans remain preserved in your history.
                 </p>
-                <p className="text-[11px] text-[#446653] italic pt-1 border-t border-[#CCE0D3]">
+                <p className="text-[11px] text-[#0F766E] italic pt-1 border-t border-[#99F6E4]">
                   {summary.guidanceNote}
                 </p>
               </div>
@@ -454,7 +454,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
         </div>
 
         {/* Footer Navigation Bar */}
-        <div className="px-6 py-4 border-t border-[#E4E8E3] bg-white flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-[#E2E8F0] bg-white flex items-center justify-between">
           {!isFinished ? (
             <>
               <button
@@ -464,14 +464,14 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                 className={`inline-flex items-center gap-1 px-4 py-2 text-xs font-semibold rounded-lg border transition-colors ${
                   currentQuestionIndex === 0
                     ? 'opacity-40 cursor-not-allowed border-slate-200 text-slate-400'
-                    : 'border-[#CCD5CB] text-[#1E3F2E] hover:bg-[#F4F6F2]'
+                    : 'border-[#CBD5E1] text-[#0F172A] hover:bg-[#F1F5F9]'
                 }`}
               >
                 <ChevronLeft className="w-4 h-4" />
                 <span>Previous</span>
               </button>
 
-              <div className="hidden sm:block text-xs text-[#526B5C]">
+              <div className="hidden sm:block text-xs text-[#475569]">
                 {answeredCount} of {totalQuestions} answered
                 {!validation.isValid && ` (${totalQuestions - answeredCount} remaining)`}
               </div>
@@ -484,7 +484,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
                   !isCurrentAnswered ||
                   (currentQuestionIndex === totalQuestions - 1 && !validation.isValid)
                     ? 'bg-slate-400 hover:bg-slate-500'
-                    : 'bg-[#2D5A43] hover:bg-[#234835]'
+                    : 'bg-[#0284C7] hover:bg-[#0369A1]'
                 }`}
               >
                 <span>
@@ -501,7 +501,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="w-full py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors"
+              className="w-full py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors"
             >
               Close & View Active Wellness Plan
             </button>

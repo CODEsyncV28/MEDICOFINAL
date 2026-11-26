@@ -9,7 +9,7 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpenRoles }) => {
   return (
-    <footer className="bg-[#1C3627] text-[#D8E4DC] pt-14 pb-10 border-t border-[#294B37]">
+    <footer className="bg-[#0F172A] text-[#E2E8F0] pt-14 pb-10 border-t border-[#1E293B]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         {/* Upper Grid */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
@@ -20,11 +20,11 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
                 AYUSH Wellness Connect
               </span>
             </div>
-            <p className="text-sm text-[#A8C2B3] leading-relaxed max-w-md">
+            <p className="text-sm text-[#CBD5E1] leading-relaxed max-w-md">
               A digital lifestyle support and health education platform bridging traditional AYUSH wisdom with modern wellness habits. Empowering individuals with personalized daily routines, verified practitioner guidance, and verified education.
             </p>
-            <div className="pt-2 text-xs text-[#87A895] flex items-center gap-2">
-              <Leaf className="w-4 h-4 text-[#75BA94]" />
+            <div className="pt-2 text-xs text-[#CBD5E1]/80 flex items-center gap-2">
+              <Leaf className="w-4 h-4 text-[#14B8A6]" />
               <span>Ayurveda · Yoga & Naturopathy · Unani · Siddha · Homeopathy</span>
             </div>
           </div>
@@ -34,7 +34,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
             <h4 className="text-sm font-semibold text-white tracking-wider uppercase">
               Platform Navigation
             </h4>
-            <ul className="space-y-2 text-sm text-[#A8C2B3]">
+            <ul className="space-y-2 text-sm text-[#CBD5E1]">
               <li>
                 <button
                   onClick={() => onNavigateLandingSection?.('hero-section')}
@@ -78,7 +78,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
               <li>
                 <button
                   onClick={() => onNavigateLandingSection?.('disclaimer-section')}
-                  className="hover:text-white text-[#F2A88D] transition-colors"
+                  className="hover:text-white text-amber-300 transition-colors"
                 >
                   Public Health Disclaimer (Part E)
                 </button>
@@ -86,7 +86,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
               <li>
                 <button
                   onClick={onOpenRoles}
-                  className="text-[#84D4A8] hover:text-white font-medium transition-colors"
+                  className="text-[#14B8A6] hover:text-white font-medium transition-colors"
                 >
                   Role Portals Preview
                 </button>
@@ -99,7 +99,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
             <h4 className="text-sm font-semibold text-white tracking-wider uppercase">
               AYUSH Systems
             </h4>
-            <ul className="space-y-1.5 text-xs text-[#A8C2B3]">
+            <ul className="space-y-1.5 text-xs text-[#CBD5E1]">
               <li>
                 <strong className="text-white font-medium">Ayurveda:</strong> Dosha & Agni Balance
               </li>
@@ -120,9 +120,9 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
         </div>
 
         {/* Prominent Safety Disclaimer in Footer */}
-        <div className="bg-[#142A1E] border border-[#264A35] rounded-xl p-5 text-xs text-[#B2CCC0] leading-relaxed">
+        <div className="bg-[#1E293B] border border-[#334155] rounded-xl p-5 text-xs text-[#CBD5E1] leading-relaxed">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-[#6EB88F] shrink-0 mt-0.5" />
+            <ShieldCheck className="w-5 h-5 text-[#14B8A6] shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-white mb-1">
                 Mandatory Medical & Health Safety Disclaimer
@@ -135,7 +135,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
         </div>
 
         {/* Lower row */}
-        <div className="pt-6 border-t border-[#294B37] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#87A895]">
+        <div className="pt-6 border-t border-[#1E293B] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#CBD5E1]/80">
           <p>© 2026 AYUSH Wellness Connect. All rights reserved. Demonstration Platform.</p>
           <div className="flex items-center gap-6">
             <span>Evidence-Informed Traditional Health</span>

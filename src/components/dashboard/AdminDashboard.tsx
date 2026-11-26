@@ -444,14 +444,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Platform Governance Notice */}
-      <div className="p-3.5 rounded-xl bg-[#F4F7F4] border border-[#D5E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#224A34]">
+      <div className="p-3.5 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#0F172A]">
         <div className="flex flex-wrap items-center gap-2">
-          <Shield className="w-4 h-4 text-[#2D5A43] shrink-0" />
+          <Shield className="w-4 h-4 text-[#0284C7] shrink-0" />
           <span>
             <strong>Platform Governance Workspace:</strong> Super Admin access for Statutory Quality Assurance & Verification.
           </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E2EBE4] text-[#1E3F2E] border border-[#C8D7CD]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
             Full Administrative Privileges
           </span>
           {isDemoMode && (
@@ -464,7 +464,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <button
             type="button"
             onClick={onSwitchRole}
-            className="text-[#2D5A43] font-bold hover:text-[#183626] underline underline-offset-2 whitespace-nowrap transition-colors"
+            className="text-[#0284C7] font-bold hover:text-[#0369A1] underline underline-offset-2 whitespace-nowrap transition-colors"
           >
             Return to Seeker Portal →
           </button>
@@ -472,44 +472,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </div>
 
       {/* 1. PLATFORM OVERVIEW HEADER */}
-      <section className="bg-gradient-to-br from-[#FAFAF7] via-[#F6F8F5] to-[#EEF4F0] rounded-2xl p-6 sm:p-8 border border-[#E0E7E1] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <section className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#CCFBF1]/35 rounded-2xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#2D5A43]">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0284C7]">
             <span className="flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-[#2D5A43]" />
+              <ShieldCheck className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>AYUSH Statutory Governance & Safety Console</span>
             </span>
             <span>·</span>
-            <span className="text-[#A64B2A] font-bold">
+            <span className="text-amber-700 font-bold">
               {totalPendingActionItems} Action Items Pending Review
             </span>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#142A1E] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#0F172A] tracking-tight">
             Platform Administration Console
           </h1>
 
-          <p className="text-xs sm:text-sm text-[#4E6457] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
             Supervising traditional health standards, statutory doctor credentials (CCIM/State Councils), and educational article publishing to maintain rigorous non-diagnostic compliance.
           </p>
         </div>
 
         {/* Action summary badge */}
-        <div className="flex items-center gap-4 p-4 rounded-xl bg-white border border-[#D9E4DC] shadow-xs shrink-0">
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-xs shrink-0">
           <div className="text-center min-w-[70px]">
-            <span className="text-3xl font-serif font-bold text-[#A64B2A] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-amber-700 tabular-nums">
               {totalPendingActionItems}
             </span>
-            <p className="text-[10px] font-semibold text-[#526B5C] uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] font-semibold text-[#475569] uppercase tracking-wider mt-0.5">
               Review Queue
             </p>
           </div>
-          <div className="h-10 w-[1px] bg-[#E3EBE5]" />
+          <div className="h-10 w-[1px] bg-[#E2E8F0]" />
           <div className="space-y-0.5 text-xs">
-            <p className="text-[#1E3F2E] font-bold">
+            <p className="text-[#0F172A] font-bold">
               {pendingArticlesCount} Articles · {pendingPractitionersCount} Licenses
             </p>
-            <p className="text-[#637C6D]">
+            <p className="text-[#64748B]">
               {pendingProgramsCount} Regimen Templates
             </p>
           </div>
@@ -519,87 +519,87 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {/* 1. PLATFORM OVERVIEW METRIC CARDS (Clearly Labeled as Demo Data) */}
       <section className="space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#2D5A43]">
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#0284C7]">
             System Scale Indicators
           </span>
-          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5]">
+          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
             DEMO DATA · Simulated Platform Scale Metrics
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Card 1: Total Users */}
-          <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#526B5C]">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+          <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#475569]">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
                 Total Registered Seekers
               </span>
-              <Users className="w-4 h-4 text-[#2D5A43]" />
+              <Users className="w-4 h-4 text-[#0284C7]" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+              <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
                 1,420
               </span>
-              <span className="text-xs text-[#2D5A43] font-semibold">+18% MoM</span>
+              <span className="text-xs text-[#0D9488] font-semibold">+18% MoM</span>
             </div>
-            <p className="text-[11px] text-[#5E7869]">
+            <p className="text-[11px] text-[#64748B]">
               Simulated metric · Active lifestyle self-trackers
             </p>
           </div>
 
           {/* Card 2: Verified Practitioners */}
-          <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#526B5C]">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+          <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#475569]">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
                 Verified AYUSH Physicians
               </span>
-              <Stethoscope className="w-4 h-4 text-[#2D5A43]" />
+              <Stethoscope className="w-4 h-4 text-[#0284C7]" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+              <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
                 84
               </span>
-              <span className="text-xs text-[#526B5C]">Physicians</span>
+              <span className="text-xs text-[#475569]">Physicians</span>
             </div>
-            <p className="text-[11px] text-[#5E7869]">
+            <p className="text-[11px] text-[#64748B]">
               Simulated demo metric · Council registry preview
             </p>
           </div>
 
           {/* Card 3: Published Articles */}
-          <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#526B5C]">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+          <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#475569]">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
                 Published Wellness Guides
               </span>
-              <FileCheck className="w-4 h-4 text-[#2D5A43]" />
+              <FileCheck className="w-4 h-4 text-[#0284C7]" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+              <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
                 {articles.length || 18}
               </span>
-              <span className="text-xs text-[#526B5C]">Guides</span>
+              <span className="text-xs text-[#475569]">Guides</span>
             </div>
-            <p className="text-[11px] text-[#5E7869]">
+            <p className="text-[11px] text-[#64748B]">
               {pendingArticlesCount} in moderation queue
             </p>
           </div>
 
           {/* Card 4: Active Programmes */}
-          <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs text-[#526B5C]">
-              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+          <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#475569]">
+              <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
                 Active Wellness Regimens
               </span>
-              <Award className="w-4 h-4 text-[#2D5A43]" />
+              <Award className="w-4 h-4 text-[#0284C7]" />
             </div>
             <div className="flex items-baseline gap-2">
-              <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+              <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
                 {programs.length || 32}
               </span>
-              <span className="text-xs text-[#526B5C]">Regimens</span>
+              <span className="text-xs text-[#475569]">Regimens</span>
             </div>
-            <p className="text-[11px] text-[#5E7869]">
+            <p className="text-[11px] text-[#64748B]">
               Across all 5 statutory AYUSH systems
             </p>
           </div>
@@ -607,13 +607,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       </section>
 
       {/* 6. ADMIN NAVIGATION TABS */}
-      <div className="flex flex-wrap items-center gap-2 border-b border-[#E0E7E1] pb-3 text-xs sm:text-sm font-medium">
+      <div className="flex flex-wrap items-center gap-2 border-b border-[#E2E8F0] pb-3 text-xs sm:text-sm font-medium">
         <button
           onClick={() => setActiveTab('overview')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'overview'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <TrendingUp className="w-4 h-4" />
@@ -624,14 +624,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           onClick={() => setActiveTab('practitioners')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'practitioners'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Stethoscope className="w-4 h-4" />
           <span>Practitioner Verifications ({practitioners.length})</span>
           {pendingPractitionersCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#A64B2A] text-white">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">
               {pendingPractitionersCount}
             </span>
           )}
@@ -641,14 +641,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           onClick={() => setActiveTab('content')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'content'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <FileText className="w-4 h-4" />
           <span>Educational Content Approvals ({submittedArticles.length})</span>
           {pendingArticlesCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#A64B2A] text-white">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">
               {pendingArticlesCount}
             </span>
           )}
@@ -658,14 +658,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           onClick={() => setActiveTab('programs')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'programs'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Award className="w-4 h-4" />
           <span>Wellness Programmes ({programApprovalList.length})</span>
           {pendingProgramsCount > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-[#A64B2A] text-white">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">
               {pendingProgramsCount}
             </span>
           )}
@@ -675,8 +675,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           onClick={() => setActiveTab('activity')}
           className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-colors ${
             activeTab === 'activity'
-              ? 'bg-[#2D5A43] text-white shadow-xs font-semibold'
-              : 'text-[#4A6455] hover:bg-[#EBF2ED] hover:text-[#1E3F2E]'
+              ? 'bg-[#0284C7] text-white shadow-xs font-semibold'
+              : 'text-[#475569] hover:bg-[#F1F5F9] hover:text-[#0F172A]'
           }`}
         >
           <Activity className="w-4 h-4" />
@@ -688,15 +688,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       {activeTab === 'overview' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Discipline Breakdown */}
-          <div className="lg:col-span-7 bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
+          <div className="lg:col-span-7 bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
             <div>
-              <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                 System Distribution
               </span>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                 AYUSH Discipline Participation
               </h2>
-              <p className="text-xs text-[#526B5C] mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5">
                 Relative seeker enrollment and habit engagement across the 5 traditional systems.
               </p>
             </div>
@@ -705,15 +705,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {disciplineStats.map((item) => (
                 <div key={item.name} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-[#1E3F2E]">{item.name}</span>
+                    <span className="font-semibold text-[#0F172A]">{item.name}</span>
                     <div className="flex items-center gap-2">
-                      <span className="text-[#526B5C]">{item.count}</span>
-                      <span className="font-bold text-[#2D5A43] tabular-nums">{item.pct}%</span>
+                      <span className="text-[#475569]">{item.count}</span>
+                      <span className="font-bold text-[#0284C7] tabular-nums">{item.pct}%</span>
                     </div>
                   </div>
-                  <div className="w-full bg-[#EBF2ED] h-2 rounded-full overflow-hidden">
+                  <div className="w-full bg-[#E2E8F0] h-2 rounded-full overflow-hidden">
                     <div
-                      className="bg-[#2D5A43] h-full rounded-full transition-all duration-300"
+                      className="bg-[#0284C7] h-full rounded-full transition-all duration-300"
                       style={{ width: `${item.pct}%` }}
                     />
                   </div>
@@ -721,47 +721,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               ))}
             </div>
 
-            <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E8EEE8] text-xs text-[#405648] leading-relaxed">
+            <div className="p-4 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] text-xs text-[#475569] leading-relaxed">
               Ayurveda and Yoga & Naturopathy represent over 70% of initial seeker engagement, with strong growth in Unani lifestyle temperament tracking and Siddha herbal education.
             </div>
           </div>
 
           {/* Compliance & Quality Safeguards Card */}
-          <div className="lg:col-span-5 bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-4">
-            <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+          <div className="lg:col-span-5 bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-4">
+            <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
               Governance Standard
             </span>
-            <h2 className="text-lg font-serif font-bold text-[#1E3F2E]">
+            <h2 className="text-lg font-serif font-bold text-[#0F172A]">
               Safety & Regulatory Guardrails
             </h2>
 
             <div className="space-y-3 text-xs">
-              <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] space-y-1">
-                <div className="flex items-center gap-2 font-bold text-[#1E3F2E]">
-                  <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+              <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+                <div className="flex items-center gap-2 font-bold text-[#0F172A]">
+                  <CheckCircle2 className="w-4 h-4 text-[#0284C7]" />
                   <span>Non-Diagnostic Strict Rule</span>
                 </div>
-                <p className="text-[#526B5C]">
+                <p className="text-[#475569]">
                   All educational content and assessment recommendations are programmatically and editorially enforced to remain educational and non-prescriptive.
                 </p>
               </div>
 
-              <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] space-y-1">
-                <div className="flex items-center gap-2 font-bold text-[#1E3F2E]">
-                  <Lock className="w-4 h-4 text-[#2D5A43]" />
+              <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+                <div className="flex items-center gap-2 font-bold text-[#0F172A]">
+                  <Lock className="w-4 h-4 text-[#0284C7]" />
                   <span>Practitioner Publishing Isolation</span>
                 </div>
-                <p className="text-[#526B5C]">
+                <p className="text-[#475569]">
                   Practitioners cannot publish articles or regimens directly. Firestore security rules restrict status transitions to Administrator accounts.
                 </p>
               </div>
 
-              <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#E0E7E1] space-y-1">
-                <div className="flex items-center gap-2 font-bold text-[#1E3F2E]">
-                  <ShieldCheck className="w-4 h-4 text-[#2D5A43]" />
+              <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+                <div className="flex items-center gap-2 font-bold text-[#0F172A]">
+                  <ShieldCheck className="w-4 h-4 text-[#0284C7]" />
                   <span>Statutory CCIM Verification</span>
                 </div>
-                <p className="text-[#526B5C]">
+                <p className="text-[#475569]">
                   Only doctors holding valid registration with the Central Council of Indian Medicine or respective State Medical Councils are approved for consultation review.
                 </p>
               </div>
@@ -772,25 +772,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 2: PRACTITIONER MANAGEMENT */}
       {activeTab === 'practitioners' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Credentialing Oversight
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5]">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
                   Simulated Applications (Demo Queue)
                 </span>
               </div>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E] mt-0.5">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A] mt-0.5">
                 Practitioner Verification Requests
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Verify medical qualifications and statutory council credentials before granting consultation permissions.
               </p>
             </div>
-            <span className="text-xs text-[#526B5C]">
+            <span className="text-xs text-[#475569]">
               {pendingPractitionersCount} Applications Awaiting Decision
             </span>
           </div>
@@ -799,15 +799,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {practitioners.map((app) => (
               <div
                 key={app.id}
-                className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 hover:border-[#CAD7CC] transition-colors"
+                className="p-5 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-3 hover:border-[#CBD5E1] transition-colors"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <h4 className="font-serif font-bold text-base text-[#1E3F2E]">{app.name}</h4>
-                      <span className="text-xs font-semibold text-[#2D5A43]">{app.qualification}</span>
+                      <h4 className="font-serif font-bold text-base text-[#0F172A]">{app.name}</h4>
+                      <span className="text-xs font-semibold text-[#0284C7]">{app.qualification}</span>
                     </div>
-                    <p className="text-xs text-[#526B5C] mt-0.5">
+                    <p className="text-xs text-[#475569] mt-0.5">
                       {app.university} · {app.experienceYears} Years Clinical Experience
                     </p>
                   </div>
@@ -815,17 +815,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span
                     className={`text-xs px-2.5 py-0.5 rounded-md font-semibold self-start sm:self-auto ${
                       app.status === 'Verified'
-                        ? 'bg-[#EBF2ED] text-[#244E38]'
+                        ? 'bg-[#CCFBF1] text-[#0F766E]'
                         : app.status === 'Pending Verification'
                         ? 'bg-[#FEF3C7] text-[#92400E]'
-                        : 'bg-[#FBF2EE] text-[#A64B2A]'
+                        : 'bg-[#FFDAD6] text-[#93000A]'
                     }`}
                   >
                     {app.status}
                   </span>
                 </div>
 
-                <div className="p-3 bg-white rounded-lg border border-[#E5ECE7] text-xs text-[#3C5345] space-y-1">
+                <div className="p-3 bg-white rounded-lg border border-[#E2E8F0] text-xs text-[#475569] space-y-1">
                   <p>
                     <strong>Statutory Registration:</strong> {app.councilRegistration}
                   </p>
@@ -833,22 +833,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <strong>Discipline:</strong> {app.discipline} · <strong>Submitted:</strong> {app.submittedDate}
                   </p>
                   {app.reviewNotes && (
-                    <p className="text-[#526B5C] italic">
+                    <p className="text-[#475569] italic">
                       Admin Notes: {app.reviewNotes}
                     </p>
                   )}
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                  <div className="flex items-center gap-1.5 text-xs text-[#526B5C]">
-                    <FileText className="w-3.5 h-3.5 text-[#2D5A43]" />
+                  <div className="flex items-center gap-1.5 text-xs text-[#475569]">
+                    <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
                     <span>Documents: {app.documents.join(', ')}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSelectedPractitioner(app)}
-                      className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] hover:bg-[#EBF2ED] border border-[#CCD5CB] rounded-lg transition-colors"
+                      className="px-3 py-1.5 text-xs font-semibold text-[#0284C7] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors"
                     >
                       Inspect Credentials
                     </button>
@@ -857,13 +857,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <>
                         <button
                           onClick={() => handleApprovePractitioner(app.id)}
-                          className="px-3 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
+                          className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg shadow-xs transition-colors"
                         >
                           Verify & Approve
                         </button>
                         <button
                           onClick={() => handleRejectPractitioner(app.id)}
-                          className="px-3 py-1.5 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors"
+                          className="px-3 py-1.5 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors"
                         >
                           Reject
                         </button>
@@ -879,16 +879,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 3: CONTENT APPROVAL (Educational Articles) */}
       {activeTab === 'content' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                 Editorial Review &amp; Compliance
               </span>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                 Educational Article Submissions
               </h2>
-              <p className="text-xs text-[#526B5C] mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5">
                 Educational wellness articles submitted by authoring physicians. Private drafts remain hidden until submitted.
               </p>
             </div>
@@ -902,7 +902,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   placeholder="Search articles, authors..."
                   value={contentSearch}
                   onChange={(e) => setContentSearch(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[#CCD5CB] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A43] w-full sm:w-60"
+                  className="pl-9 pr-3 py-1.5 text-xs sm:text-sm rounded-lg border border-[#CBD5E1] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0284C7] w-full sm:w-60"
                 />
               </div>
 
@@ -910,7 +910,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 value={contentStatusFilter}
                 onChange={(e) => setContentStatusFilter(e.target.value as any)}
                 aria-label="Filter content by status"
-                className="text-xs p-2 rounded-lg border border-[#CCD5CB] bg-white text-slate-700"
+                className="text-xs p-2 rounded-lg border border-[#CBD5E1] bg-white text-slate-700"
               >
                 <option value="All">All Statuses</option>
                 <option value="Pending Review">Pending Review</option>
@@ -921,36 +921,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           {articleActionBanner && (
-            <div className="p-3.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] border border-[#CCDCD2] text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+            <div className="p-3.5 rounded-lg bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
               <span>{articleActionBanner}</span>
             </div>
           )}
 
           {articleActionError && !inspectedArticle && (
-            <div role="alert" className="p-3.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium">
+            <div role="alert" className="p-3.5 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium">
               {articleActionError}
             </div>
           )}
 
           {/* Table */}
           {articlesLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading submitted articles...</span>
             </div>
           ) : articlesError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {articlesError}
             </div>
           ) : filteredContentItems.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No submitted educational articles match the current filter.
             </div>
           ) : (
-            <div className="overflow-x-auto border border-[#E0E7E1] rounded-xl">
+            <div className="overflow-x-auto border border-[#E2E8F0] rounded-xl">
               <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-[#FAFBF9] border-b border-[#E0E7E1] text-[#526B5C] font-semibold text-xs">
+                <thead className="bg-[#F1F5F9] border-b border-[#E2E8F0] text-[#475569] font-semibold text-xs">
                   <tr>
                     <th className="py-3 px-4">Article Title</th>
                     <th className="py-3 px-4">Authoring Physician</th>
@@ -960,49 +960,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <th className="py-3 px-4 text-right">Review Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#EEF2EC]">
+                <tbody className="divide-y divide-[#E2E8F0]">
                   {filteredContentItems.map((item) => {
                     const statusLabel = getArticleModerationLabel(item.status);
                     const isSelfSubmission = item.authorId === reviewerId;
                     return (
-                      <tr key={item.id} className="hover:bg-[#FAFBF9] transition-colors">
-                        <td className="py-3.5 px-4 font-semibold text-[#1E3F2E] max-w-xs sm:max-w-md">
+                      <tr key={item.id} className="hover:bg-[#F1F5F9] transition-colors">
+                        <td className="py-3.5 px-4 font-semibold text-[#0F172A] max-w-xs sm:max-w-md">
                           <div className="space-y-1">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <span>{item.title}</span>
                               {item.isSimulated && (
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                                   Demo Record
                                 </span>
                               )}
                             </div>
                             {item.reviewNotes && (
-                              <p className="text-[11px] text-[#6B8576] font-normal">
+                              <p className="text-[11px] text-[#64748B] font-normal">
                                 Feedback: {item.reviewNotes}
                               </p>
                             )}
                             {item.reviewedByAdminId && (
-                              <p className="text-[10px] text-[#6B8576] font-normal">
+                              <p className="text-[10px] text-[#64748B] font-normal">
                                 Reviewed by {item.reviewedByAdminId} · {formatGovernanceDate(item.reviewedAt)}
                               </p>
                             )}
                           </div>
                         </td>
 
-                        <td className="py-3.5 px-4 text-[#3C5345]">
+                        <td className="py-3.5 px-4 text-[#475569]">
                           <div>
-                            <p className="font-medium text-[#1E3F2E]">{item.authorName}</p>
-                            <p className="text-[11px] text-[#6B8576]">{item.authorQualification}</p>
+                            <p className="font-medium text-[#0F172A]">{item.authorName}</p>
+                            <p className="text-[11px] text-[#64748B]">{item.authorQualification}</p>
                           </div>
                         </td>
 
                         <td className="py-3.5 px-4">
-                          <span className="text-xs text-[#2D5A43] font-medium">
+                          <span className="text-xs text-[#0284C7] font-medium">
                             {item.discipline}
                           </span>
                         </td>
 
-                        <td className="py-3.5 px-4 text-xs text-[#526B5C]">
+                        <td className="py-3.5 px-4 text-xs text-[#475569]">
                           {formatGovernanceDate(item.submittedAt || item.updatedAt)}
                         </td>
 
@@ -1010,10 +1010,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                           <span
                             className={`text-xs px-2.5 py-0.5 rounded-md font-medium whitespace-nowrap ${
                               statusLabel === 'Approved'
-                                ? 'bg-[#EBF2ED] text-[#244E38]'
+                                ? 'bg-[#CCFBF1] text-[#0F766E]'
                                 : statusLabel === 'Pending Review'
                                 ? 'bg-[#FEF7EC] text-[#9A6218]'
-                                : 'bg-[#FBF2EE] text-[#A64B2A]'
+                                : 'bg-[#FFDAD6] text-[#93000A]'
                             }`}
                           >
                             {statusLabel}
@@ -1025,7 +1025,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <button
                               type="button"
                               onClick={() => handleOpenArticleInspection(item)}
-                              className="px-2.5 py-1.5 text-xs font-semibold text-[#2D5A43] hover:bg-[#EBF2ED] border border-[#CCD5CB] rounded-lg transition-colors"
+                              className="px-2.5 py-1.5 text-xs font-semibold text-[#0284C7] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors"
                             >
                               Inspect
                             </button>
@@ -1036,7 +1036,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   type="button"
                                   disabled={isModeratingArticle}
                                   onClick={() => handleModerateArticle(item.id, 'published')}
-                                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap shadow-xs disabled:opacity-60"
+                                  className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors whitespace-nowrap shadow-xs disabled:opacity-60"
                                 >
                                   Approve
                                 </button>
@@ -1044,15 +1044,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                   type="button"
                                   disabled={isModeratingArticle}
                                   onClick={() => handleOpenArticleInspection(item)}
-                                  className="px-3 py-1.5 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors whitespace-nowrap disabled:opacity-60"
+                                  className="px-3 py-1.5 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors whitespace-nowrap disabled:opacity-60"
                                 >
                                   Request Revision
                                 </button>
                               </>
                             ) : isSelfSubmission ? (
-                              <span className="text-[11px] text-[#A64B2A] font-semibold">Self-review blocked</span>
+                              <span className="text-[11px] text-[#BA1A1A] font-semibold">Self-review blocked</span>
                             ) : (
-                              <span className="text-xs text-[#526B5C]">Decision Logged</span>
+                              <span className="text-xs text-[#475569]">Decision Logged</span>
                             )}
                           </div>
                         </td>
@@ -1068,48 +1068,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 4: WELLNESS PROGRAMME APPROVAL */}
       {activeTab === 'programs' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
-              <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                 Regimen Architecture Governance
               </span>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                 Wellness Programme Submissions
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Practitioner-authored regimens must be vetted and approved by an Administrator before entering published catalog status.
               </p>
             </div>
-            <span className="text-xs text-[#526B5C]">
+            <span className="text-xs text-[#475569]">
               {pendingProgramsCount} Regimens Awaiting Approval
             </span>
           </div>
 
           {programActionBanner && (
-            <div className="p-3.5 rounded-lg bg-[#EBF2ED] text-[#1E3F2E] border border-[#CCDCD2] text-xs font-semibold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#2D5A43]" />
+            <div className="p-3.5 rounded-lg bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-[#0D9488]" />
               <span>{programActionBanner}</span>
             </div>
           )}
 
           {programActionError && !selectedProgram && (
-            <div role="alert" className="p-3.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium">
+            <div role="alert" className="p-3.5 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium">
               {programActionError}
             </div>
           )}
 
           {programsLoading ? (
-            <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
-              <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+            <div className="p-8 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex items-center justify-center gap-2 text-xs text-[#475569]">
+              <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
               <span>Loading submitted wellness programmes...</span>
             </div>
           ) : programsError ? (
-            <div className="p-4 rounded-xl border border-[#ECC8C1] bg-[#FDF2F0] text-xs text-[#9B2C1B]">
+            <div className="p-4 rounded-xl border border-[#BA1A1A]/30 bg-[#FFDAD6] text-xs text-[#93000A]">
               {programsError}
             </div>
           ) : programApprovalList.length === 0 ? (
-            <div className="p-8 rounded-xl border border-dashed border-[#CCD8CF] bg-[#FAFBF9] text-center text-xs text-[#526B5C]">
+            <div className="p-8 rounded-xl border border-dashed border-[#CBD5E1] bg-[#F1F5F9] text-center text-xs text-[#475569]">
               No wellness programmes have been submitted for Administrator review yet.
             </div>
           ) : (
@@ -1120,20 +1120,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 return (
                   <div
                     key={prog.id}
-                    className="p-5 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] space-y-3 hover:border-[#CAD7CC] transition-colors"
+                    className="p-5 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-3 hover:border-[#CBD5E1] transition-colors"
                   >
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h4 className="font-serif font-bold text-base text-[#1E3F2E]">{prog.title}</h4>
-                          <span className="text-xs font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                          <h4 className="font-serif font-bold text-base text-[#0F172A]">{prog.title}</h4>
+                          <span className="text-xs font-semibold text-[#0284C7]">{prog.discipline}</span>
                           {prog.isSimulated && (
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                               Demo Record
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#526B5C] mt-0.5">
+                        <p className="text-xs text-[#475569] mt-0.5">
                           Authored by <strong>{prog.practitionerName}</strong> ({prog.practitionerTitle}) · {prog.durationWeeks} Weeks ({prog.level})
                         </p>
                       </div>
@@ -1141,23 +1141,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       <span
                         className={`text-xs px-2.5 py-0.5 rounded-md font-semibold self-start sm:self-auto ${
                           statusLabel === 'Published in Catalog'
-                            ? 'bg-[#EBF2ED] text-[#244E38]'
+                            ? 'bg-[#CCFBF1] text-[#0F766E]'
                             : statusLabel === 'Pending Approval'
                             ? 'bg-[#FEF3C7] text-[#92400E]'
-                            : 'bg-[#FBF2EE] text-[#A64B2A]'
+                            : 'bg-[#FFDAD6] text-[#93000A]'
                         }`}
                       >
                         {statusLabel}
                       </span>
                     </div>
 
-                    <p className="text-xs text-[#4E6457] leading-relaxed bg-white p-3.5 rounded-lg border border-[#E5ECE7]">
+                    <p className="text-xs text-[#475569] leading-relaxed bg-white p-3.5 rounded-lg border border-[#E2E8F0]">
                       {prog.description}
                     </p>
 
                     {prog.reviewNotes && (
-                      <div className="text-xs text-[#526B5C] bg-white p-3 rounded-lg border border-[#E5ECE7] space-y-0.5">
-                        <p className="font-semibold text-[#1E3F2E]">
+                      <div className="text-xs text-[#475569] bg-white p-3 rounded-lg border border-[#E2E8F0] space-y-0.5">
+                        <p className="font-semibold text-[#0F172A]">
                           Admin Review Feedback
                           {prog.reviewedByAdminId ? ` (${prog.reviewedByAdminId})` : ''}:
                         </p>
@@ -1165,8 +1165,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </div>
                     )}
 
-                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-[#EEF2EC]">
-                      <span className="text-[11px] text-[#526B5C]">
+                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1 border-t border-[#E2E8F0]">
+                      <span className="text-[11px] text-[#475569]">
                         Submitted: {formatGovernanceDate(prog.submittedAt || prog.updatedAt)} ·{' '}
                         {prog.isPublished ? 'Published Status (Admin Approved)' : 'Unpublished (Hidden from Seekers)'}
                       </span>
@@ -1175,7 +1175,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenProgramInspection(prog)}
-                          className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] hover:bg-[#EBF2ED] border border-[#CCD5CB] rounded-lg transition-colors"
+                          className="px-3 py-1.5 text-xs font-semibold text-[#0284C7] hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors"
                         >
                           Inspect
                         </button>
@@ -1185,7 +1185,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               type="button"
                               disabled={isModeratingProgram}
                               onClick={() => handleModerateProgram(prog.id, 'published')}
-                              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors disabled:opacity-60"
+                              className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg shadow-xs transition-colors disabled:opacity-60"
                             >
                               Approve &amp; Publish
                             </button>
@@ -1193,7 +1193,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                               type="button"
                               disabled={isModeratingProgram}
                               onClick={() => handleOpenProgramInspection(prog)}
-                              className="px-3.5 py-1.5 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors disabled:opacity-60"
+                              className="px-3.5 py-1.5 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors disabled:opacity-60"
                             >
                               Request Revision
                             </button>
@@ -1211,25 +1211,25 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       {/* TAB 5: PLATFORM ACTIVITY (Governance Audit Log) */}
       {activeTab === 'activity' && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   System Accountability
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5]">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200">
                   Session Prototype Log (Browser-Local)
                 </span>
               </div>
-              <h2 className="text-xl font-serif font-bold text-[#1E3F2E] mt-0.5">
+              <h2 className="text-xl font-serif font-bold text-[#0F172A] mt-0.5">
                 Platform Governance Audit Log
               </h2>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 Immutable administrative record tracking credential verification decisions, content publication approvals, and safety checks.
               </p>
             </div>
-            <span className="text-xs text-[#526B5C]">
+            <span className="text-xs text-[#475569]">
               {auditLog.length} Audit Events Logged
             </span>
           </div>
@@ -1238,15 +1238,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             {auditLog.map((log) => (
               <div
                 key={log.id}
-                className="p-4 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#CAD7CC] transition-colors"
+                className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[#CBD5E1] transition-colors"
               >
                 <div className="flex items-start gap-3">
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
                       log.status === 'Approved'
-                        ? 'bg-[#EBF2ED] text-[#2D5A43]'
+                        ? 'bg-[#CCFBF1] text-[#0F766E]'
                         : log.status === 'Rejected'
-                        ? 'bg-[#FBF2EE] text-[#A64B2A]'
+                        ? 'bg-[#FFDAD6] text-[#93000A]'
                         : 'bg-[#FEF3C7] text-[#92400E]'
                     }`}
                   >
@@ -1261,24 +1261,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div className="space-y-0.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="text-sm font-semibold text-[#1E3F2E]">
+                      <p className="text-sm font-semibold text-[#0F172A]">
                         {log.action}
                       </p>
                       {log.isSimulated && (
-                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                           Demo Record
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-[#4E6457]">
+                    <p className="text-xs text-[#475569]">
                       Target: <strong>{log.target}</strong>
                     </p>
                     {log.notes && (
-                      <p className="text-[11px] text-[#526B5C] italic">
+                      <p className="text-[11px] text-[#475569] italic">
                         Feedback: {log.notes}
                       </p>
                     )}
-                    <p className="text-[11px] text-[#6B8576]">
+                    <p className="text-[11px] text-[#64748B]">
                       Logged by {log.adminName} ({log.adminId})
                     </p>
                   </div>
@@ -1288,21 +1288,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   <span
                     className={`px-2 py-0.5 rounded-md font-semibold text-[10px] ${
                       log.status === 'Approved'
-                        ? 'bg-[#EBF2ED] text-[#244E38]'
+                        ? 'bg-[#CCFBF1] text-[#0F766E]'
                         : log.status === 'Rejected'
-                        ? 'bg-[#FBF2EE] text-[#A64B2A]'
+                        ? 'bg-[#FFDAD6] text-[#93000A]'
                         : 'bg-[#FEF3C7] text-[#92400E]'
                     }`}
                   >
                     {log.status}
                   </span>
-                  <span className="text-[11px] text-[#526B5C]">{formatGovernanceDate(log.timestamp)}</span>
+                  <span className="text-[11px] text-[#475569]">{formatGovernanceDate(log.timestamp)}</span>
                 </div>
               </div>
             ))}
           </div>
 
-          <div className="p-3 bg-[#F8FAF8] rounded-xl border border-[#DCE6DE] text-xs text-[#526B5C]">
+          <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs text-[#475569]">
             <strong>Audit Storage Scope:</strong> Administrative moderation decisions (content articles and wellness programmes) persist across sessions in Cloud Firestore, while this Governance Audit Log timeline is stored in browser-local session storage as a prototype activity feed and is not synced across devices.
           </div>
         </section>
@@ -1316,13 +1316,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           aria-labelledby="inspect-prac-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+          <div className="bg-[#F8FAFC] w-full max-w-lg rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Licensure Verification (Demo Preview)
                 </span>
-                <h3 id="inspect-prac-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="inspect-prac-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   {selectedPractitioner.name}
                 </h3>
               </div>
@@ -1337,26 +1337,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
 
             <div className="p-6 space-y-4 text-xs sm:text-sm overflow-y-auto flex-1">
-              <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-1.5">
+              <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-1.5">
                 <p><strong>Statutory Qualification:</strong> {selectedPractitioner.qualification}</p>
                 <p><strong>Discipline:</strong> {selectedPractitioner.discipline}</p>
                 <p><strong>Medical University:</strong> {selectedPractitioner.university}</p>
                 <p><strong>Clinical Experience:</strong> {selectedPractitioner.experienceYears} Years</p>
-                <p className="text-[#2D5A43] font-semibold">
+                <p className="text-[#0284C7] font-semibold">
                   Registration Number: {selectedPractitioner.councilRegistration}
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <p className="font-semibold text-[#1E3F2E]">Submitted Documentation:</p>
-                <ul className="list-disc list-inside space-y-0.5 text-xs text-[#526B5C]">
+                <p className="font-semibold text-[#0F172A]">Submitted Documentation:</p>
+                <ul className="list-disc list-inside space-y-0.5 text-xs text-[#475569]">
                   {selectedPractitioner.documents.map((doc, idx) => (
                     <li key={idx}>{doc}</li>
                   ))}
                 </ul>
               </div>
 
-              <div className="p-3 bg-[#F0F5F1] rounded-lg border border-[#CCDCD2] text-xs text-[#244E38]">
+              <div className="p-3 bg-[#F1F5F9] rounded-lg border border-[#CBD5E1] text-xs text-[#0F172A]">
                 <strong>Simulated Demo Registry Check:</strong> Illustrative AYUSH council preview data only; not connected to live statutory or government verification registries.
               </div>
 
@@ -1373,14 +1373,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => handleRejectPractitioner(selectedPractitioner.id)}
-                      className="px-4 py-2 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors"
+                      className="px-4 py-2 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors"
                     >
                       Reject
                     </button>
                     <button
                       type="button"
                       onClick={() => handleApprovePractitioner(selectedPractitioner.id)}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                      className="px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs"
                     >
                       Verify & Approve License
                     </button>
@@ -1400,16 +1400,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           aria-labelledby="inspect-art-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#F8FAFC] w-full max-w-xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Editorial Quality Inspection
                 </span>
-                <h3 id="inspect-art-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="inspect-art-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   {inspectedArticle.title}
                 </h3>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   Authored by {inspectedArticle.authorName} ({inspectedArticle.authorQualification}) · {inspectedArticle.discipline}
                 </p>
               </div>
@@ -1430,32 +1430,32 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {articleActionError && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium"
                 >
                   {articleActionError}
                 </div>
               )}
 
-              <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-2">
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase">
+              <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-2">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase">
                   Educational Summary &amp; Full Draft
                 </span>
-                <p className="text-xs font-medium text-[#1E3F2E] leading-relaxed">
+                <p className="text-xs font-medium text-[#0F172A] leading-relaxed">
                   {inspectedArticle.summary}
                 </p>
-                <p className="text-xs text-[#4E6457] leading-relaxed whitespace-pre-line border-t border-[#EEF2EC] pt-2">
+                <p className="text-xs text-[#475569] leading-relaxed whitespace-pre-line border-t border-[#E2E8F0] pt-2">
                   {inspectedArticle.fullContent}
                 </p>
               </div>
 
-              <div className="p-3 bg-[#F0F5F1] rounded-lg border border-[#CCDCD2] text-xs text-[#244E38]">
+              <div className="p-3 bg-[#CCFBF1]/45 rounded-lg border border-[#99F6E4] text-xs text-[#0F766E]">
                 <strong>Compliance Check:</strong> Verify non-diagnostic framing and ensure culinary herbs are clearly distinguished from concentrated therapeutic preparations.
               </div>
 
               <div>
                 <label
                   htmlFor="admin-article-feedback"
-                  className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Admin Review &amp; Revision Feedback
                 </label>
@@ -1465,7 +1465,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   value={articleReviewNotes}
                   onChange={(e) => setArticleReviewNotes(e.target.value)}
                   placeholder="Enter approval remarks or specific revision instructions for the authoring practitioner..."
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -1489,7 +1489,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onClick={() =>
                         handleModerateArticle(inspectedArticle.id, 'revision_requested')
                       }
-                      className="px-4 py-2 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors disabled:opacity-60"
+                      className="px-4 py-2 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors disabled:opacity-60"
                     >
                       Request Revision
                     </button>
@@ -1500,7 +1500,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       type="button"
                       disabled={isModeratingArticle}
                       onClick={() => handleModerateArticle(inspectedArticle.id, 'published')}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                      className="px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                     >
                       Approve for Public Catalog
                     </button>
@@ -1519,16 +1519,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           aria-labelledby="inspect-prog-title"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#F8FAFC] w-full max-w-xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Regimen Governance Inspection
                 </span>
-                <h3 id="inspect-prog-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 id="inspect-prog-title" className="text-lg font-serif font-bold text-[#0F172A]">
                   {selectedProgram.title}
                 </h3>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   Authored by {selectedProgram.practitionerName} ({selectedProgram.practitionerTitle}) · {selectedProgram.discipline}
                 </p>
               </div>
@@ -1549,21 +1549,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               {programActionError && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium"
                 >
                   {programActionError}
                 </div>
               )}
 
-              <div className="p-3.5 bg-white rounded-xl border border-[#E0E7E1] space-y-2">
-                <div className="flex flex-wrap items-center gap-3 text-xs text-[#526B5C]">
+              <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] space-y-2">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#475569]">
                   <span><strong>Duration:</strong> {selectedProgram.durationWeeks} Weeks</span>
                   <span>·</span>
                   <span><strong>Level:</strong> {selectedProgram.level}</span>
                   <span>·</span>
                   <span><strong>Sessions:</strong> {selectedProgram.totalSessions}</span>
                 </div>
-                <p className="text-xs text-[#4E6457] leading-relaxed border-t border-[#EEF2EC] pt-2">
+                <p className="text-xs text-[#475569] leading-relaxed border-t border-[#E2E8F0] pt-2">
                   {selectedProgram.description}
                 </p>
               </div>
@@ -1571,7 +1571,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <div>
                 <label
                   htmlFor="admin-program-feedback"
-                  className="block text-xs font-semibold text-[#1E3F2E] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Admin Review &amp; Revision Feedback
                 </label>
@@ -1581,7 +1581,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   value={programReviewNotes}
                   onChange={(e) => setProgramReviewNotes(e.target.value)}
                   placeholder="Enter approval remarks or revision instructions returned to the practitioner..."
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -1605,7 +1605,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       onClick={() =>
                         handleModerateProgram(selectedProgram.id, 'revision_requested')
                       }
-                      className="px-4 py-2 text-xs font-semibold text-[#A64B2A] hover:bg-[#FBF2EE] border border-[#E9C3B4] rounded-lg transition-colors disabled:opacity-60"
+                      className="px-4 py-2 text-xs font-semibold text-[#BA1A1A] hover:bg-[#FFDAD6]/60 border border-[#BA1A1A]/35 rounded-lg transition-colors disabled:opacity-60"
                     >
                       Request Revision
                     </button>
@@ -1616,7 +1616,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       type="button"
                       disabled={isModeratingProgram}
                       onClick={() => handleModerateProgram(selectedProgram.id, 'published')}
-                      className="px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                      className="px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                     >
                       Approve &amp; Publish
                     </button>

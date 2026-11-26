@@ -429,25 +429,25 @@ function AppContent() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#FAFAF7] text-[#1E2922]">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] text-[#0F172A]">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-3 border-[#2D5A43] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-semibold text-[#2D5A43]">Loading your AYUSH wellness portal...</p>
+          <div className="w-8 h-8 border-3 border-[#0284C7] border-t-transparent rounded-full animate-spin" />
+          <p className="text-xs font-semibold text-[#0284C7]">Loading your AYUSH wellness portal...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAF7] text-[#1E2922] font-sans selection:bg-[#2D5A43] selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#0284C7] selection:text-white">
       {/* Toast Notification */}
       {toastMessage && (
         <div
           role="status"
           aria-live="polite"
-          className="fixed bottom-6 right-6 z-50 bg-[#1C3627] text-white text-xs sm:text-sm px-4 py-3 rounded-xl shadow-lg border border-[#315740] flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="fixed bottom-6 right-6 z-50 bg-[#0F172A] text-white text-xs sm:text-sm px-4 py-3 rounded-xl shadow-lg border border-[#334155] flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-200"
         >
-          <span className="w-2 h-2 rounded-full bg-[#84D4A8]" />
+          <span className="w-2 h-2 rounded-full bg-[#14B8A6]" />
           <span>{toastMessage}</span>
         </div>
       )}

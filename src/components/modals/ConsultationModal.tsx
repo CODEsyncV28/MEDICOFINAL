@@ -120,14 +120,14 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
       aria-labelledby="consult-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
     >
-      <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-[#F8FAFC] w-full max-w-lg rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
           <div>
-            <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+            <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
               Practitioner Connection
             </span>
-            <h2 id="consult-modal-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+            <h2 id="consult-modal-title" className="text-lg font-serif font-bold text-[#0F172A]">
               Consultation & Regimen Review
             </h2>
           </div>
@@ -145,23 +145,23 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
         <div className="p-6 overflow-y-auto flex-1">
           {!createdRecord ? (
             <form onSubmit={handleSubmit} noValidate className="space-y-4">
-              <div className="p-3.5 bg-white rounded-xl border border-[#E4E8E3] flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center font-serif font-bold text-base shrink-0">
+              <div className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-[#CCFBF1] text-[#0F766E] flex items-center justify-center font-serif font-bold text-base shrink-0">
                   {getPractitionerInitials(practitioner.name)}
                 </div>
                 <div className="space-y-0.5">
-                  <p className="font-bold text-sm text-[#1E3F2E]">{practitioner.name}</p>
-                  <p className="text-xs text-[#526B5C]">{practitioner.qualification}</p>
-                  <p className="text-[11px] text-[#2D5A43] font-medium">{practitioner.specialization}</p>
+                  <p className="font-bold text-sm text-[#0F172A]">{practitioner.name}</p>
+                  <p className="text-xs text-[#475569]">{practitioner.qualification}</p>
+                  <p className="text-[11px] text-[#0284C7] font-medium">{practitioner.specialization}</p>
                 </div>
               </div>
 
               {validationError && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] flex items-center gap-2"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] flex items-center gap-2"
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <AlertCircle className="w-4 h-4 text-[#BA1A1A] shrink-0" />
                   <span>{validationError}</span>
                 </div>
               )}
@@ -169,15 +169,15 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
               <div>
                 <label
                   htmlFor="consult-topic"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1.5"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1.5"
                 >
-                  Consultation Focus Area <span className="text-[#A64B2A]">*</span>
+                  Consultation Focus Area <span className="text-[#BA1A1A]">*</span>
                 </label>
                 <select
                   id="consult-topic"
                   value={topic}
                   onChange={(e) => setTopic(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 >
                   {CONSULTATION_TOPICS.map((item) => (
                     <option key={item.value} value={item.value}>
@@ -190,9 +190,9 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
               <div>
                 <label
                   htmlFor="consult-preferred-date"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1.5"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1.5"
                 >
-                  Preferred Date <span className="text-[#A64B2A]">*</span>
+                  Preferred Date <span className="text-[#BA1A1A]">*</span>
                 </label>
                 <input
                   id="consult-preferred-date"
@@ -200,13 +200,13 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
                   required
                   value={preferredDate}
                   onChange={(e) => setPreferredDate(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
               <div>
-                <span className="block text-xs font-semibold text-[#2C4035] mb-1.5">
-                  Preferred Time Window <span className="text-[#A64B2A]">*</span>
+                <span className="block text-xs font-semibold text-[#0F172A] mb-1.5">
+                  Preferred Time Window <span className="text-[#BA1A1A]">*</span>
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   {PREFERRED_SLOTS.map((slot) => (
@@ -216,8 +216,8 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
                       onClick={() => setPreferredSlot(slot.value)}
                       className={`py-2 px-3 text-xs rounded-lg border text-center transition-colors ${
                         preferredSlot === slot.value
-                          ? 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E] font-semibold'
-                          : 'border-[#CCD5CB] bg-white text-slate-700 hover:bg-slate-50'
+                          ? 'border-[#0284C7] bg-[#CCFBF1]/50 text-[#075985] font-semibold'
+                          : 'border-[#CBD5E1] bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                     >
                       {slot.label}
@@ -229,7 +229,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
               <div>
                 <label
                   htmlFor="consult-notes"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1.5"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1.5"
                 >
                   Self-Observation Note (Optional)
                 </label>
@@ -239,7 +239,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Share any patterns you noticed this week (e.g., wake-up energy, tea response)..."
                   rows={3}
-                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -254,7 +254,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] disabled:opacity-60 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-60 rounded-lg transition-colors"
                 >
                   {isSubmitting ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -267,20 +267,20 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
             </form>
           ) : (
             <div className="text-center py-6 space-y-4">
-              <div className="w-12 h-12 bg-[#EBF2ED] text-[#2D5A43] rounded-full flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 bg-[#CCFBF1] text-[#0F766E] rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-serif font-bold text-lg text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-lg text-[#0F172A]">
                   Request Sent to {createdRecord.practitionerName}
                 </h3>
-                <p className="text-xs text-[#526B5C] max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-[#475569] max-w-sm mx-auto leading-relaxed">
                   {isFirebaseConfigured
                     ? `Your consultation request has been saved to Cloud Firestore and added to ${createdRecord.practitionerName}'s consultation inbox.`
                     : `Your consultation request has been saved to Local Persistent Demo Storage and added to ${createdRecord.practitionerName}'s consultation inbox.`}
                 </p>
               </div>
-              <div className="p-3.5 bg-white border border-[#E4E8E3] rounded-xl text-xs text-[#3E5547] text-left space-y-1.5">
+              <div className="p-3.5 bg-white border border-[#E2E8F0] rounded-xl text-xs text-[#475569] text-left space-y-1.5">
                 <p>
                   <strong>Request ID:</strong>{' '}
                   <span className="font-mono text-[11px]">{createdRecord.id}</span>
@@ -308,7 +308,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
               <button
                 type="button"
                 onClick={handleClose}
-                className="w-full py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors"
+                className="w-full py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors"
               >
                 Return to Dashboard
               </button>

@@ -75,7 +75,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAFAF7]/95 backdrop-blur-md border-b border-[#E4E8E3]">
+    <header className="sticky top-0 z-40 bg-[#F8FAFC]/95 backdrop-blur-md border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between gap-4 h-20">
           {/* Zone 1: Brand Wordmark (Single text element in display face) */}
@@ -84,20 +84,20 @@ export const Navbar: React.FC<NavbarProps> = ({
               setMobileMenuOpen(false);
               onNavigate('landing');
             }}
-            className="text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43] rounded-lg p-1 -m-1 shrink-0"
+            className="text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0284C7] rounded-lg p-1 -m-1 shrink-0"
             aria-label="AYUSH Wellness Connect - Home"
           >
-            <span className="text-lg sm:text-xl font-serif font-bold tracking-tight text-[#1E3F2E] whitespace-nowrap shrink-0 group-hover:text-[#2D5A43] transition-colors">
+            <span className="text-lg sm:text-xl font-serif font-bold tracking-tight text-[#0F172A] whitespace-nowrap shrink-0 group-hover:text-[#0284C7] transition-colors">
               AYUSH Wellness Connect
             </span>
           </button>
 
           {/* Zone 2: Clean single-line text links */}
-          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-[13px] font-medium text-[#405448]">
+          <nav className="hidden lg:flex items-center gap-3.5 xl:gap-5 text-xs xl:text-[13px] font-medium text-[#475569]">
             <button
               onClick={() => handleNavClick()}
-              className={`hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 ${
-                currentView === 'landing' ? 'border-[#2D5A43] text-[#1E3F2E] font-semibold' : 'border-transparent'
+              className={`hover:text-[#0F172A] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 ${
+                currentView === 'landing' ? 'border-[#0284C7] text-[#0F172A] font-semibold' : 'border-transparent'
               }`}
             >
               Overview
@@ -106,25 +106,25 @@ export const Navbar: React.FC<NavbarProps> = ({
               <>
                 <button
                   onClick={() => handleNavClick('ayush-intro-section')}
-                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                  className="hover:text-[#0F172A] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
                 >
                   What is AYUSH?
                 </button>
                 <button
                   onClick={() => handleNavClick('ayush-systems')}
-                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                  className="hover:text-[#0F172A] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
                 >
                   Five Systems
                 </button>
                 <button
                   onClick={() => handleNavClick('ayush-in-india')}
-                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                  className="hover:text-[#0F172A] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
                 >
                   AYUSH in India
                 </button>
                 <button
                   onClick={() => handleNavClick('what-platform-offers')}
-                  className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
+                  className="hover:text-[#0F172A] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
                 >
                   Platform Offerings
                 </button>
@@ -132,7 +132,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             )}
             <button
               onClick={() => handleNavClick('disclaimer-section')}
-              className="hover:text-[#1E3F2E] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent text-[#A64B2A]"
+              className="hover:text-amber-800 transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent text-amber-700"
             >
               Disclaimer
             </button>
@@ -141,27 +141,31 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Zone 3: 1 Primary Action (Prominent Get Started or Role Switcher) */}
           <div className="hidden sm:flex items-center gap-2.5 shrink-0">
             <span
-              className={`${currentView === 'landing' ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex'} items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#EBF2ED] text-[#244E38] border border-[#CCDCD2] whitespace-nowrap`}
+              className={`${currentView === 'landing' ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex'} items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap border ${
+                isConfigured
+                  ? 'bg-[#CCFBF1] text-[#0F766E] border-[#99F6E4]'
+                  : 'bg-[#F1F5F9] text-[#475569] border-[#CBD5E1]'
+              }`}
               title={isConfigured ? 'Connected to live Firebase Cloud Firestore' : 'Running in local persistent demo storage mode'}
             >
-              <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+              <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-[#0D9488]' : 'bg-amber-600'}`} />
               <span>{isConfigured ? 'Cloud Firestore' : 'Demo Storage Active'}</span>
             </span>
 
             {firebaseUser ? (
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full bg-[#EBF2ED] border border-[#CCDCD2] text-xs">
-                  <span className="w-5 h-5 rounded-full bg-[#2D5A43] text-white flex items-center justify-center font-bold text-[10px]">
+                <div className="flex items-center gap-1.5 pl-2 pr-3 py-1.5 rounded-full bg-[#F1F5F9] border border-[#CBD5E1] text-xs">
+                  <span className="w-5 h-5 rounded-full bg-[#0284C7] text-white flex items-center justify-center font-bold text-[10px]">
                     {(userProfile?.displayName || firebaseUser.email || 'U')[0].toUpperCase()}
                   </span>
-                  <span className="font-semibold text-[#1C3A29] max-w-[120px] truncate">
+                  <span className="font-semibold text-[#0F172A] max-w-[120px] truncate">
                     {userProfile?.displayName || firebaseUser.email?.split('@')[0]}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={() => logout()}
-                  className="px-2 py-1 text-xs text-[#526B5C] hover:text-[#1E3F2E] hover:bg-[#EBF2ED] rounded-lg transition-colors flex items-center gap-1"
+                  className="px-2 py-1 text-xs text-[#64748B] hover:text-[#0F172A] hover:bg-[#F1F5F9] rounded-lg transition-colors flex items-center gap-1"
                   title="Sign Out"
                 >
                   <LogOut className="w-3.5 h-3.5" />
@@ -172,7 +176,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               <button
                 type="button"
                 onClick={onOpenAuth}
-                className="px-3 py-2 text-xs font-semibold text-[#1E3F2E] hover:text-[#2D5A43] transition-colors whitespace-nowrap shrink-0"
+                className="px-3 py-2 text-xs font-semibold text-[#0F172A] hover:text-[#0284C7] transition-colors whitespace-nowrap shrink-0"
               >
                 Sign In / Register
               </button>
@@ -180,7 +184,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {currentView === 'dashboard' ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-[#526B5C] hidden md:inline">
+                <span className="text-xs text-[#64748B] hidden md:inline">
                   {isDemoPreviewActive ? 'DEMO MODE:' : 'Active Portal:'}
                 </span>
                 <button
@@ -189,15 +193,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   className={`inline-flex items-center gap-2 px-3.5 py-2 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap shrink-0 border ${
                     isDemoPreviewActive
                       ? 'text-amber-950 bg-amber-50 hover:bg-amber-100 border-amber-300'
-                      : 'text-[#1E3F2E] bg-[#EBF2ED] hover:bg-[#DCE7E0] border-[#D1DDD5]'
+                      : 'text-[#0F172A] bg-[#F1F5F9] hover:bg-[#E2E8F0] border-[#CBD5E1]'
                   }`}
                   title="Open Portal Access & Demo Switcher"
                 >
-                  {currentRole === 'user' && <User className="w-3.5 h-3.5 text-[#2D5A43]" />}
-                  {currentRole === 'practitioner' && <Stethoscope className="w-3.5 h-3.5 text-[#2D5A43]" />}
-                  {currentRole === 'admin' && <Shield className="w-3.5 h-3.5 text-[#2D5A43]" />}
+                  {currentRole === 'user' && <User className="w-3.5 h-3.5 text-[#0284C7]" />}
+                  {currentRole === 'practitioner' && <Stethoscope className="w-3.5 h-3.5 text-[#0284C7]" />}
+                  {currentRole === 'admin' && <Shield className="w-3.5 h-3.5 text-[#0284C7]" />}
                   <span>{getRoleLabel(currentRole)}</span>
-                  <span className="text-[11px] text-[#2D5A43] underline font-bold ml-1">Portal</span>
+                  <span className="text-[11px] text-[#0284C7] underline font-bold ml-1">Portal</span>
                 </button>
               </div>
             ) : (
@@ -205,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate('roles')}
-                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#2D5A43] hover:text-[#173827] hover:bg-[#EBF2ED] rounded-xl transition-colors whitespace-nowrap shrink-0"
+                  className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[#0284C7] hover:text-[#075985] hover:bg-[#F1F5F9] rounded-xl transition-colors whitespace-nowrap shrink-0"
                 >
                   <span>Portal Access</span>
                 </button>
@@ -215,7 +219,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onSelectRole('user');
                     onNavigate('dashboard');
                   }}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] active:bg-[#1A3728] rounded-xl shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#2D5A43]"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] rounded-xl shadow-xs transition-colors whitespace-nowrap shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#0284C7]"
                 >
                   <span>Get Started</span>
                   <ArrowRight className="w-4 h-4" />
@@ -232,14 +236,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onSelectRole('user');
                 onNavigate('dashboard');
               }}
-              className="px-3 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] rounded-lg sm:hidden whitespace-nowrap"
+              className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0284C7] rounded-lg sm:hidden whitespace-nowrap"
             >
               Get Started
             </button>
             <button
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#2D5A43] rounded-lg hover:bg-[#EBF2ED] focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+              className="p-2 text-[#0284C7] rounded-lg hover:bg-[#F1F5F9] focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
               aria-label="Toggle navigation menu"
               aria-expanded={mobileMenuOpen}
             >
@@ -251,51 +255,51 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile menu dropdown */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-b border-[#E4E8E3] bg-[#FAFAF7] px-4 pt-3 pb-6 space-y-4">
-          <nav className="flex flex-col space-y-2 text-base font-medium text-[#2E4237]">
+        <div className="lg:hidden border-b border-[#E2E8F0] bg-[#F8FAFC] px-4 pt-3 pb-6 space-y-4">
+          <nav className="flex flex-col space-y-2 text-base font-medium text-[#475569]">
             <button
               onClick={() => handleNavClick()}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#EBF2ED] transition-colors"
+              className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               Overview
             </button>
             <button
               onClick={() => handleNavClick('ayush-intro-section')}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#EBF2ED] transition-colors"
+              className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               What is AYUSH?
             </button>
             <button
               onClick={() => handleNavClick('ayush-systems')}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#EBF2ED] transition-colors"
+              className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               Five Systems
             </button>
             <button
               onClick={() => handleNavClick('ayush-in-india')}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#EBF2ED] transition-colors"
+              className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               AYUSH in India
             </button>
             <button
               onClick={() => handleNavClick('what-platform-offers')}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#EBF2ED] transition-colors"
+              className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               Platform Offerings
             </button>
             <button
               onClick={() => handleNavClick('disclaimer-section')}
-              className="text-left py-2 px-3 rounded-lg hover:bg-[#FAF4EF] text-[#A64B2A] transition-colors font-medium"
+              className="text-left py-2 px-3 rounded-lg hover:bg-amber-50 text-amber-700 transition-colors font-medium"
             >
               Public Health Disclaimer
             </button>
           </nav>
 
           {/* Mobile Auth Controls */}
-          <div className="pt-3 border-t border-[#E4E8E3] px-2 flex items-center justify-between gap-2">
+          <div className="pt-3 border-t border-[#E2E8F0] px-2 flex items-center justify-between gap-2">
             {firebaseUser ? (
               <>
-                <span className="text-xs font-semibold text-[#1C3A29] truncate">
+                <span className="text-xs font-semibold text-[#0F172A] truncate">
                   {userProfile?.displayName || firebaseUser.email}
                 </span>
                 <button
@@ -304,7 +308,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                     setMobileMenuOpen(false);
                     logout();
                   }}
-                  className="px-3 py-1.5 text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] rounded-lg"
+                  className="px-3 py-1.5 text-xs font-semibold text-[#0284C7] bg-[#F1F5F9] rounded-lg"
                 >
                   Sign Out
                 </button>
@@ -316,15 +320,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   setMobileMenuOpen(false);
                   onOpenAuth();
                 }}
-                className="w-full py-2 text-xs font-semibold text-[#1E3F2E] bg-white border border-[#CCD5CB] rounded-lg"
+                className="w-full py-2 text-xs font-semibold text-[#0F172A] bg-white border border-[#CBD5E1] rounded-lg"
               >
                 Sign In / Register
               </button>
             ) : null}
           </div>
 
-          <div className="pt-3 border-t border-[#E4E8E3] space-y-2">
-            <p className="text-xs font-semibold text-[#526B5C] uppercase tracking-wider px-3">
+          <div className="pt-3 border-t border-[#E2E8F0] space-y-2">
+            <p className="text-xs font-semibold text-[#64748B] uppercase tracking-wider px-3">
               {demoPortalEnabled ? 'DEMO MODE Portal Switcher (Preview Only)' : 'Portal Access'}
             </p>
             <div className="grid grid-cols-1 gap-2 px-2">
@@ -337,8 +341,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 }}
                 className={`flex items-center justify-between p-2.5 rounded-lg text-sm ${
                   currentRole === 'user' && currentView === 'dashboard'
-                    ? 'bg-[#2D5A43] text-white font-medium'
-                    : 'bg-white text-[#1E3F2E] border border-[#E4E8E3]'
+                    ? 'bg-[#0284C7] text-white font-medium'
+                    : 'bg-white text-[#0F172A] border border-[#E2E8F0]'
                 }`}
               >
                 <span>Wellness User Portal</span>
@@ -386,7 +390,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onNavigate('roles');
                   setMobileMenuOpen(false);
                 }}
-                className="flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold bg-[#F4F7F4] text-[#2D5A43] border border-[#CCDCD2]"
+                className="flex items-center justify-between p-2.5 rounded-lg text-xs font-semibold bg-[#F1F5F9] text-[#0284C7] border border-[#CBD5E1]"
               >
                 <span>Manage Portal Access / Demo Switcher</span>
                 <ArrowRight className="w-3.5 h-3.5" />

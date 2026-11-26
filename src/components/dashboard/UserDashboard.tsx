@@ -359,21 +359,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Account / Storage Status Top Bar */}
-      <div className="p-3.5 rounded-xl bg-[#F4F7F4] border border-[#D5E2D8] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#224A34]">
+      <div className="p-3.5 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-[#0F172A]">
         <div className="flex flex-wrap items-center gap-2">
           {isLoggedIn ? (
             <>
-              <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0" />
+              <ShieldCheck className="w-4 h-4 text-[#0284C7] shrink-0" />
               <span>
                 <strong>Authenticated Seeker:</strong> Connected as{' '}
-                <span className="font-semibold text-[#183625]">{userEmail || displayName}</span>.
+                <span className="font-semibold text-[#0F172A]">{userEmail || displayName}</span>.
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E2EBE4] text-[#1E3F2E] border border-[#C8D7CD]">
-                <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isConfigured ? 'bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]' : 'bg-amber-50 text-amber-900 border border-amber-200'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-[#0D9488]' : 'bg-amber-600'}`} />
                 {isConfigured ? 'Active Storage: Firebase Cloud Firestore' : 'Active Storage: Local Persistent Demo Storage'}
               </span>
               {assessmentHistory.length > 0 && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#D4E4D8] text-[#1D3B2A]">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#CCFBF1] text-[#0F766E]">
                   <Layers className="w-3 h-3" />
                   <span>Version {assessmentHistory[0].version} Active</span>
                 </span>
@@ -381,12 +381,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             </>
           ) : (
             <>
-              <Info className="w-4 h-4 text-[#2D5A43] shrink-0" />
+              <Info className="w-4 h-4 text-[#0284C7] shrink-0" />
               <span>
                 <strong>Demonstration Preview Mode:</strong> Sign in to synchronize your lifestyle assessment, multi-version history, and habit records permanently.
               </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8EFEA] text-[#224A34] border border-[#CCDCD2]">
-                <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${isConfigured ? 'bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]' : 'bg-amber-50 text-amber-900 border border-amber-200'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${isConfigured ? 'bg-[#0D9488]' : 'bg-amber-600'}`} />
                 {isConfigured ? 'Cloud Firestore Ready' : 'Local Persistent Storage'}
               </span>
             </>
@@ -396,7 +396,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {!isLoggedIn && onOpenAuth && (
             <button
               onClick={onOpenAuth}
-              className="inline-flex items-center gap-1.5 font-bold text-[#2D5A43] hover:text-[#183626] transition-colors"
+              className="inline-flex items-center gap-1.5 font-bold text-[#0284C7] hover:text-[#0369A1] transition-colors"
             >
               <LogIn className="w-3.5 h-3.5" />
               <span>Sign In / Register</span>
@@ -418,33 +418,33 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       </div>
 
       {/* 1. WELCOME HEADER */}
-      <section className="bg-gradient-to-br from-[#FAFAF7] via-[#F6F8F5] to-[#EEF4F0] rounded-2xl p-6 sm:p-8 border border-[#E0E7E1] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <section className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#CCFBF1]/35 rounded-2xl p-6 sm:p-8 border border-[#E2E8F0] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="space-y-2 max-w-2xl">
-          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#2D5A43]">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[#0284C7]">
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5 text-[#2D5A43]" />
+              <Calendar className="w-3.5 h-3.5 text-[#0284C7]" />
               <span>{formattedDate}</span>
             </span>
             <span>·</span>
-            <span className="flex items-center gap-1 text-[#4E6457]">
-              <Leaf className="w-3.5 h-3.5 text-[#2D5A43]" />
+            <span className="flex items-center gap-1 text-[#475569]">
+              <Leaf className="w-3.5 h-3.5 text-[#0D9488]" />
               <span>{greeting}</span>
             </span>
             {activePlan && (
               <>
                 <span>·</span>
-                <span className="bg-[#E2ECE5] px-2 py-0.5 rounded text-[11px] font-bold text-[#1C3A29]">
+                <span className="bg-[#CCFBF1] px-2 py-0.5 rounded text-[11px] font-bold text-[#0F766E]">
                   Plan v{activePlan.version} Active
                 </span>
               </>
             )}
           </div>
 
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#142A1E] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-[#0F172A] tracking-tight">
             Welcome to your daily rhythm, {displayName}.
           </h1>
 
-          <p className="text-xs sm:text-sm text-[#4E6457] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
             {activePlan
               ? `${activePlan.primaryFocus} — ${activePlan.summary}`
               : 'Aligning personal lifestyle with seasonal transitions. Complete your expanded 20-question assessment to generate your personalized AYUSH Wellness Plan.'}
@@ -452,21 +452,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         </div>
 
         {/* Compact Right Header Adherence Card */}
-        <div className="flex items-center gap-4 p-4 rounded-xl bg-white border border-[#D9E4DC] shadow-xs shrink-0">
+        <div className="flex items-center gap-4 p-4 rounded-xl bg-white border border-[#E2E8F0] shadow-xs shrink-0">
           <div className="text-center min-w-[70px]">
-            <span className="text-3xl font-serif font-bold text-[#2D5A43] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0284C7] tabular-nums">
               {adherence}%
             </span>
-            <p className="text-[10px] font-semibold text-[#526B5C] uppercase tracking-wider mt-0.5">
+            <p className="text-[10px] font-semibold text-[#475569] uppercase tracking-wider mt-0.5">
               Today's Rhythm
             </p>
           </div>
-          <div className="h-10 w-[1px] bg-[#E3EBE5]" />
+          <div className="h-10 w-[1px] bg-[#E2E8F0]" />
           <div className="space-y-1">
-            <span className="inline-block text-xs font-bold text-[#1E3F2E]">
+            <span className="inline-block text-xs font-bold text-[#0F172A]">
               {statusInfo.label}
             </span>
-            <p className="text-[11px] text-[#637C6D]">
+            <p className="text-[11px] text-[#64748B]">
               {completedActivitiesCount} of {activities.length} rituals completed
             </p>
           </div>
@@ -474,23 +474,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       </section>
 
       {/* 1B. SEEKER PROFILE OVERVIEW SECTION */}
-      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#D5E1D8] shadow-xs space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#EEF2EC] pb-4">
+      <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 rounded-full bg-[#2D5A43] text-white flex items-center justify-center font-serif font-bold text-lg shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#0284C7] text-white flex items-center justify-center font-serif font-bold text-lg shadow-xs">
               {(userProfile?.displayName || displayName || 'S')[0].toUpperCase()}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-lg font-serif font-bold text-[#142A1E]">
+                <h2 className="text-lg font-serif font-bold text-[#0F172A]">
                   {userProfile?.displayName || displayName}
                 </h2>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#EBF2ED] text-[#224A34] border border-[#CCDCD2] flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-[#2D5A43]" />
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4] flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-[#0D9488]" />
                   <span>Verified Seeker</span>
                 </span>
               </div>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 {userProfile?.email || userEmail || 'Demonstration Mode Guest Account'}
               </p>
             </div>
@@ -500,7 +500,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowProfileDetails(!showProfileDetails)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#CCD5CB] text-[#1E3F2E] hover:bg-[#F4F6F2] transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#CBD5E1] text-[#0F172A] hover:bg-[#F1F5F9] transition-colors"
             >
               <span>{showProfileDetails ? 'Hide Profile Details' : 'View Full Profile Details'}</span>
               {showProfileDetails ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
@@ -510,51 +510,51 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
         {showProfileDetails && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-1">
-            <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#E4EAE4] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#557160] tracking-wider block">
+            <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider block">
                 Account Role & Status
               </span>
-              <p className="font-semibold text-sm text-[#1E3F2E]">
+              <p className="font-semibold text-sm text-[#0F172A]">
                 {userProfile?.role === 'admin' ? 'Administrator' : userProfile?.role === 'practitioner' ? 'AYUSH Practitioner' : 'Wellness Seeker'}
               </p>
-              <p className="text-[11px] text-[#637C6D]">
-                Role: <span className="font-mono text-[#2D5A43] font-semibold">{userProfile?.role || 'user'}</span> · Active
+              <p className="text-[11px] text-[#64748B]">
+                Role: <span className="font-mono text-[#0284C7] font-semibold">{userProfile?.role || 'user'}</span> · Active
               </p>
             </div>
 
-            <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#E4EAE4] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#557160] tracking-wider block">
+            <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider block">
                 Authenticated Identifier (UID)
               </span>
-              <p className="font-mono text-xs text-[#1E3F2E] truncate font-semibold" title={userProfile?.uid || userUid || 'guest_seeker'}>
+              <p className="font-mono text-xs text-[#0F172A] truncate font-semibold" title={userProfile?.uid || userUid || 'guest_seeker'}>
                 {userProfile?.uid || userUid || 'guest_seeker'}
               </p>
-              <p className="text-[11px] text-[#637C6D]">
+              <p className="text-[11px] text-[#64748B]">
                 Account ownership UID
               </p>
             </div>
 
-            <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#E4EAE4] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#557160] tracking-wider block">
+            <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider block">
                 Assessment & Prakriti
               </span>
-              <p className="font-semibold text-sm text-[#1E3F2E] truncate">
+              <p className="font-semibold text-sm text-[#0F172A] truncate">
                 {activePlan?.constitutionTendency || (assessmentHistory.length > 0 ? assessmentHistory[0].analysis.constitutionTendency : 'Pending Initial Assessment')}
               </p>
-              <p className="text-[11px] text-[#637C6D]">
+              <p className="text-[11px] text-[#64748B]">
                 {assessmentHistory.length > 0 ? `Version ${assessmentHistory[0].version} Active Plan` : '20-Question Baseline Pending'}
               </p>
             </div>
 
-            <div className="p-3 bg-[#FAFBF9] rounded-xl border border-[#E4EAE4] space-y-1">
-              <span className="text-[10px] uppercase font-bold text-[#557160] tracking-wider block">
+            <div className="p-3 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-1">
+              <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider block">
                 Storage Engine
               </span>
-              <p className="font-semibold text-sm text-[#1E3F2E] flex items-center gap-1.5">
-                <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-emerald-600' : 'bg-amber-600'}`} />
+              <p className="font-semibold text-sm text-[#0F172A] flex items-center gap-1.5">
+                <span className={`w-2 h-2 rounded-full ${isConfigured ? 'bg-[#0D9488]' : 'bg-amber-600'}`} />
                 <span>{isConfigured ? 'Cloud Firestore' : 'Local Persistent Storage'}</span>
               </p>
-              <p className="text-[11px] text-[#637C6D]">
+              <p className="text-[11px] text-[#64748B]">
                 {userProfile?.createdAt ? `Member since ${new Date(userProfile.createdAt).toLocaleDateString()}` : 'Active session'}
               </p>
             </div>
@@ -565,28 +565,28 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       {/* 2. WELLNESS OVERVIEW (Compact Statistic Cards) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Today's Habit Adherence */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Dinacharya Adherence
             </span>
-            <Activity className="w-4 h-4 text-[#2D5A43]" />
+            <Activity className="w-4 h-4 text-[#0284C7]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-serif font-bold text-[#1E3F2E] tabular-nums">
+            <span className="text-3xl font-serif font-bold text-[#0F172A] tabular-nums">
               {adherence}%
             </span>
-            <span className="text-xs text-[#526B5C]">
+            <span className="text-xs text-[#475569]">
               ({completedActivitiesCount}/{activities.length})
             </span>
           </div>
-          <div className="w-full bg-[#EBF0EC] h-1.5 rounded-full overflow-hidden">
+          <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
             <div
-              className="bg-[#2D5A43] h-full transition-all duration-300"
+              className="bg-[#0284C7] h-full transition-all duration-300"
               style={{ width: `${adherence}%` }}
             />
           </div>
-          <p className="text-[11px] text-[#5E7869] pt-0.5">
+          <p className="text-[11px] text-[#64748B] pt-0.5">
             {completedActivitiesCount === activities.length
               ? 'All daily rituals fulfilled today'
               : `${activities.length - completedActivitiesCount} rituals pending today`}
@@ -594,33 +594,33 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         </div>
 
         {/* Card 2: Consistency Streak */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#A64B2A]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-amber-700">
               Consistency Rhythm
             </span>
-            <Flame className="w-4 h-4 text-[#A64B2A]" />
+            <Flame className="w-4 h-4 text-amber-600" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-serif font-bold text-[#1E3F2E]">
+            <span className="text-xl font-serif font-bold text-[#0F172A]">
               {streakLabel}
             </span>
           </div>
-          <div className="text-[11px] text-[#6E544B] leading-tight">
+          <div className="text-[11px] text-[#475569] leading-tight">
             Consistent timing stabilizes natural digestive fire (Agni) and neuroendocrine rhythm.
           </div>
         </div>
 
         {/* Card 3: Assessment Profile Status */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Assessment & Version
             </span>
-            <Compass className="w-4 h-4 text-[#2D5A43]" />
+            <Compass className="w-4 h-4 text-[#0284C7]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-serif font-bold text-[#1E3F2E]">
+            <span className="text-2xl font-serif font-bold text-[#0F172A]">
               {assessmentHistory.length > 0
                 ? `Version ${assessmentHistory[0].version}`
                 : answeredCount === 0
@@ -628,7 +628,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 : `${answeredCount}/${totalAssessmentQuestions} Logged`}
             </span>
           </div>
-          <p className="text-[11px] text-[#526B5C] truncate">
+          <p className="text-[11px] text-[#475569] truncate">
             {assessmentHistory.length > 0
               ? `${assessmentHistory[0].analysis.constitutionTendency}`
               : answeredCount === 0
@@ -637,7 +637,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </p>
           <button
             onClick={onOpenAssessment}
-            className="text-[11px] font-semibold text-[#2D5A43] hover:underline inline-flex items-center gap-1"
+            className="text-[11px] font-semibold text-[#0284C7] hover:underline inline-flex items-center gap-1"
           >
             <span>{assessmentHistory.length === 0 ? 'Start Assessment' : 'Retake Assessment (v' + (assessmentHistory[0]?.version + 1 || 2) + ')'}</span>
             <ChevronRight className="w-3 h-3" />
@@ -645,19 +645,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         </div>
 
         {/* Card 4: Seasonal Ritucharya Guidance */}
-        <div className="bg-white rounded-xl p-5 border border-[#E3E8E3] shadow-xs space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#526B5C]">
-            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#2D5A43]">
+        <div className="bg-white rounded-xl p-5 border border-[#E2E8F0] shadow-xs space-y-2">
+          <div className="flex items-center justify-between text-xs text-[#475569]">
+            <span className="font-semibold uppercase tracking-wider text-[11px] text-[#0284C7]">
               Active Plan Status
             </span>
             <Award className="w-4 h-4 text-[#D97706]" />
           </div>
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-serif font-bold text-[#1E3F2E]">
+            <span className="text-lg font-serif font-bold text-[#0F172A]">
               {activePlan ? `Plan v${activePlan.version}` : 'Baseline Ready'}
             </span>
           </div>
-          <p className="text-[11px] text-[#526B5C] leading-snug">
+          <p className="text-[11px] text-[#475569] leading-snug">
             {activePlan
               ? `Generated ${new Date(activePlan.generatedAt).toLocaleDateString()}. Includes 7 daily rituals & ${activePlan.weeklyGoals.length} weekly goals.`
               : 'Complete assessment to generate your personalized Dinacharya routine with "Why" explanations.'}
@@ -666,10 +666,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
       </section>
 
       {/* 2B. LIFESTYLE ASSESSMENT INTRODUCTION & QUESTION SECTION */}
-      <section className="bg-gradient-to-r from-[#FAFBF9] via-[#F4F8F5] to-[#EAF2EC] rounded-2xl p-6 sm:p-8 border border-[#CCDCD2] shadow-sm space-y-6">
+      <section className="bg-gradient-to-r from-[#F8FAFC] via-[#F1F5F9] to-[#CCFBF1]/35 rounded-2xl p-6 sm:p-8 border border-[#CBD5E1] shadow-sm space-y-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#2D5A43] text-white">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-[#0284C7] text-white">
               <Sparkles className="w-3.5 h-3.5" />
               <span>
                 {assessmentHistory.length === 0
@@ -677,12 +677,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   : `Version ${assessmentHistory[0].version} Assessment Active`}
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#142A1E]">
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#0F172A]">
               {assessmentHistory.length === 0
                 ? 'Discover Your Baseline Rhythm Across 8 Dimensions'
                 : 'Comprehensive Lifestyle Assessment & Dinacharya Profile'}
             </h2>
-            <p className="text-xs sm:text-sm text-[#465E4F] leading-relaxed">
+            <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
               {assessmentHistory.length === 0
                 ? `Welcome to AYUSH Wellness Connect, ${displayName}! Our 20-question self-observation evaluates your circadian habits, digestive fire, sleep architecture, movement, stress, hydration, nutrition, and screen exposure to calculate your constitutional tendency and immediately generate your personalized AYUSH Wellness Plan v1.`
                 : `Your active plan is calibrated based on Version ${assessmentHistory[0].version} assessment completed on ${new Date(assessmentHistory[0].completedAt).toLocaleDateString()}. You can re-assess anytime as seasons or habits shift to generate an updated plan and compare longitudinal progress.`}
@@ -699,14 +699,14 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   }}
                   className={`p-2.5 rounded-lg border cursor-pointer transition-all ${
                     selectedPreviewCategory === cat.id && showQuestionsPreview
-                      ? 'bg-[#E0EBE2] border-[#2D5A43] shadow-xs'
-                      : 'bg-white/85 border-[#D5E1D8] text-[#244634] hover:bg-white'
+                      ? 'bg-[#CCFBF1]/50 border-[#0284C7] shadow-xs'
+                      : 'bg-white/85 border-[#E2E8F0] text-[#0F172A] hover:bg-white'
                   }`}
                 >
-                  <span className="font-bold block text-[11px] text-[#2D5A43]">
+                  <span className="font-bold block text-[11px] text-[#0284C7]">
                     {cat.order}. {cat.name.split(' ')[0]}
                   </span>
-                  <span className="text-[11px] text-[#557060] line-clamp-1">{cat.traditionalPillar}</span>
+                  <span className="text-[11px] text-[#64748B] line-clamp-1">{cat.traditionalPillar}</span>
                 </div>
               ))}
             </div>
@@ -716,7 +716,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             <button
               type="button"
               onClick={onOpenAssessment}
-              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] active:bg-[#1A3728] rounded-xl shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#2D5A43] cursor-pointer"
+              className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] rounded-xl shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#0284C7] cursor-pointer"
             >
               <span>
                 {assessmentHistory.length === 0
@@ -728,12 +728,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             <button
               type="button"
               onClick={() => setShowQuestionsPreview(!showQuestionsPreview)}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2D5A43] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#0284C7] hover:underline"
             >
               <span>{showQuestionsPreview ? 'Hide Questions Preview' : 'Explore All 20 Questions by Dimension'}</span>
               {showQuestionsPreview ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
-            <span className="text-[11px] text-[#5A7364]">
+            <span className="text-[11px] text-[#64748B]">
               20 Questions · Non-diagnostic · Instant personalized plan
             </span>
           </div>
@@ -741,13 +741,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
         {/* INTERACTIVE QUESTION PREVIEW DRAWER */}
         {showQuestionsPreview && (
-          <div className="pt-4 border-t border-[#D0DEC7] space-y-4">
+          <div className="pt-4 border-t border-[#CBD5E1] space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="space-y-0.5">
-                <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-base text-[#0F172A]">
                   Questions in Dimension: {ASSESSMENT_CATEGORIES.find((c) => c.id === selectedPreviewCategory)?.name}
                 </h3>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   {ASSESSMENT_CATEGORIES.find((c) => c.id === selectedPreviewCategory)?.description} · <span className="italic">{ASSESSMENT_CATEGORIES.find((c) => c.id === selectedPreviewCategory)?.traditionalPillar}</span>
                 </p>
               </div>
@@ -759,8 +759,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     onClick={() => setSelectedPreviewCategory(cat.id)}
                     className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
                       selectedPreviewCategory === cat.id
-                        ? 'bg-[#2D5A43] text-white shadow-xs'
-                        : 'bg-white text-[#4A6455] hover:bg-[#EEF4F0] border border-[#CCD8CF]'
+                        ? 'bg-[#0284C7] text-white shadow-xs'
+                        : 'bg-white text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1]'
                     }`}
                   >
                     {cat.order}. {cat.name.split(' ')[0]}
@@ -773,24 +773,24 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               {EXPANDED_ASSESSMENT_QUESTIONS.filter((q) => q.category === selectedPreviewCategory).map((q) => {
                 const selectedVal = assessmentAnswers[q.id];
                 return (
-                  <div key={q.id} className="p-4 rounded-xl bg-white border border-[#D5E1D8] space-y-2.5 shadow-xs">
+                  <div key={q.id} className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2.5 shadow-xs">
                     <div className="flex items-start justify-between gap-2">
-                      <span className="text-[11px] font-bold text-[#2D5A43] uppercase tracking-wider">
+                      <span className="text-[11px] font-bold text-[#0284C7] uppercase tracking-wider">
                         Question #{EXPANDED_ASSESSMENT_QUESTIONS.findIndex((item) => item.id === q.id) + 1} of 20
                       </span>
                       {selectedVal && (
-                        <span className="text-[10px] bg-[#EBF2ED] text-[#224A34] px-2 py-0.5 rounded font-semibold flex items-center gap-1">
-                          <Check className="w-3 h-3 text-emerald-600" />
+                        <span className="text-[10px] bg-[#CCFBF1] text-[#0F766E] px-2 py-0.5 rounded font-semibold flex items-center gap-1">
+                          <Check className="w-3 h-3 text-[#0D9488]" />
                           <span>Logged</span>
                         </span>
                       )}
                     </div>
 
-                    <h4 className="font-semibold text-sm text-[#142A1E] leading-snug">
+                    <h4 className="font-semibold text-sm text-[#0F172A] leading-snug">
                       {q.question}
                     </h4>
                     {q.subtitle && (
-                      <p className="text-[11px] text-[#526B5C] leading-relaxed">
+                      <p className="text-[11px] text-[#475569] leading-relaxed">
                         {q.subtitle}
                       </p>
                     )}
@@ -801,12 +801,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                           key={opt.value}
                           className={`p-2 rounded-lg text-xs border flex items-center justify-between ${
                             selectedVal === opt.value
-                              ? 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E] font-medium'
-                              : 'border-[#E4EAE4] bg-[#FAFBF9] text-[#405448]'
+                              ? 'border-[#0284C7] bg-[#CCFBF1]/40 text-[#0F172A] font-medium'
+                              : 'border-[#E2E8F0] bg-[#F1F5F9] text-[#475569]'
                           }`}
                         >
                           <span>{opt.label}</span>
-                          <span className="text-[10px] text-[#637C6D] max-w-[50%] text-right truncate">
+                          <span className="text-[10px] text-[#64748B] max-w-[50%] text-right truncate">
                             {opt.description}
                           </span>
                         </div>
@@ -817,7 +817,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       <button
                         type="button"
                         onClick={onOpenAssessment}
-                        className="text-[11px] font-semibold text-[#2D5A43] hover:underline inline-flex items-center gap-1"
+                        className="text-[11px] font-semibold text-[#0284C7] hover:underline inline-flex items-center gap-1"
                       >
                         <span>Open & Answer in Assessment Modal</span>
                         <ChevronRight className="w-3 h-3" />
@@ -833,24 +833,24 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
       {/* CORE FEATURE: ACTIVE PERSONALIZED WELLNESS PLAN DISPLAY */}
       {activePlan && (
-        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-[#D5E1D8] shadow-sm space-y-6">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#EEF2EC] pb-5">
+        <section className="bg-white rounded-2xl p-6 sm:p-8 border border-[#E2E8F0] shadow-sm space-y-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-5">
             <div className="space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-[11px] font-bold text-white bg-[#2D5A43] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                <span className="text-[11px] font-bold text-white bg-[#0284C7] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
                   Active Personalized Plan · Version {activePlan.version}
                 </span>
-                <span className="text-xs text-[#526B5C]">
+                <span className="text-xs text-[#475569]">
                   Generated on {new Date(activePlan.generatedAt).toLocaleDateString()}
                 </span>
-                <span className="text-xs bg-[#F0F5F2] text-[#284E38] px-2 py-0.5 rounded font-semibold border border-[#D5E3D8]">
+                <span className="text-xs bg-[#CCFBF1] text-[#0F766E] px-2 py-0.5 rounded font-semibold border border-[#99F6E4]">
                   {activePlan.constitutionTendency}
                 </span>
               </div>
-              <h2 className="text-2xl font-serif font-bold text-[#142A1E]">
+              <h2 className="text-2xl font-serif font-bold text-[#0F172A]">
                 {activePlan.title}
               </h2>
-              <p className="text-xs sm:text-sm text-[#4E6758] max-w-3xl leading-relaxed">
+              <p className="text-xs sm:text-sm text-[#475569] max-w-3xl leading-relaxed">
                 {activePlan.summary}
               </p>
             </div>
@@ -859,7 +859,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <button
                 type="button"
                 onClick={onOpenAssessment}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] hover:bg-[#DEEBE1] rounded-lg transition-colors border border-[#CADDCF]"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#0284C7] bg-[#F1F5F9] hover:bg-[#E2E8F0] rounded-lg transition-colors border border-[#CBD5E1]"
               >
                 <span>Re-assess & Update Plan</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -868,7 +868,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </div>
 
           {/* Plan Section Nav Tabs */}
-          <div className="flex flex-wrap items-center gap-1.5 border-b border-[#F0F4F1] pb-3 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5 border-b border-[#E2E8F0] pb-3 text-xs">
             {[
               { id: 'routine', label: `Daily Dinacharya (${activePlan.dailyRoutine.length})` },
               { id: 'habits', label: 'Morning & Evening Rituals' },
@@ -883,8 +883,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 onClick={() => setActivePlanTab(tab.id as any)}
                 className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
                   activePlanTab === tab.id
-                    ? 'bg-[#2D5A43] text-white shadow-xs'
-                    : 'bg-[#F4F7F4] text-[#4E6758] hover:bg-[#E7EFEA]'
+                    ? 'bg-[#0284C7] text-white shadow-xs'
+                    : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
                 }`}
               >
                 {tab.label}
@@ -896,10 +896,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {activePlanTab === 'routine' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-base text-[#0F172A]">
                   Complete Daily Dinacharya Schedule
                 </h3>
-                <span className="text-xs text-[#526B5C]">
+                <span className="text-xs text-[#475569]">
                   Classical Circadian Timing (Muhurta)
                 </span>
               </div>
@@ -907,25 +907,25 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 {activePlan.dailyRoutine.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2 hover:border-[#CAD8CC] transition-colors"
+                    className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2 hover:border-[#CBD5E1] transition-colors"
                   >
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#2D5A43] flex items-center gap-1.5">
+                      <span className="font-bold text-[#0284C7] flex items-center gap-1.5">
                         <Clock className="w-3.5 h-3.5" />
                         <span>{item.time}</span>
                       </span>
-                      <span className="text-[11px] font-semibold text-[#668070] bg-[#EEF4F0] px-2 py-0.5 rounded">
+                      <span className="text-[11px] font-semibold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded">
                         {item.category}
                       </span>
                     </div>
-                    <h4 className="font-semibold text-sm text-[#1E3F2E]">
+                    <h4 className="font-semibold text-sm text-[#0F172A]">
                       {item.title}
                     </h4>
-                    <p className="text-xs text-[#3E5646] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {item.action}
                     </p>
-                    <div className="pt-2 border-t border-[#E8EEE9] text-[11px] text-[#587362] bg-[#F3F7F4] p-2.5 rounded-lg">
-                      <strong className="text-[#2D5A43]">Why: </strong>
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#475569] bg-white p-2.5 rounded-lg">
+                      <strong className="text-[#0284C7]">Why: </strong>
                       <span>{item.why}</span>
                     </div>
                   </div>
@@ -939,18 +939,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Morning Habits */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 border-b border-[#EEF2EC] pb-2">
+                <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2">
                   <Sun className="w-4 h-4 text-[#D97706]" />
-                  <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                  <h3 className="font-serif font-bold text-base text-[#0F172A]">
                     Morning Anchoring Habits
                   </h3>
                 </div>
                 {activePlan.morningHabits.map((h, i) => (
-                  <div key={i} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-1.5">
-                    <h4 className="font-semibold text-sm text-[#1E3F2E]">{h.title}</h4>
-                    <p className="text-xs text-[#3E5646]">{h.instruction}</p>
-                    <p className="text-[11px] text-[#587362] pt-1 border-t border-[#E8EEE9]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{h.why}
+                  <div key={i} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-1.5">
+                    <h4 className="font-semibold text-sm text-[#0F172A]">{h.title}</h4>
+                    <p className="text-xs text-[#475569]">{h.instruction}</p>
+                    <p className="text-[11px] text-[#475569] pt-1 border-t border-[#E2E8F0]">
+                      <strong className="text-[#0284C7]">Why: </strong>{h.why}
                     </p>
                   </div>
                 ))}
@@ -958,18 +958,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
               {/* Evening Habits */}
               <div className="space-y-3">
-                <div className="flex items-center gap-2 border-b border-[#EEF2EC] pb-2">
-                  <Clock className="w-4 h-4 text-[#2D5A43]" />
-                  <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2">
+                  <Clock className="w-4 h-4 text-[#0284C7]" />
+                  <h3 className="font-serif font-bold text-base text-[#0F172A]">
                     Evening Wind-Down Habits
                   </h3>
                 </div>
                 {activePlan.eveningHabits.map((h, i) => (
-                  <div key={i} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-1.5">
-                    <h4 className="font-semibold text-sm text-[#1E3F2E]">{h.title}</h4>
-                    <p className="text-xs text-[#3E5646]">{h.instruction}</p>
-                    <p className="text-[11px] text-[#587362] pt-1 border-t border-[#E8EEE9]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{h.why}
+                  <div key={i} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-1.5">
+                    <h4 className="font-semibold text-sm text-[#0F172A]">{h.title}</h4>
+                    <p className="text-xs text-[#475569]">{h.instruction}</p>
+                    <p className="text-[11px] text-[#475569] pt-1 border-t border-[#E2E8F0]">
+                      <strong className="text-[#0284C7]">Why: </strong>{h.why}
                     </p>
                   </div>
                 ))}
@@ -980,20 +980,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* Tab 3: Sleep Suggestions */}
           {activePlanTab === 'sleep' && (
             <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Restorative Nidra & Sleep Architecture Guidelines
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {activePlan.sleepSuggestions.map((s, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2">
-                    <span className="text-xs font-bold text-[#2D5A43] uppercase tracking-wider">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2">
+                    <span className="text-xs font-bold text-[#0284C7] uppercase tracking-wider">
                       {s.title}
                     </span>
-                    <p className="text-xs text-[#3E5646] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {s.guideline}
                     </p>
-                    <div className="pt-2 border-t border-[#E8EEE9] text-[11px] text-[#587362]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{s.why}
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#475569]">
+                      <strong className="text-[#0284C7]">Why: </strong>{s.why}
                     </div>
                   </div>
                 ))}
@@ -1004,20 +1004,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* Tab 4: Food & Nutrition */}
           {activePlanTab === 'food' && (
             <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Food Timing & Balanced Eating (Aahar Niyama)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {activePlan.foodAndNutrition.map((f, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2">
-                    <span className="text-xs font-bold text-[#A64B2A] bg-[#FAF2EF] px-2 py-0.5 rounded">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2">
+                    <span className="text-xs font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded">
                       {f.timingWindow}
                     </span>
-                    <p className="text-xs text-[#3E5646] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {f.guideline}
                     </p>
-                    <div className="pt-2 border-t border-[#E8EEE9] text-[11px] text-[#587362]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{f.why}
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#475569]">
+                      <strong className="text-[#0284C7]">Why: </strong>{f.why}
                     </div>
                   </div>
                 ))}
@@ -1028,21 +1028,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* Tab 5: Physical Activity */}
           {activePlanTab === 'movement' && (
             <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Daily Movement & Vyayama Recommendations
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activePlan.physicalActivity.map((m, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#1E3F2E]">{m.type}</span>
-                      <span className="text-[11px] text-[#526B5C]">{m.frequency}</span>
+                      <span className="font-bold text-[#0F172A]">{m.type}</span>
+                      <span className="text-[11px] text-[#475569]">{m.frequency}</span>
                     </div>
-                    <p className="text-xs text-[#3E5646] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {m.guideline}
                     </p>
-                    <div className="pt-2 border-t border-[#E8EEE9] text-[11px] text-[#587362]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{m.why}
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#475569]">
+                      <strong className="text-[#0284C7]">Why: </strong>{m.why}
                     </div>
                   </div>
                 ))}
@@ -1053,23 +1053,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* Tab 6: Stress & Breathing */}
           {activePlanTab === 'stress' && (
             <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Stress Management & Pranayama (Pranic Equilibrium)
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {activePlan.stressAndBreathing.map((st, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#1E3F2E]">{st.practice}</span>
-                      <span className="text-[11px] font-semibold text-[#2D5A43] bg-[#EEF4F0] px-2 py-0.5 rounded">
+                      <span className="font-bold text-[#0F172A]">{st.practice}</span>
+                      <span className="text-[11px] font-semibold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded">
                         {st.duration}
                       </span>
                     </div>
-                    <p className="text-xs text-[#3E5646] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {st.guideline}
                     </p>
-                    <div className="pt-2 border-t border-[#E8EEE9] text-[11px] text-[#587362]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{st.why}
+                    <div className="pt-2 border-t border-[#E2E8F0] text-[11px] text-[#475569]">
+                      <strong className="text-[#0284C7]">Why: </strong>{st.why}
                     </div>
                   </div>
                 ))}
@@ -1080,23 +1080,23 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* Tab 7: Weekly Habit Goals */}
           {activePlanTab === 'goals' && (
             <div className="space-y-3">
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Weekly Milestone Goals
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {activePlan.weeklyGoals.map((g) => (
-                  <div key={g.id} className="p-4 rounded-xl border border-[#E3EAE4] bg-[#FAFBF9] space-y-2">
+                  <div key={g.id} className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="font-bold text-[#2D5A43] flex items-center gap-1">
+                      <span className="font-bold text-[#0284C7] flex items-center gap-1">
                         <Target className="w-3.5 h-3.5" />
                         <span>{g.targetDays} Days / Week</span>
                       </span>
                     </div>
-                    <h4 className="font-semibold text-xs text-[#1E3F2E]">
+                    <h4 className="font-semibold text-xs text-[#0F172A]">
                       {g.goal}
                     </h4>
-                    <p className="text-[11px] text-[#587362]">
-                      <strong className="text-[#2D5A43]">Why: </strong>{g.why}
+                    <p className="text-[11px] text-[#475569]">
+                      <strong className="text-[#0284C7]">Why: </strong>{g.why}
                     </p>
                   </div>
                 ))}
@@ -1105,8 +1105,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           )}
 
           {/* Educational Disclaimer */}
-          <div className="p-3.5 bg-[#FAFBF9] rounded-xl border border-[#DCE6DE] text-[11px] text-[#486352] flex items-start gap-2">
-            <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-[11px] text-[#475569] flex items-start gap-2">
+            <ShieldCheck className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
             <span>{activePlan.educationalDisclaimer}</span>
           </div>
         </section>
@@ -1114,53 +1114,53 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
       {/* ASSESSMENT COMPARISON & PROGRESS DIFF (If Version > 1) */}
       {comparison && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#D9E3DC] shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-3">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
             <div>
-              <span className="text-[11px] font-bold text-[#2D5A43] uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[#0284C7] uppercase tracking-wider">
                 Longitudinal Assessment Progress Diff
               </span>
-              <h3 className="text-lg font-serif font-bold text-[#1E3F2E]">
+              <h3 className="text-lg font-serif font-bold text-[#0F172A]">
                 Comparison: Version {latestAssessmentRecord?.version} vs. Version {comparison.previousVersion}
               </h3>
-              <p className="text-xs text-[#526B5C]">
+              <p className="text-xs text-[#475569]">
                 {comparison.summaryNote}
               </p>
             </div>
-            <span className="text-xs text-[#6B8576]">
+            <span className="text-xs text-[#64748B]">
               Previous: {new Date(comparison.previousDate).toLocaleDateString()}
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             {/* Improvements */}
-            <div className="p-4 rounded-xl bg-[#F4F9F5] border border-[#CFE2D4] space-y-2">
-              <div className="flex items-center gap-1.5 font-bold text-[#1C4E2D]">
-                <TrendingUp className="w-4 h-4 text-[#2D5A43]" />
+            <div className="p-4 rounded-xl bg-[#CCFBF1]/50 border border-[#99F6E4] space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-[#0F766E]">
+                <TrendingUp className="w-4 h-4 text-[#0D9488]" />
                 <span>Improvements Identified ({comparison.improvements.length})</span>
               </div>
               {comparison.improvements.length > 0 ? (
-                <ul className="space-y-1.5 text-[#355840]">
+                <ul className="space-y-1.5 text-[#0F172A]">
                   {comparison.improvements.map((imp, idx) => (
                     <li key={idx} className="flex items-start gap-1.5">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                      <Check className="w-3.5 h-3.5 text-[#0D9488] shrink-0 mt-0.5" />
                       <span>{imp}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-[#688572] italic">Baseline recorded. Further improvements will emerge across check-ins.</p>
+                <p className="text-[#64748B] italic">Baseline recorded. Further improvements will emerge across check-ins.</p>
               )}
             </div>
 
             {/* Unchanged Habits */}
-            <div className="p-4 rounded-xl bg-[#FAFBF9] border border-[#E4EAE4] space-y-2">
-              <div className="flex items-center gap-1.5 font-bold text-[#455E4E]">
-                <Minus className="w-4 h-4 text-[#526B5C]" />
+            <div className="p-4 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-[#475569]">
+                <Minus className="w-4 h-4 text-[#64748B]" />
                 <span>Unchanged Baseline Habits ({comparison.unchangedHabits.length})</span>
               </div>
               {comparison.unchangedHabits.length > 0 ? (
-                <ul className="space-y-1.5 text-[#4A6453]">
+                <ul className="space-y-1.5 text-[#475569]">
                   {comparison.unchangedHabits.slice(0, 4).map((unc, idx) => (
                     <li key={idx} className="flex items-start gap-1.5">
                       <span className="w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0 mt-1.5" />
@@ -1174,27 +1174,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   )}
                 </ul>
               ) : (
-                <p className="text-[#688572] italic">All responses refreshed in this cycle.</p>
+                <p className="text-[#64748B] italic">All responses refreshed in this cycle.</p>
               )}
             </div>
 
             {/* Areas to Work On */}
-            <div className="p-4 rounded-xl bg-[#FAF4EF] border border-[#EADBD3] space-y-2">
-              <div className="flex items-center gap-1.5 font-bold text-[#A64B2A]">
-                <Target className="w-4 h-4 text-[#A64B2A]" />
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 space-y-2">
+              <div className="flex items-center gap-1.5 font-bold text-amber-800">
+                <Target className="w-4 h-4 text-amber-700" />
                 <span>Focus Areas for this Cycle ({comparison.areasToFocus.length})</span>
               </div>
               {comparison.areasToFocus.length > 0 ? (
-                <ul className="space-y-1.5 text-[#6D4738]">
+                <ul className="space-y-1.5 text-amber-900">
                   {comparison.areasToFocus.map((foc, idx) => (
                     <li key={idx} className="flex items-start gap-1.5">
-                      <ArrowRight className="w-3.5 h-3.5 text-[#A64B2A] shrink-0 mt-0.5" />
+                      <ArrowRight className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
                       <span>{foc}</span>
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className="text-[#845E50] italic">No urgent imbalances noted; maintain steady Dinacharya consistency.</p>
+                <p className="text-amber-800 italic">No urgent imbalances noted; maintain steady Dinacharya consistency.</p>
               )}
             </div>
           </div>
@@ -1203,20 +1203,20 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
       {/* ASSESSMENT HISTORY & HISTORICAL PLAN ARCHIVE */}
       {assessmentHistory.length > 0 && (
-        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-3">
+        <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-3">
             <div className="flex items-center gap-2">
-              <History className="w-5 h-5 text-[#2D5A43]" />
+              <History className="w-5 h-5 text-[#0284C7]" />
               <div>
-                <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-base text-[#0F172A]">
                   Assessment History & Plan Archive
                 </h3>
-                <p className="text-xs text-[#526B5C]">
+                <p className="text-xs text-[#475569]">
                   All past assessments and generated plans are preserved immutably. Never overwritten.
                 </p>
               </div>
             </div>
-            <span className="text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] px-2.5 py-1 rounded-md">
+            <span className="text-xs font-semibold text-[#0284C7] bg-[#F1F5F9] px-2.5 py-1 rounded-md">
               {assessmentHistory.length} Version{assessmentHistory.length > 1 ? 's' : ''} Stored
             </span>
           </div>
@@ -1231,29 +1231,29 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   key={rec.id}
                   className={`p-4 rounded-xl border transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
                     isActive
-                      ? 'bg-[#F6FAF7] border-[#CADDCF]'
-                      : 'bg-[#FAFBF9] border-[#E4E8E3] hover:border-[#CCD5CB]'
+                      ? 'bg-[#CCFBF1]/35 border-[#99F6E4]'
+                      : 'bg-[#F1F5F9] border-[#E2E8F0] hover:border-[#CBD5E1]'
                   }`}
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-serif font-bold text-sm text-[#1E3F2E]">
+                      <span className="font-serif font-bold text-sm text-[#0F172A]">
                         Version {rec.version} Assessment
                       </span>
                       {isActive && (
-                        <span className="text-[10px] bg-[#2D5A43] text-white px-2 py-0.5 rounded-full font-bold">
+                        <span className="text-[10px] bg-[#0284C7] text-white px-2 py-0.5 rounded-full font-bold">
                           Active Version
                         </span>
                       )}
-                      <span className="text-xs text-[#6B8576]">
+                      <span className="text-xs text-[#64748B]">
                         {new Date(rec.completedAt).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-xs text-[#526B5C]">
+                    <p className="text-xs text-[#475569]">
                       <strong>Tendency:</strong> {rec.analysis.constitutionTendency} · {rec.analysis.circadianRhythmCategory} · {rec.analysis.digestiveAgniCategory}
                     </p>
                     {matchingPlan && (
-                      <p className="text-[11px] text-[#3D5E49]">
+                      <p className="text-[11px] text-[#0F766E]">
                         <strong>Generated Plan:</strong> "{matchingPlan.title}"
                       </p>
                     )}
@@ -1263,9 +1263,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     <button
                       type="button"
                       onClick={() => setInspectingVersion(rec.version)}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#CCD5CB] text-[#1E3F2E] hover:bg-white transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-[#CBD5E1] text-[#0F172A] hover:bg-white transition-colors"
                     >
-                      <Eye className="w-3.5 h-3.5 text-[#2D5A43]" />
+                      <Eye className="w-3.5 h-3.5 text-[#0284C7]" />
                       <span>Inspect Version & Plan</span>
                     </button>
                   </div>
@@ -1283,16 +1283,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           aria-modal="true"
           className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
         >
-          <div className="bg-[#FAFAF7] w-full max-w-3xl rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between">
+          <div className="bg-[#F8FAFC] w-full max-w-3xl rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
                   Historical Record Archive
                 </span>
-                <h3 className="text-lg font-serif font-bold text-[#1E3F2E]">
+                <h3 className="text-lg font-serif font-bold text-[#0F172A]">
                   Assessment & Plan — Version {selectedHistoryRecord.version}
                 </h3>
-                <p className="text-xs text-[#6B8576]">
+                <p className="text-xs text-[#64748B]">
                   Completed on {new Date(selectedHistoryRecord.completedAt).toLocaleString()}
                 </p>
               </div>
@@ -1306,51 +1306,51 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
               {/* Analysis Summary */}
-              <div className="p-4 rounded-xl bg-white border border-[#E3EAE4] space-y-2">
-                <h4 className="font-serif font-bold text-sm text-[#1E3F2E]">
+              <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-2">
+                <h4 className="font-serif font-bold text-sm text-[#0F172A]">
                   Constitutional & Lifestyle Analysis
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
                     <span className="text-slate-500">Tendency: </span>
-                    <strong className="text-[#1E3F2E]">{selectedHistoryRecord.analysis.constitutionTendency}</strong>
+                    <strong className="text-[#0F172A]">{selectedHistoryRecord.analysis.constitutionTendency}</strong>
                   </div>
                   <div>
                     <span className="text-slate-500">Circadian: </span>
-                    <strong className="text-[#1E3F2E]">{selectedHistoryRecord.analysis.circadianRhythmCategory}</strong>
+                    <strong className="text-[#0F172A]">{selectedHistoryRecord.analysis.circadianRhythmCategory}</strong>
                   </div>
                   <div>
                     <span className="text-slate-500">Digestive Agni: </span>
-                    <strong className="text-[#1E3F2E]">{selectedHistoryRecord.analysis.digestiveAgniCategory}</strong>
+                    <strong className="text-[#0F172A]">{selectedHistoryRecord.analysis.digestiveAgniCategory}</strong>
                   </div>
                   <div>
                     <span className="text-slate-500">Sleep Schedule: </span>
-                    <strong className="text-[#1E3F2E]">{selectedHistoryRecord.analysis.sleepArchitectureCategory}</strong>
+                    <strong className="text-[#0F172A]">{selectedHistoryRecord.analysis.sleepArchitectureCategory}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Historical Generated Plan */}
               {selectedHistoryPlan ? (
-                <div className="p-4 rounded-xl bg-white border border-[#E3EAE4] space-y-3">
-                  <div className="flex items-center justify-between border-b border-[#EEF2EC] pb-2">
-                    <h4 className="font-serif font-bold text-sm text-[#1E3F2E]">
+                <div className="p-4 rounded-xl bg-white border border-[#E2E8F0] space-y-3">
+                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                    <h4 className="font-serif font-bold text-sm text-[#0F172A]">
                       Plan: {selectedHistoryPlan.title}
                     </h4>
-                    <span className="text-[11px] text-[#2D5A43] font-semibold">
+                    <span className="text-[11px] text-[#0284C7] font-semibold">
                       v{selectedHistoryPlan.version}
                     </span>
                   </div>
-                  <p className="text-xs text-[#4F6858]">
+                  <p className="text-xs text-[#475569]">
                     {selectedHistoryPlan.summary}
                   </p>
 
                   <div className="space-y-2 pt-2">
-                    <span className="font-semibold text-[#1E3F2E]">Daily Dinacharya Preserved:</span>
+                    <span className="font-semibold text-[#0F172A]">Daily Dinacharya Preserved:</span>
                     <div className="space-y-1.5">
                       {selectedHistoryPlan.dailyRoutine.map((r, i) => (
-                        <div key={i} className="p-2 rounded bg-[#FAFBF9] border border-[#EAEFEA] flex justify-between">
-                          <span className="font-medium text-[#2D5A43]">{r.time} — {r.title}</span>
+                        <div key={i} className="p-2 rounded bg-[#F1F5F9] border border-[#E2E8F0] flex justify-between">
+                          <span className="font-medium text-[#0284C7]">{r.time} — {r.title}</span>
                           <span className="text-slate-500 italic">{r.category}</span>
                         </div>
                       ))}
@@ -1362,11 +1362,11 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               )}
             </div>
 
-            <div className="px-6 py-3 border-t border-[#E4E8E3] bg-white flex justify-end">
+            <div className="px-6 py-3 border-t border-[#E2E8F0] bg-white flex justify-end">
               <button
                 type="button"
                 onClick={() => setInspectingVersion(null)}
-                className="px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors"
+                className="px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors"
               >
                 Close Inspector
               </button>
@@ -1380,28 +1380,28 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         {/* LEFT COLUMN (8 cols): Daily Dinacharya + Baseline Summary */}
         <div className="lg:col-span-8 space-y-8">
           {/* TODAY'S DINACHARYA (Daily Habit Checklist) */}
-          <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
+          <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Today's Self-Care Routine
                 </span>
-                <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+                <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                   Today's Dinacharya & Habit Checklist
                 </h2>
-                <p className="text-xs text-[#526B5C] mt-0.5">
+                <p className="text-xs text-[#475569] mt-0.5">
                   Classical daily rituals aligned with circadian cycles. Click each ritual to record completion.
                 </p>
               </div>
 
               {/* Progress Summary */}
-              <div className="text-xs text-[#526B5C] self-start sm:self-auto text-right">
-                <span className="font-semibold text-[#1E3F2E]">
+              <div className="text-xs text-[#475569] self-start sm:self-auto text-right">
+                <span className="font-semibold text-[#0F172A]">
                   {completedActivitiesCount} of {activities.length} completed
                 </span>
-                <div className="w-28 bg-[#E6ECE7] h-1.5 rounded-full overflow-hidden mt-1 ml-auto">
+                <div className="w-28 bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden mt-1 ml-auto">
                   <div
-                    className="bg-[#2D5A43] h-full transition-all duration-300"
+                    className="bg-[#0284C7] h-full transition-all duration-300"
                     style={{ width: `${adherence}%` }}
                   />
                 </div>
@@ -1409,15 +1409,15 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             </div>
 
             {/* Time Filter Controls */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-b border-[#F0F4F1] pb-3 text-xs">
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-b border-[#E2E8F0] pb-3 text-xs">
               {(['All', 'Morning', 'Afternoon', 'Evening'] as const).map((filter) => (
                 <button
                   key={filter}
                   onClick={() => setSelectedTimeFilter(filter)}
                   className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                     selectedTimeFilter === filter
-                      ? 'bg-[#2D5A43] text-white shadow-xs'
-                      : 'bg-[#F2F6F3] text-[#486353] hover:bg-[#E5ECE7]'
+                      ? 'bg-[#0284C7] text-white shadow-xs'
+                      : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
                   }`}
                 >
                   {filter === 'All' ? `All (${activities.length})` : filter}
@@ -1433,8 +1433,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   onClick={() => onToggleActivity(act.id)}
                   className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-4 select-none ${
                     act.completed
-                      ? 'bg-[#F4F8F5] border-[#CADDCF]'
-                      : 'bg-white border-[#E2E8E2] hover:border-[#CAD7CC] hover:bg-[#FAFBF9]'
+                      ? 'bg-[#CCFBF1]/35 border-[#99F6E4]'
+                      : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F1F5F9]'
                   }`}
                   role="checkbox"
                   aria-checked={act.completed}
@@ -1448,13 +1448,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 >
                   <button
                     type="button"
-                    className="mt-0.5 shrink-0 text-[#2D5A43] focus:outline-none"
+                    className="mt-0.5 shrink-0 text-[#0284C7] focus:outline-none"
                     aria-label={`Toggle ${act.title}`}
                   >
                     {act.completed ? (
-                      <CheckCircle2 className="w-5 h-5 fill-[#2D5A43] text-white" />
+                      <CheckCircle2 className="w-5 h-5 fill-[#0284C7] text-white" />
                     ) : (
-                      <Circle className="w-5 h-5 text-stone-300 hover:text-[#2D5A43] transition-colors" />
+                      <Circle className="w-5 h-5 text-slate-300 hover:text-[#0284C7] transition-colors" />
                     )}
                   </button>
 
@@ -1463,19 +1463,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       <p
                         className={`text-sm font-semibold transition-colors ${
                           act.completed
-                            ? 'text-[#2D503B] line-through opacity-75'
-                            : 'text-[#142A1E]'
+                            ? 'text-[#0F766E] line-through opacity-75'
+                            : 'text-[#0F172A]'
                         }`}
                       >
                         {act.title}
                       </p>
-                      <div className="flex items-center gap-2 text-xs text-[#526B5C]">
-                        <span className="font-medium text-[#2D5A43]">{act.timeOfDay}</span>
+                      <div className="flex items-center gap-2 text-xs text-[#475569]">
+                        <span className="font-medium text-[#0284C7]">{act.timeOfDay}</span>
                         <span>·</span>
                         <span>{act.durationMinutes} mins</span>
                       </div>
                     </div>
-                    <p className="text-xs text-[#526B5C] leading-relaxed">
+                    <p className="text-xs text-[#475569] leading-relaxed">
                       {act.benefit}
                     </p>
                   </div>
@@ -1485,16 +1485,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </section>
 
           {/* MY WELLNESS ASSESSMENT SUMMARY CARD */}
-          <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E0E7E1] shadow-xs space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#EEF2EC] pb-4">
+          <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#E2E8F0] pb-4">
               <div>
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Baseline Profile & Prakriti
                 </span>
-                <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+                <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                   My Wellness Assessment Profile
                 </h2>
-                <p className="text-xs text-[#526B5C] mt-0.5">
+                <p className="text-xs text-[#475569] mt-0.5">
                   Educational self-observation across circadian rhythm, digestive fire, daily movement, and breath resilience.
                 </p>
               </div>
@@ -1502,7 +1502,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               <button
                 type="button"
                 onClick={onOpenAssessment}
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
+                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors whitespace-nowrap self-start sm:self-auto shadow-xs"
               >
                 <span>
                   {assessmentHistory.length === 0
@@ -1514,26 +1514,26 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             </div>
 
             {isLoadingData ? (
-              <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs text-[#526B5C]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#2D5A43]" />
+              <div className="py-12 flex flex-col items-center justify-center gap-2 text-xs text-[#475569]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#0284C7]" />
                 <span>Loading your saved assessment from Firestore...</span>
               </div>
             ) : answeredCount === 0 && assessmentHistory.length === 0 ? (
-              <div className="p-8 bg-[#FAFBF9] rounded-xl border border-dashed border-[#CFDCD3] text-center space-y-4">
-                <div className="w-12 h-12 rounded-full bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center mx-auto">
+              <div className="p-8 bg-[#F1F5F9] rounded-xl border border-dashed border-[#CBD5E1] text-center space-y-4">
+                <div className="w-12 h-12 rounded-full bg-[#CCFBF1] text-[#0D9488] flex items-center justify-center mx-auto">
                   <Sparkles className="w-6 h-6" />
                 </div>
                 <div className="space-y-1.5 max-w-md mx-auto">
-                  <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                  <h3 className="font-serif font-bold text-base text-[#0F172A]">
                     No Assessment Recorded Yet
                   </h3>
-                  <p className="text-xs text-[#526B5C] leading-relaxed">
+                  <p className="text-xs text-[#475569] leading-relaxed">
                     Answer 20 questions across 8 lifestyle categories to calculate your baseline rhythm and generate an educational Dinacharya plan.
                   </p>
                 </div>
                 <button
                   onClick={onOpenAssessment}
-                  className="px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                  className="px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs"
                 >
                   Start Assessment (20 Questions)
                 </button>
@@ -1541,39 +1541,39 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             ) : (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
-                  <div className="p-4 rounded-xl bg-[#FAFBF9] border border-[#E3E8E3] space-y-1.5">
-                    <div className="flex items-center gap-2 text-[#2D5A43]">
-                      <Clock className="w-4 h-4 text-[#2D5A43]" />
-                      <span className="font-semibold text-[11px] uppercase tracking-wider text-[#526B5C]">
+                  <div className="p-4 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] space-y-1.5">
+                    <div className="flex items-center gap-2 text-[#0284C7]">
+                      <Clock className="w-4 h-4 text-[#0284C7]" />
+                      <span className="font-semibold text-[11px] uppercase tracking-wider text-[#475569]">
                         Circadian Rhythm & Awakening
                       </span>
                     </div>
-                    <p className="font-semibold text-sm text-[#1E3F2E]">
+                    <p className="font-semibold text-sm text-[#0F172A]">
                       {summary.circadianBalanceCategory}
                     </p>
-                    <p className="text-[11px] text-[#5E7969] leading-relaxed">
+                    <p className="text-[11px] text-[#64748B] leading-relaxed">
                       Observes natural awakening patterns and transition from night sleep to morning wakefulness.
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#FAFBF9] border border-[#E3E8E3] space-y-1.5">
-                    <div className="flex items-center gap-2 text-[#2D5A43]">
+                  <div className="p-4 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] space-y-1.5">
+                    <div className="flex items-center gap-2 text-[#0284C7]">
                       <Flame className="w-4 h-4 text-[#D97706]" />
-                      <span className="font-semibold text-[11px] uppercase tracking-wider text-[#526B5C]">
+                      <span className="font-semibold text-[11px] uppercase tracking-wider text-[#475569]">
                         Digestive Fire (Agni)
                       </span>
                     </div>
-                    <p className="font-semibold text-sm text-[#1E3F2E]">
+                    <p className="font-semibold text-sm text-[#0F172A]">
                       {summary.digestiveAgniCategory}
                     </p>
-                    <p className="text-[11px] text-[#5E7969] leading-relaxed">
+                    <p className="text-[11px] text-[#64748B] leading-relaxed">
                       Observes natural digestive rhythm and hunger stability across daytime cycles.
                     </p>
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#FBFDFB] rounded-lg border border-[#E4ECE5] text-[11px] text-[#4E6657] flex items-start gap-2">
-                  <Info className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+                <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] text-[11px] text-[#475569] flex items-start gap-2">
+                  <Info className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
                   <span>
                     <strong>Educational Observation:</strong> {summary.guidanceNote}
                   </span>
@@ -1586,18 +1586,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         {/* RIGHT COLUMN (4 cols): Consistency + Practitioner + Programs + Learning */}
         <div className="lg:col-span-4 space-y-8">
           {/* WEEKLY CONSISTENCY */}
-          <section className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4">
+          <section className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-xs space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Consistency
                 </span>
-                <h3 className="text-base font-serif font-bold text-[#1E3F2E]">
+                <h3 className="text-base font-serif font-bold text-[#0F172A]">
                   Weekly Habit Rhythm
                 </h3>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold text-[#A64B2A] bg-[#FAF2EF] px-2.5 py-1 rounded-md border border-[#F0DCD5]">
-                <Flame className="w-3.5 h-3.5 fill-[#A64B2A]" />
+              <div className="flex items-center gap-1 text-xs font-bold text-amber-800 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">
+                <Flame className="w-3.5 h-3.5 fill-amber-600 text-amber-600" />
                 <span>{streakLabel}</span>
               </div>
             </div>
@@ -1608,8 +1608,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   <span
                     className={`text-[11px] font-semibold block ${
                       item.isToday
-                        ? 'text-[#2D5A43] underline decoration-[#2D5A43] decoration-2 underline-offset-4 font-bold'
-                        : 'text-[#637C6D]'
+                        ? 'text-[#0284C7] underline decoration-[#0284C7] decoration-2 underline-offset-4 font-bold'
+                        : 'text-[#64748B]'
                     }`}
                   >
                     {item.day}
@@ -1617,10 +1617,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                   <div
                     className={`h-9 rounded-lg flex items-center justify-center text-xs font-bold transition-all ${
                       item.isToday
-                        ? 'ring-2 ring-[#2D5A43] ring-offset-1 bg-[#2D5A43] text-white shadow-xs'
+                        ? 'ring-2 ring-[#0284C7] ring-offset-1 bg-[#0284C7] text-white shadow-xs'
                         : item.status === 'unrecorded'
-                        ? 'bg-[#F2F5F2] text-[#8DA094]'
-                        : 'bg-[#EBF2ED] text-[#2D5A43]'
+                        ? 'bg-[#F1F5F9] text-[#64748B]'
+                        : 'bg-[#CCFBF1] text-[#0F766E]'
                     }`}
                   >
                     {item.isToday ? (
@@ -1637,36 +1637,36 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               ))}
             </div>
 
-            <p className="text-[11px] text-[#526B5C] leading-relaxed pt-1 border-t border-[#EEF2EC]">
+            <p className="text-[11px] text-[#475569] leading-relaxed pt-1 border-t border-[#E2E8F0]">
               Check-ins reflect genuine habit tracking without fabricated past records.
             </p>
           </section>
 
           {/* SUPERVISING PRACTITIONER CARD */}
-          <section className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4">
-            <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+          <section className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-xs space-y-4">
+            <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
               Care Guidance
             </span>
-            <h3 className="text-base font-serif font-bold text-[#1E3F2E]">
+            <h3 className="text-base font-serif font-bold text-[#0F172A]">
               Supervising AYUSH Practitioner
             </h3>
 
             {practitionersLoading ? (
-              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E3E8E3] flex items-center gap-2 text-xs text-[#526B5C]">
-                <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+              <div className="p-4 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] flex items-center gap-2 text-xs text-[#475569]">
+                <Loader2 className="w-4 h-4 animate-spin text-[#0284C7]" />
                 <span>Loading verified AYUSH practitioners...</span>
               </div>
             ) : practitionersError ? (
               <div
                 role="alert"
-                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] flex items-start gap-2"
+                className="p-4 rounded-xl bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] flex items-start gap-2"
               >
-                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-[#BA1A1A]" />
                 <span>{practitionersError}</span>
               </div>
             ) : !practitioner ? (
-              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-dashed border-[#D6E0D7] space-y-1.5 text-xs text-[#526B5C]">
-                <p className="font-semibold text-[#1E3F2E]">
+              <div className="p-4 bg-[#F1F5F9] rounded-xl border border-dashed border-[#CBD5E1] space-y-1.5 text-xs text-[#475569]">
+                <p className="font-semibold text-[#0F172A]">
                   No verified AYUSH practitioner is currently available for consultation.
                 </p>
                 <p className="leading-relaxed">
@@ -1674,27 +1674,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 </p>
               </div>
             ) : (
-              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E3E8E3] space-y-3.5">
+              <div className="p-4 bg-[#F1F5F9] rounded-xl border border-[#E2E8F0] space-y-3.5">
                 <div className="flex items-start gap-3">
-                  <div className="w-11 h-11 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold flex items-center justify-center shrink-0">
+                  <div className="w-11 h-11 rounded-full bg-[#CCFBF1] text-[#0F766E] font-serif font-bold flex items-center justify-center shrink-0">
                     {getPractitionerInitials(practitioner.name)}
                   </div>
                   <div className="space-y-0.5">
-                    <p className="font-bold text-sm text-[#1E3F2E]">{practitioner.name}</p>
-                    <p className="text-xs text-[#526B5C]">{practitioner.qualification}</p>
-                    <p className="text-[11px] text-[#2D5A43] font-medium">{practitioner.specialization}</p>
+                    <p className="font-bold text-sm text-[#0F172A]">{practitioner.name}</p>
+                    <p className="text-xs text-[#475569]">{practitioner.qualification}</p>
+                    <p className="text-[11px] text-[#0284C7] font-medium">{practitioner.specialization}</p>
                   </div>
                 </div>
 
-                <div className="pt-2 text-xs text-[#405648] border-t border-[#E8ECE6] space-y-1">
+                <div className="pt-2 text-xs text-[#475569] border-t border-[#E2E8F0] space-y-1">
                   <p><strong>Next Virtual Review Window:</strong></p>
-                  <p className="text-[#526B5C]">{practitioner.nextAvailableSlot}</p>
+                  <p className="text-[#475569]">{practitioner.nextAvailableSlot}</p>
                 </div>
 
                 <button
                   type="button"
                   onClick={onConnectPractitioner}
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs"
                 >
                   <Video className="w-3.5 h-3.5" />
                   <span>Message or Request Consultation</span>
@@ -1703,27 +1703,27 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             )}
 
             {/* Persisted Consultation Requests for Current Seeker */}
-            <div className="pt-2 border-t border-[#EEF2EC] space-y-2.5">
+            <div className="pt-2 border-t border-[#E2E8F0] space-y-2.5">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-[#0284C7]">
                   My Consultation Requests
                 </h4>
-                <span className="text-[11px] text-[#526B5C]">
+                <span className="text-[11px] text-[#475569]">
                   {consultations.length} {consultations.length === 1 ? 'Request' : 'Requests'}
                 </span>
               </div>
 
               {isLoadingConsultations ? (
-                <div className="p-3 rounded-lg bg-[#FAFBF9] border border-[#E3E8E3] text-xs text-[#526B5C] flex items-center gap-2">
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2D5A43]" />
+                <div className="p-3 rounded-lg bg-[#F1F5F9] border border-[#E2E8F0] text-xs text-[#475569] flex items-center gap-2">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-[#0284C7]" />
                   <span>Loading your consultation requests...</span>
                 </div>
               ) : consultationsError ? (
-                <div className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B]">
+                <div className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A]">
                   {consultationsError}
                 </div>
               ) : consultations.length === 0 ? (
-                <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3 rounded-lg border border-dashed border-[#D6E0D7]">
+                <p className="text-xs text-[#64748B] bg-[#F1F5F9] p-3 rounded-lg border border-dashed border-[#CBD5E1]">
                   No consultation requests submitted yet. Use the button above to schedule a lifestyle review.
                 </p>
               ) : (
@@ -1739,19 +1739,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       },
                       confirmed: {
                         label: 'Confirmed',
-                        className: 'bg-[#EBF2ED] text-[#244E38]',
+                        className: 'bg-[#CCFBF1] text-[#0F766E]',
                       },
                       rescheduled: {
                         label: 'Rescheduled',
-                        className: 'bg-[#E8F0F7] text-[#1E4E79]',
+                        className: 'bg-[#F1F5F9] text-[#075985]',
                       },
                       rejected: {
                         label: 'Declined',
-                        className: 'bg-[#FDF2F0] text-[#9B2C1B]',
+                        className: 'bg-[#FFDAD6] text-[#93000A]',
                       },
                       completed: {
                         label: 'Completed',
-                        className: 'bg-[#EBF2ED] text-[#244E38]',
+                        className: 'bg-[#CCFBF1] text-[#0F766E]',
                       },
                       cancelled: {
                         label: 'Cancelled',
@@ -1763,10 +1763,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     return (
                       <div
                         key={consult.id}
-                        className="p-3 rounded-xl bg-[#FAFBF9] border border-[#E3E8E3] space-y-1.5 text-xs"
+                        className="p-3 rounded-xl bg-[#F1F5F9] border border-[#E2E8F0] space-y-1.5 text-xs"
                       >
                         <div className="flex items-start justify-between gap-2">
-                          <span className="font-semibold text-[#1E3F2E] leading-snug">
+                          <span className="font-semibold text-[#0F172A] leading-snug">
                             {consult.topicLabel || getConsultationTopicLabel(consult.topic)}
                           </span>
                           <span
@@ -1775,18 +1775,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                             {badge.label}
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#526B5C]">
+                        <p className="text-[11px] text-[#475569]">
                           {consult.practitionerName} ·{' '}
                           {consult.preferredDate ? `${consult.preferredDate} · ` : ''}
                           {getPreferredSlotLabel(consult.preferredSlot)}
                         </p>
                         {consult.scheduledTime && (
-                          <p className="text-[11px] font-semibold text-[#2D5A43]">
+                          <p className="text-[11px] font-semibold text-[#0284C7]">
                             Scheduled Appointment: {consult.scheduledTime}
                           </p>
                         )}
                         {consult.practitionerNotes && (
-                          <p className="text-[11px] text-[#3E5547] bg-white p-2 rounded-lg border border-[#E6ECE7]">
+                          <p className="text-[11px] text-[#475569] bg-white p-2 rounded-lg border border-[#E2E8F0]">
                             <strong>Practitioner Note:</strong> {consult.practitionerNotes}
                           </p>
                         )}
@@ -1801,18 +1801,18 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* ENROLLED & AVAILABLE PUBLISHED WELLNESS PROGRAMMES */}
           <section
             data-testid="user-programmes-section"
-            className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-5"
+            className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-xs space-y-5"
           >
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Active Courses &amp; Catalog
                 </span>
-                <h3 className="text-base font-serif font-bold text-[#1E3F2E]">
+                <h3 className="text-base font-serif font-bold text-[#0F172A]">
                   Wellness Programmes
                 </h3>
               </div>
-              <span className="text-xs text-[#526B5C]">
+              <span className="text-xs text-[#475569]">
                 {enrolledPrograms.length} Enrolled · {availablePrograms.length} Available
               </span>
             </div>
@@ -1820,9 +1820,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             {programEnrollNotice && (
               <div
                 role="status"
-                className="p-3 rounded-xl bg-[#EBF2ED] border border-[#CCDCD2] text-xs font-semibold text-[#1E3F2E] flex items-center gap-2"
+                className="p-3 rounded-xl bg-[#CCFBF1] border border-[#99F6E4] text-xs font-semibold text-[#0F766E] flex items-center gap-2"
               >
-                <CheckCircle2 className="w-4 h-4 text-[#2D5A43] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#0D9488] shrink-0" />
                 <span>{programEnrollNotice}</span>
               </div>
             )}
@@ -1830,28 +1830,28 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             {programEnrollError && (
               <div
                 role="alert"
-                className="p-3 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs font-medium text-[#9B2C1B] flex items-center gap-2"
+                className="p-3 rounded-xl bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs font-medium text-[#93000A] flex items-center gap-2"
               >
-                <AlertCircle className="w-4 h-4 shrink-0" />
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#BA1A1A]" />
                 <span>{programEnrollError}</span>
               </div>
             )}
 
             {programsLoading ? (
-              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#526B5C]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#2D5A43]" />
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#475569]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#0284C7]" />
                 <span>Loading published wellness programmes...</span>
               </div>
             ) : programsError ? (
               <div
                 role="alert"
-                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-2"
+                className="p-4 rounded-xl bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] space-y-2"
               >
                 <p className="font-semibold">{programsError}</p>
                 <button
                   type="button"
                   onClick={loadPublishedProgramsAndEnrollments}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#ECC8C1] text-[#9B2C1B] font-semibold hover:bg-[#FAF2EF]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#BA1A1A]/30 text-[#BA1A1A] font-semibold hover:bg-[#FFDAD6]"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Retry</span>
@@ -1862,16 +1862,16 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 {/* Sub-section 1: Enrolled Regimens */}
                 <div data-testid="enrolled-regimens-list" className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#0284C7]">
                       Enrolled Regimens
                     </h4>
-                    <span className="text-[11px] text-[#526B5C]">
+                    <span className="text-[11px] text-[#475569]">
                       {enrolledPrograms.length} Enrolled
                     </span>
                   </div>
 
                   {enrolledPrograms.length === 0 ? (
-                    <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3.5 rounded-xl border border-dashed border-[#D6E0D7]">
+                    <p className="text-xs text-[#64748B] bg-[#F1F5F9] p-3.5 rounded-xl border border-dashed border-[#CBD5E1]">
                       You have not enrolled in any published programmes yet. Select an approved programme below to start tracking sessions.
                     </p>
                   ) : (
@@ -1885,39 +1885,39 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                         return (
                           <div
                             key={prog.id}
-                            className="p-4 rounded-xl border border-[#CADDCF] bg-[#F7FAF8] space-y-2.5"
+                            className="p-4 rounded-xl border border-[#99F6E4] bg-[#CCFBF1]/35 space-y-2.5"
                           >
-                            <div className="flex items-center justify-between gap-2 text-xs text-[#526B5C]">
+                            <div className="flex items-center justify-between gap-2 text-xs text-[#475569]">
                               <div className="flex items-center gap-1.5 flex-wrap">
-                                <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
-                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                                <span className="font-semibold text-[#0284C7]">{prog.discipline}</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] font-semibold">
                                   Enrolled
                                 </span>
                                 {prog.isSimulated && (
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                                     Demo Record
                                   </span>
                                 )}
                               </div>
-                              <span className="tabular-nums font-semibold text-[#1E3F2E]">{progPct}%</span>
+                              <span className="tabular-nums font-semibold text-[#0F172A]">{progPct}%</span>
                             </div>
 
-                            <h5 className="font-serif font-bold text-sm text-[#1E3F2E] leading-snug">
+                            <h5 className="font-serif font-bold text-sm text-[#0F172A] leading-snug">
                               {prog.title}
                             </h5>
 
-                            <p className="text-[11px] text-[#526B5C]">
+                            <p className="text-[11px] text-[#475569]">
                               Led by <strong>{prog.practitionerName}</strong> ({prog.practitionerTitle})
                             </p>
 
-                            <div className="w-full bg-[#E5ECE7] h-1.5 rounded-full overflow-hidden">
+                            <div className="w-full bg-[#E2E8F0] h-1.5 rounded-full overflow-hidden">
                               <div
-                                className="bg-[#2D5A43] h-full transition-all duration-300"
+                                className="bg-[#0284C7] h-full transition-all duration-300"
                                 style={{ width: `${progPct}%` }}
                               />
                             </div>
 
-                            <div className="flex items-center justify-between text-[11px] text-[#526B5C]">
+                            <div className="flex items-center justify-between text-[11px] text-[#475569]">
                               <span>{prog.completedSessions} of {prog.totalSessions} sessions</span>
                               <span>{prog.durationWeeks} Weeks</span>
                             </div>
@@ -1926,7 +1926,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       })}
                     </div>
                   )}
-                  <p className="text-[11px] text-[#637C6D]">
+                  <p className="text-[11px] text-[#64748B]">
                     Enrollment status and session counts are stored locally in this browser session.
                   </p>
                 </div>
@@ -1934,19 +1934,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                 {/* Sub-section 2: Available Published Programmes */}
                 <div
                   data-testid="available-programmes-list"
-                  className="pt-4 border-t border-[#EEF2EC] space-y-2.5"
+                  className="pt-4 border-t border-[#E2E8F0] space-y-2.5"
                 >
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#2D5A43]">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-[#0284C7]">
                       Available Published Programmes
                     </h4>
-                    <span className="text-[11px] text-[#526B5C]">
+                    <span className="text-[11px] text-[#475569]">
                       {availablePrograms.length} Available
                     </span>
                   </div>
 
                   {availablePrograms.length === 0 ? (
-                    <p className="text-xs text-[#637C6D] bg-[#FAFBF9] p-3.5 rounded-xl border border-dashed border-[#D6E0D7]">
+                    <p className="text-xs text-[#64748B] bg-[#F1F5F9] p-3.5 rounded-xl border border-dashed border-[#CBD5E1]">
                       {publishedPrograms.length === 0
                         ? 'No Admin-published wellness programmes are available right now.'
                         : 'You are enrolled in all currently published wellness programmes.'}
@@ -1956,34 +1956,34 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       {availablePrograms.map((prog) => (
                         <div
                           key={prog.id}
-                          className="p-4 rounded-xl border border-[#E4E8E3] bg-[#FAFBF9] space-y-2"
+                          className="p-4 rounded-xl border border-[#E2E8F0] bg-[#F1F5F9] space-y-2"
                         >
-                          <div className="flex items-center justify-between gap-2 text-[11px] text-[#526B5C]">
+                          <div className="flex items-center justify-between gap-2 text-[11px] text-[#475569]">
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <span className="font-semibold text-[#2D5A43]">{prog.discipline}</span>
+                              <span className="font-semibold text-[#0284C7]">{prog.discipline}</span>
                               <span>·</span>
                               <span>{prog.level}</span>
                             </div>
                             {prog.isSimulated ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                                 Demo Record
                               </span>
                             ) : (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] font-semibold">
                                 Admin Published
                               </span>
                             )}
                           </div>
 
-                          <h5 className="font-serif font-bold text-sm text-[#1E3F2E] leading-snug">
+                          <h5 className="font-serif font-bold text-sm text-[#0F172A] leading-snug">
                             {prog.title}
                           </h5>
 
-                          <p className="text-[11px] text-[#4E6457] leading-relaxed line-clamp-2">
+                          <p className="text-[11px] text-[#475569] leading-relaxed line-clamp-2">
                             {prog.description}
                           </p>
 
-                          <div className="text-[11px] text-[#526B5C] space-y-0.5">
+                          <div className="text-[11px] text-[#475569] space-y-0.5">
                             <p>
                               By <strong>{prog.practitionerName}</strong> · {prog.practitionerTitle}
                             </p>
@@ -1998,7 +1998,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                               type="button"
                               disabled={enrollingProgramId === prog.id}
                               onClick={() => handleEnrollProgram(prog)}
-                              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#2D5A43] bg-[#EBF2ED] hover:bg-[#DCE9E0] border border-[#C8D8CE] rounded-lg transition-colors disabled:opacity-60"
+                              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#0284C7] bg-white hover:bg-[#E2E8F0] border border-[#CBD5E1] rounded-lg transition-colors disabled:opacity-60"
                             >
                               {enrollingProgramId === prog.id ? 'Enrolling...' : 'Enroll in Programme'}
                             </button>
@@ -2015,49 +2015,49 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           {/* LEARNING CORNER */}
           <section
             data-testid="user-learning-corner"
-            className="bg-white rounded-2xl p-6 border border-[#E0E7E1] shadow-xs space-y-4"
+            className="bg-white rounded-2xl p-6 border border-[#E2E8F0] shadow-xs space-y-4"
           >
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
                   Educational Catalog
                 </span>
-                <h3 className="text-base font-serif font-bold text-[#1E3F2E]">
+                <h3 className="text-base font-serif font-bold text-[#0F172A]">
                   Learning Corner
                 </h3>
               </div>
-              <div className="flex items-center gap-2 text-xs text-[#526B5C]">
+              <div className="flex items-center gap-2 text-xs text-[#475569]">
                 <span>{publishedArticles.length} Published</span>
-                <BookOpen className="w-4 h-4 text-[#2D5A43]" />
+                <BookOpen className="w-4 h-4 text-[#0284C7]" />
               </div>
             </div>
 
-            <p className="text-xs text-[#526B5C]">
+            <p className="text-xs text-[#475569]">
               Peer-reviewed, evidence-informed traditional wisdom for daily reading.
             </p>
 
             {articlesLoading ? (
-              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#526B5C]">
-                <Loader2 className="w-5 h-5 animate-spin text-[#2D5A43]" />
+              <div className="py-8 flex flex-col items-center justify-center gap-2 text-xs text-[#475569]">
+                <Loader2 className="w-5 h-5 animate-spin text-[#0284C7]" />
                 <span>Loading published educational articles...</span>
               </div>
             ) : articlesError ? (
               <div
                 role="alert"
-                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] space-y-2"
+                className="p-4 rounded-xl bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] space-y-2"
               >
                 <p className="font-semibold">{articlesError}</p>
                 <button
                   type="button"
                   onClick={loadPublishedArticles}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#ECC8C1] text-[#9B2C1B] font-semibold hover:bg-[#FAF2EF]"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white border border-[#BA1A1A]/30 text-[#BA1A1A] font-semibold hover:bg-[#FFDAD6]"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                   <span>Retry</span>
                 </button>
               </div>
             ) : publishedArticles.length === 0 ? (
-              <div className="p-5 rounded-xl bg-[#FAFBF9] border border-dashed border-[#D6E0D7] text-center text-xs text-[#637C6D]">
+              <div className="p-5 rounded-xl bg-[#F1F5F9] border border-dashed border-[#CBD5E1] text-center text-xs text-[#64748B]">
                 No published educational articles are available right now.
               </div>
             ) : (
@@ -2067,41 +2067,41 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     key={art.id}
                     type="button"
                     onClick={() => onReadArticle(art)}
-                    className="w-full text-left p-3.5 rounded-xl border border-[#E3E8E3] hover:border-[#CAD7CC] bg-[#FAFBF9] hover:bg-white transition-colors cursor-pointer space-y-1.5 group block"
+                    className="w-full text-left p-3.5 rounded-xl border border-[#E2E8F0] hover:border-[#CBD5E1] bg-[#F1F5F9] hover:bg-white transition-colors cursor-pointer space-y-1.5 group block"
                   >
-                    <div className="flex items-center justify-between gap-2 text-[11px] text-[#526B5C]">
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-[#475569]">
                       <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold text-[#2D5A43]">{art.discipline}</span>
+                        <span className="font-semibold text-[#0284C7]">{art.discipline}</span>
                         <span>·</span>
                         <span>{art.category}</span>
                       </div>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <span>{art.readTime}</span>
                         {art.isSimulated ? (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5] font-semibold">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 font-semibold">
                             Demo Record
                           </span>
                         ) : (
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] font-semibold">
                             Published
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <h4 className="text-xs font-semibold text-[#1E3F2E] group-hover:text-[#2D5A43] transition-colors leading-snug">
+                    <h4 className="text-xs font-semibold text-[#0F172A] group-hover:text-[#0284C7] transition-colors leading-snug">
                       {art.title}
                     </h4>
 
-                    <p className="text-[11px] text-[#405648]">
+                    <p className="text-[11px] text-[#475569]">
                       By <strong>{art.author}</strong> ({art.authorQualification}) · {art.reviewedDate}
                     </p>
 
-                    <p className="text-[11px] text-[#526B5C] line-clamp-2">
+                    <p className="text-[11px] text-[#475569] line-clamp-2">
                       {art.summary}
                     </p>
 
-                    <div className="pt-1 flex items-center gap-1 text-[11px] font-semibold text-[#2D5A43]">
+                    <div className="pt-1 flex items-center gap-1 text-[11px] font-semibold text-[#0284C7]">
                       <span>Read educational article</span>
                       <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                     </div>

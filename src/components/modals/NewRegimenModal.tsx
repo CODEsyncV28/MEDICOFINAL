@@ -78,14 +78,14 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
       aria-labelledby="regimen-modal-title"
       className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
     >
-      <div className="bg-[#FAFAF7] w-full max-w-lg rounded-2xl border border-[#D9DFD8] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-[#F8FAFC] w-full max-w-lg rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-[#E4E8E3] bg-white flex items-center justify-between shrink-0">
+        <div className="px-6 py-4 border-b border-[#E2E8F0] bg-white flex items-center justify-between shrink-0">
           <div>
-            <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+            <span className="text-xs font-semibold text-[#0284C7] uppercase tracking-wider">
               Practitioner Protocol · {practitioner.name}
             </span>
-            <h2 id="regimen-modal-title" className="text-lg font-serif font-bold text-[#1E3F2E]">
+            <h2 id="regimen-modal-title" className="text-lg font-serif font-bold text-[#0F172A]">
               Create Wellness Regimen Template
             </h2>
           </div>
@@ -113,9 +113,9 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
               {errorMsg && (
                 <div
                   role="alert"
-                  className="p-3 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium flex items-start gap-2"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-xs text-[#93000A] font-medium flex items-start gap-2"
                 >
-                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 text-[#BA1A1A] shrink-0 mt-0.5" />
                   <span>{errorMsg}</span>
                 </div>
               )}
@@ -123,7 +123,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
               <div>
                 <label
                   htmlFor="new-regimen-title"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Regimen Title *
                 </label>
@@ -134,7 +134,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., Seasonal Agni & Mindful Meal Rhythm"
-                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
@@ -142,7 +142,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                 <div>
                   <label
                     htmlFor="new-regimen-discipline"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     AYUSH Discipline
                   </label>
@@ -150,7 +150,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                     id="new-regimen-discipline"
                     value={discipline}
                     onChange={(e) => setDiscipline(e.target.value as AYUSHDiscipline)}
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   >
                     <option value="Ayurveda">Ayurveda</option>
                     <option value="Yoga & Naturopathy">Yoga &amp; Naturopathy</option>
@@ -163,7 +163,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                 <div>
                   <label
                     htmlFor="new-regimen-category"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Wellness Focus
                   </label>
@@ -171,7 +171,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                     id="new-regimen-category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value as WellnessCategory)}
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   >
                     <option value="Lifestyle Education">Lifestyle Education</option>
                     <option value="Yoga">Yoga</option>
@@ -186,7 +186,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                 <div>
                   <label
                     htmlFor="new-regimen-weeks"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Duration (Weeks)
                   </label>
@@ -197,14 +197,14 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                     max={52}
                     value={durationWeeks}
                     onChange={(e) => setDurationWeeks(Number(e.target.value))}
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   />
                 </div>
 
                 <div>
                   <label
                     htmlFor="new-regimen-level"
-                    className="block text-xs font-semibold text-[#2C4035] mb-1"
+                    className="block text-xs font-semibold text-[#0F172A] mb-1"
                   >
                     Participant Level
                   </label>
@@ -212,7 +212,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                     id="new-regimen-level"
                     value={level}
                     onChange={(e) => setLevel(e.target.value as any)}
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                    className="w-full text-xs sm:text-sm p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                   >
                     <option value="Beginner">Beginner</option>
                     <option value="Intermediate">Intermediate</option>
@@ -224,7 +224,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
               <div>
                 <label
                   htmlFor="new-regimen-description"
-                  className="block text-xs font-semibold text-[#2C4035] mb-1"
+                  className="block text-xs font-semibold text-[#0F172A] mb-1"
                 >
                   Clinical Regimen Description &amp; Objectives *
                 </label>
@@ -235,12 +235,12 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Summarize daily habit sequence, herbal support, and non-diagnostic observational milestones..."
-                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CCD5CB] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#2D5A43]"
+                  className="w-full text-xs sm:text-sm p-3 rounded-lg border border-[#CBD5E1] bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
                 />
               </div>
 
-              <div className="p-3 bg-[#F0F5F1] rounded-lg border border-[#CCDCD2] text-xs text-[#234B36] flex items-start gap-2">
-                <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
+              <div className="p-3 bg-[#F1F5F9] rounded-lg border border-[#CBD5E1] text-xs text-[#475569] flex items-start gap-2">
+                <ShieldCheck className="w-4 h-4 text-[#0284C7] shrink-0 mt-0.5" />
                 <span>
                   <strong>Governance Workflow:</strong> Regimens saved as <em>Draft</em> remain private to your workspace. Submitting routes the curriculum to the Administrator Governance queue before any public release.
                 </span>
@@ -258,15 +258,15 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
                   type="button"
                   disabled={isSaving}
                   onClick={() => handleSave(false)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#1E3F2E] bg-white hover:bg-[#F2F6F3] border border-[#CCD5CB] rounded-lg transition-colors disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-[#0F172A] bg-white hover:bg-[#F1F5F9] border border-[#CBD5E1] rounded-lg transition-colors disabled:opacity-60"
                 >
-                  <FileText className="w-3.5 h-3.5 text-[#2D5A43]" />
+                  <FileText className="w-3.5 h-3.5 text-[#0284C7]" />
                   <span>Save as Draft</span>
                 </button>
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs disabled:opacity-60"
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors shadow-xs disabled:opacity-60"
                 >
                   {isSaving ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -279,20 +279,20 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
             </form>
           ) : (
             <div className="text-center py-6 space-y-4">
-              <div className="w-12 h-12 bg-[#EBF2ED] text-[#2D5A43] rounded-full flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 bg-[#CCFBF1] text-[#0F766E] rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="font-serif font-bold text-lg text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-lg text-[#0F172A]">
                   {savedProgram.status === 'pending_approval'
                     ? 'Regimen Submitted for Admin Review'
                     : 'Regimen Saved as Draft'}
                 </h3>
-                <p className="text-xs text-[#526B5C] max-w-sm mx-auto leading-relaxed">
+                <p className="text-xs text-[#475569] max-w-sm mx-auto leading-relaxed">
                   <strong>&ldquo;{savedProgram.title}&rdquo;</strong> ({savedProgram.durationWeeks}{' '}
                   Weeks · {savedProgram.level}) has been saved to your practitioner workspace with
                   status{' '}
-                  <span className="font-semibold text-[#1E3F2E]">
+                  <span className="font-semibold text-[#0F172A]">
                     {savedProgram.status === 'pending_approval' ? 'Pending Approval' : 'Draft'}
                   </span>
                   .
@@ -301,7 +301,7 @@ export const NewRegimenModal: React.FC<NewRegimenModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors"
+                className="px-5 py-2 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg transition-colors"
               >
                 Return to Practitioner Workspace
               </button>

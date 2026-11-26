@@ -96,33 +96,33 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-10">
       {/* Header */}
       <div className="max-w-3xl space-y-3">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#EBF2ED] text-[#244E38] rounded-full text-xs font-semibold">
-          <Sparkles className="w-3.5 h-3.5 text-[#2D5A43]" />
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#CCFBF1] text-[#0F766E] rounded-full text-xs font-semibold">
+          <Sparkles className="w-3.5 h-3.5 text-[#0D9488]" />
           <span>Role Access & Hackathon Demo Switcher</span>
         </div>
-        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#142A1E]">
+        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#0F172A]">
           Select Your Experience Portal
         </h1>
-        <p className="text-sm sm:text-base text-[#405648] leading-relaxed">
+        <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
           AYUSH Wellness Connect separates Seeker self-care from Practitioner and Administrator governance workspaces. Standard accounts and guests only have access to the Wellness User portal unless an authorized role is verified or the explicit Demo Mode switcher is enabled.
         </p>
       </div>
 
       {/* Authorization Boundary & Explicit DEMO MODE Portal Switcher */}
-      <div className="p-5 rounded-2xl bg-white border border-[#CCD5CB] space-y-4 text-xs sm:text-sm text-[#3E5547] shadow-xs">
+      <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] space-y-4 text-xs sm:text-sm text-[#475569] shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
-            <ShieldAlert className="w-5 h-5 text-[#A64B2A] shrink-0 mt-0.5" />
+            <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
             <div className="space-y-1">
-              <p className="font-bold text-[#1E3F2E]">
+              <p className="font-bold text-[#0F172A]">
                 {demoPortalEnabled
                   ? 'DEMO MODE Portal Switcher Active (UI Evaluation Only)'
                   : 'Standard Role Access Active · Restricted Portals Locked'}
               </p>
-              <p className="text-xs text-[#526B5C] leading-relaxed">
+              <p className="text-xs text-[#475569] leading-relaxed">
                 {PORTAL_SECURITY_DISCLAIMER}
               </p>
-              <p className="text-[11px] font-medium text-[#2D5A43]">
+              <p className="text-[11px] font-medium text-[#0284C7]">
                 Current Account Identity:{' '}
                 {isAuthenticated
                   ? `Signed-in Demo Account (role: "${accountRole || 'user'}")`
@@ -141,7 +141,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                 className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${
                   demoPortalEnabled
                     ? 'bg-amber-100 text-amber-950 border-amber-400 hover:bg-amber-200'
-                    : 'bg-[#F4F7F4] text-[#1E3F2E] border-[#BCCAC0] hover:bg-[#E8EFEA]'
+                    : 'bg-[#F1F5F9] text-[#0F172A] border-[#CBD5E1] hover:bg-[#E2E8F0]'
                 }`}
               >
                 <span
@@ -155,7 +155,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                     : 'Enable DEMO MODE Portal Switcher'}
                 </span>
               </button>
-              <span className="text-[10px] text-[#637C6D]">
+              <span className="text-[10px] text-[#64748B]">
                 For hackathon jury preview only · Does not change account role
               </span>
             </div>
@@ -181,16 +181,16 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
               key={r.type}
               className={`rounded-2xl p-6 sm:p-8 flex flex-col justify-between transition-all bg-white border ${
                 !access.allowed
-                  ? 'border-[#E4E8E3] opacity-85'
+                  ? 'border-[#E2E8F0] opacity-85'
                   : isSelected
-                  ? 'border-[#2D5A43] ring-2 ring-[#2D5A43]/15 shadow-md'
-                  : 'border-[#E4E8E3] hover:border-[#CCD5CB] shadow-xs'
+                  ? 'border-[#0284C7] ring-2 ring-[#0284C7]/15 shadow-md'
+                  : 'border-[#E2E8F0] hover:border-[#CBD5E1] shadow-xs'
               }`}
             >
               <div className="space-y-6">
                 {/* Header of card */}
                 <div className="flex items-start justify-between gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-[#F1F5F9] text-[#0284C7] flex items-center justify-center">
                     <Icon className="w-6 h-6" />
                   </div>
                   <span
@@ -199,7 +199,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                         ? 'bg-amber-50 text-amber-900 border-amber-300'
                         : !access.allowed
                         ? 'bg-slate-100 text-slate-600 border-slate-200'
-                        : 'text-[#2D5A43] bg-[#F2F7F4] border-[#DCE7E0]'
+                        : 'text-[#0F766E] bg-[#CCFBF1] border-[#99F6E4]'
                     }`}
                   >
                     {access.isDemoOverride
@@ -211,26 +211,26 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                 </div>
 
                 <div className="space-y-1">
-                  <h2 className="text-xl font-serif font-bold text-[#1E3F2E]">
+                  <h2 className="text-xl font-serif font-bold text-[#0F172A]">
                     {r.title}
                   </h2>
-                  <p className="text-xs font-semibold text-[#526B5C]">
+                  <p className="text-xs font-semibold text-[#64748B]">
                     {r.persona}
                   </p>
-                  <p className="text-xs sm:text-sm text-[#4E6457] leading-relaxed pt-2">
+                  <p className="text-xs sm:text-sm text-[#475569] leading-relaxed pt-2">
                     {r.description}
                   </p>
                 </div>
 
                 {/* Features list */}
-                <div className="space-y-2.5 pt-2 border-t border-[#EEF2EC]">
-                  <p className="text-xs font-bold text-[#1E3F2E] uppercase tracking-wider">
+                <div className="space-y-2.5 pt-2 border-t border-[#E2E8F0]">
+                  <p className="text-xs font-bold text-[#0F172A] uppercase tracking-wider">
                     Included Workflows:
                   </p>
-                  <ul className="space-y-2 text-xs text-[#3E5547]">
+                  <ul className="space-y-2 text-xs text-[#475569]">
                     {r.keyFeatures.map((f, i) => (
                       <li key={i} className="flex items-center gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#2D5A43] shrink-0" />
+                        <CheckCircle2 className="w-3.5 h-3.5 text-[#0D9488] shrink-0" />
                         <span>{f}</span>
                       </li>
                     ))}
@@ -238,7 +238,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                 </div>
 
                 {/* Sample Profile Note */}
-                <div className="p-3 bg-[#F8FAF7] rounded-lg border border-[#E8EEE8] text-[11px] text-[#526B5C]">
+                <div className="p-3 bg-[#F1F5F9] rounded-lg border border-[#E2E8F0] text-[11px] text-[#475569]">
                   {r.sampleProfile}
                 </div>
               </div>
@@ -253,8 +253,8 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
                       access.isDemoOverride
                         ? 'bg-amber-600 text-white hover:bg-amber-700'
                         : isSelected
-                        ? 'bg-[#2D5A43] text-white hover:bg-[#234835]'
-                        : 'bg-[#EBF2ED] text-[#1E3F2E] hover:bg-[#DCE7E0] border border-[#CCD5CB]'
+                        ? 'bg-[#0284C7] text-white hover:bg-[#0369A1]'
+                        : 'bg-[#F1F5F9] text-[#0F172A] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
                     }`}
                   >
                     <span>
@@ -283,7 +283,7 @@ export const RoleSelector: React.FC<RoleSelectorProps> = ({
         <button
           type="button"
           onClick={onBackToLanding}
-          className="text-xs sm:text-sm font-medium text-[#526B5C] hover:text-[#1E3F2E] underline"
+          className="text-xs sm:text-sm font-medium text-[#475569] hover:text-[#0F172A] underline"
         >
           Return to Platform Landing Page
         </button>

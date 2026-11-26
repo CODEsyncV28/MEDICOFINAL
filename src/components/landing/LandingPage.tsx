@@ -155,32 +155,32 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const platformOfferings = [
     {
-      icon: <Compass className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <Compass className="w-5 h-5 text-[#0284C7]" />,
       title: 'Lifestyle Assessments',
       desc: 'Complete an in-depth 20-question self-observation across 8 dimensions (circadian rhythm, sleep, meal timing, digestion, movement, stress, hydration, screen habits) to identify your baseline rhythm.',
     },
     {
-      icon: <Sparkles className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <Sparkles className="w-5 h-5 text-[#0284C7]" />,
       title: 'Educational Wellness Plans',
       desc: 'Receive a personalized, versioned AYUSH wellness plan containing structured daily routines, morning and evening rituals, and weekly goals—complete with clear "Why" explanations.',
     },
     {
-      icon: <Clock className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <Clock className="w-5 h-5 text-[#0284C7]" />,
       title: 'Dinacharya Habit Tracking',
       desc: 'Track evidence-informed daily rituals (such as morning Ushapan warm water, Nadi Shodhana breathing, and digital sunset) with transparent daily and weekly adherence analytics.',
     },
     {
-      icon: <Stethoscope className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <Stethoscope className="w-5 h-5 text-[#0284C7]" />,
       title: 'Practitioner Profiles & Consultations',
       desc: 'Explore licensed AYUSH physicians with recognized institutional qualifications (BAMS, MD, BUMS, BSMS, BHMS) and send appointment requests directly from the portal.',
     },
     {
-      icon: <BookOpen className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <BookOpen className="w-5 h-5 text-[#0284C7]" />,
       title: 'Educational Articles & Regimens',
       desc: 'Read peer-reviewed traditional health wisdom, herbal safety parameters, and enroll in multi-week structured lifestyle programs guided by domain practitioners.',
     },
     {
-      icon: <Award className="w-5 h-5 text-[#2D5A43]" />,
+      icon: <Award className="w-5 h-5 text-[#0284C7]" />,
       title: 'Progressive Versioning & Progress Diffs',
       desc: 'Re-assess every few weeks to automatically generate revised plans and review your longitudinal improvements, unchanged habits, and focus areas over time.',
     },
@@ -194,16 +194,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-center">
             {/* Left Column: Hero Copy & Actions */}
             <div className="lg:col-span-7 space-y-6">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#EBF2ED] text-[#204732] rounded-full text-xs font-semibold tracking-wide border border-[#D5E4D9]">
-                <Leaf className="w-3.5 h-3.5 text-[#2D5A43]" />
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-[#CCFBF1] text-[#0F766E] rounded-full text-xs font-semibold tracking-wide border border-[#99F6E4]">
+                <Leaf className="w-3.5 h-3.5 text-[#0D9488]" />
                 <span>India’s Traditional Systems of Health & Lifestyle Wellness</span>
               </div>
 
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-serif font-bold text-[#142A1E] tracking-tight leading-[1.18] text-balance">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-5xl font-serif font-bold text-[#0F172A] tracking-tight leading-[1.18] text-balance">
                 Discover the timeless wisdom of AYUSH for modern daily vitality.
               </h1>
 
-              <p className="text-base sm:text-lg text-[#3E5547] leading-relaxed max-w-2xl">
+              <p className="text-base sm:text-lg text-[#475569] leading-relaxed max-w-2xl">
                 AYUSH represents India’s recognized traditional and complementary systems: <strong>Ayurveda, Yoga & Naturopathy, Unani, Siddha, and Homoeopathy</strong>. Browse our public educational brochure below to understand these profound systems before logging in, or sign in to access personalized lifestyle tracking and certified practitioner care.
               </p>
 
@@ -213,18 +213,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <button
                   type="button"
                   onClick={scrollToBrochure}
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-[#1E3F2E] bg-white hover:bg-[#F3F6F2] border-2 border-[#2D5A43] rounded-xl shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43]"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-[#075985] bg-white hover:bg-[#F1F5F9] border-2 border-[#0284C7] rounded-xl shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0284C7]"
                 >
-                  <BookOpen className="w-4 h-4 text-[#2D5A43]" />
+                  <BookOpen className="w-4 h-4 text-[#0284C7]" />
                   <span>WHAT IS AYUSH?</span>
-                  <ArrowDown className="w-4 h-4 text-[#2D5A43]" />
+                  <ArrowDown className="w-4 h-4 text-[#0284C7]" />
                 </button>
 
                 {/* Action 2: Sign In / Get Started */}
                 <button
                   type="button"
                   onClick={onOpenAuth || onNavigateToRoles}
-                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] active:bg-[#1A3728] rounded-xl shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5A43]"
+                  className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 text-sm font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] active:bg-[#075985] rounded-xl shadow-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0284C7]"
                 >
                   <span>Sign In / Get Started</span>
                   <ArrowRight className="w-4 h-4" />
@@ -232,17 +232,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
 
               {/* Trust Badges */}
-              <div className="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 border-t border-[#E8ECE6] text-xs text-[#526B5C]">
+              <div className="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 border-t border-[#E2E8F0] text-xs text-[#475569]">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-[#2D5A43] shrink-0" />
+                  <ShieldCheck className="w-4 h-4 text-[#0D9488] shrink-0" />
                   <span>Public Educational Access</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-[#2D5A43] shrink-0" />
+                  <CheckCircle2 className="w-4 h-4 text-[#0D9488] shrink-0" />
                   <span>Classical Non-Diagnostic Wisdom</span>
                 </div>
                 <div className="flex items-center gap-2 col-span-2 sm:col-span-1">
-                  <GraduationCap className="w-4 h-4 text-[#2D5A43] shrink-0" />
+                  <GraduationCap className="w-4 h-4 text-[#0D9488] shrink-0" />
                   <span>5 Recognized Systems</span>
                 </div>
               </div>
@@ -250,7 +250,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
             {/* Right Column: Hero Visual Asset */}
             <div className="lg:col-span-5">
-              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#D8DFD7] bg-[#E8EEE8]">
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#CBD5E1] bg-[#F1F5F9]">
                 <img
                   src={ASSET_IMAGES.hero}
                   alt="Traditional Indian wellness aesthetic with warm herbal infusion, brass vessel, and natural botanical elements"
@@ -258,13 +258,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   className="w-full h-[360px] sm:h-[440px] object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent flex flex-col justify-end p-6 sm:p-8 text-white">
-                  <span className="text-xs uppercase tracking-wider font-semibold text-[#B3E6C8]">
+                  <span className="text-xs uppercase tracking-wider font-semibold text-[#CCFBF1]">
                     AYUSH Systems Brochure
                   </span>
                   <p className="text-base sm:text-lg font-serif font-bold mt-1">
                     Holistic Wellness, Living Heritage & Daily Habits
                   </p>
-                  <p className="text-xs text-[#DCE7E1] mt-1.5 leading-relaxed">
+                  <p className="text-xs text-[#E2E8F0] mt-1.5 leading-relaxed">
                     Open to all seekers. Learn how ancient circadian sciences inform modern vitality and mindful living.
                   </p>
                 </div>
@@ -286,76 +286,76 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="ayush-intro-section"
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24 space-y-8"
       >
-        <div className="bg-[#FAFBF9] rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#DCE4DD] shadow-xs space-y-8">
+        <div className="bg-[#F1F5F9] rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#E2E8F0] shadow-xs space-y-8">
           <div className="max-w-3xl space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2D5A43]" />
-              <span className="text-xs font-bold text-[#2D5A43] uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0284C7]" />
+              <span className="text-xs font-bold text-[#0284C7] uppercase tracking-wider">
                 Part A · Introduction to AYUSH
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#142A1E]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#0F172A]">
               What is AYUSH?
             </h2>
-            <p className="text-sm sm:text-base text-[#405648] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
               <strong>AYUSH</strong> is an acronym representing India’s recognized indigenous, traditional, and complementary systems of healthcare and holistic wellbeing:
             </p>
           </div>
 
           {/* 5 Acronym Letters Highlight Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="p-5 rounded-2xl bg-white border border-[#E1E8E2] shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] font-serif font-bold text-xl flex items-center justify-center">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] font-serif font-bold text-xl flex items-center justify-center">
                 A
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">Ayurveda</h3>
-              <p className="text-xs text-[#526B5C] leading-relaxed">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">Ayurveda</h3>
+              <p className="text-xs text-[#475569] leading-relaxed">
                 The science of life, longevity, and constitutional balance (Doshas & Agni).
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#E1E8E2] shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] font-serif font-bold text-lg flex items-center justify-center">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] font-serif font-bold text-lg flex items-center justify-center">
                 Y & N
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">Yoga & Naturopathy</h3>
-              <p className="text-xs text-[#526B5C] leading-relaxed">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">Yoga & Naturopathy</h3>
+              <p className="text-xs text-[#475569] leading-relaxed">
                 Mind-body union, breath control (Pranayama), and five-element nature cure.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#E1E8E2] shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] font-serif font-bold text-xl flex items-center justify-center">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] font-serif font-bold text-xl flex items-center justify-center">
                 U
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">Unani</h3>
-              <p className="text-xs text-[#526B5C] leading-relaxed">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">Unani</h3>
+              <p className="text-xs text-[#475569] leading-relaxed">
                 Humoral balance, innate restorative intelligence, and six lifestyle essentials.
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#E1E8E2] font-bold shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] font-serif text-xl flex items-center justify-center">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] font-bold shadow-xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] font-serif text-xl flex items-center justify-center">
                 S
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">Siddha</h3>
-              <p className="text-xs text-[#526B5C] leading-relaxed font-normal">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">Siddha</h3>
+              <p className="text-xs text-[#475569] leading-relaxed font-normal">
                 Ancient Dravidian science of vital energy points (Varmam) and longevity (Kayakalpa).
               </p>
             </div>
 
-            <div className="p-5 rounded-2xl bg-white border border-[#E1E8E2] shadow-xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] font-serif font-bold text-xl flex items-center justify-center">
+            <div className="p-5 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-2">
+              <div className="w-10 h-10 rounded-xl bg-[#CCFBF1] text-[#0D9488] font-serif font-bold text-xl flex items-center justify-center">
                 H
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">Homoeopathy</h3>
-              <p className="text-xs text-[#526B5C] leading-relaxed">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">Homoeopathy</h3>
+              <p className="text-xs text-[#475569] leading-relaxed">
                 Gentle individualized holistic healing guided by the principle of similars.
               </p>
             </div>
           </div>
 
-          <div className="p-4 bg-[#F2F6F3] rounded-2xl border border-[#D5E4D8] text-xs sm:text-sm text-[#264834] leading-relaxed">
+          <div className="p-4 bg-[#CCFBF1]/50 rounded-2xl border border-[#99F6E4] text-xs sm:text-sm text-[#0F766E] leading-relaxed">
             Together, these five distinct disciplines share a common ethos: treating the individual as an integrated whole—mind, body, senses, and environment—rather than focusing solely on isolated physical complaints.
           </div>
         </div>
@@ -369,13 +369,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24"
       >
         <div className="text-center max-w-3xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#EBF2ED] rounded-full text-xs font-semibold text-[#2D5A43]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#CCFBF1] rounded-full text-xs font-semibold text-[#0F766E]">
             <span>Part B · About the Five Systems</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#142A1E]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#0F172A]">
             Philosophies & General Approaches
           </h2>
-          <p className="text-xs sm:text-sm text-[#4E6457] leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#475569] leading-relaxed">
             Select any system below to explore its historical heritage, core physiological philosophy, general lifestyle approach, and foundational pillars.
           </p>
         </div>
@@ -391,8 +391,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 onClick={() => setSelectedDiscipline(idx)}
                 className={`px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all flex items-center gap-2 cursor-pointer ${
                   isSelected
-                    ? 'bg-[#2D5A43] text-white shadow-sm ring-2 ring-[#2D5A43]/20'
-                    : 'bg-white text-[#435B4D] hover:bg-[#F2F6F3] border border-[#D8DFD7]'
+                    ? 'bg-[#0284C7] text-white shadow-sm ring-2 ring-[#0284C7]/20'
+                    : 'bg-white text-[#475569] hover:bg-[#F1F5F9] border border-[#CBD5E1]'
                 }`}
               >
                 <span className="opacity-80 text-[11px]">{sys.code}</span>
@@ -406,68 +406,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         {(() => {
           const sys = systemsDetailed[selectedDiscipline];
           return (
-            <div className="bg-white p-6 sm:p-8 lg:p-10 rounded-3xl border border-[#D8DFD7] shadow-sm max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
+            <div className="bg-white p-6 sm:p-8 lg:p-10 rounded-3xl border border-[#CBD5E1] shadow-sm max-w-5xl mx-auto space-y-8 animate-in fade-in duration-200">
               {/* Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E8EEE9] pb-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E2E8F0] pb-6">
                 <div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="w-7 h-7 rounded-lg bg-[#EBF2ED] text-[#2D5A43] font-bold text-xs flex items-center justify-center">
+                    <span className="w-7 h-7 rounded-lg bg-[#CCFBF1] text-[#0D9488] font-bold text-xs flex items-center justify-center">
                       {sys.code}
                     </span>
-                    <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#142A1E]">
+                    <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#0F172A]">
                       {sys.name}
                     </h3>
                   </div>
-                  <p className="text-sm font-semibold text-[#2D5A43] mt-1">
+                  <p className="text-sm font-semibold text-[#0284C7] mt-1">
                     {sys.subtitle}
                   </p>
-                  <p className="text-xs text-[#6F8678] mt-0.5">
+                  <p className="text-xs text-[#64748B] mt-0.5">
                     <strong>Tradition:</strong> {sys.heritage}
                   </p>
                 </div>
 
-                <div className="px-3.5 py-2 bg-[#F6F8F5] rounded-xl text-xs text-[#2A4B36] border border-[#DEE6E0] max-w-xs">
-                  <span className="font-semibold block text-[#1E3F2E]">Daily Practice Insight:</span>
+                <div className="px-3.5 py-2 bg-[#F1F5F9] rounded-xl text-xs text-[#475569] border border-[#E2E8F0] max-w-xs">
+                  <span className="font-semibold block text-[#0F172A]">Daily Practice Insight:</span>
                   <span className="text-[11px] leading-relaxed">{sys.practicalInsight}</span>
                 </div>
               </div>
 
               {/* Core Philosophy & General Approach */}
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-xs sm:text-sm text-[#3E5547] leading-relaxed">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-start text-xs sm:text-sm text-[#475569] leading-relaxed">
                 {/* Left 7 cols: Philosophy & Approach */}
                 <div className="md:col-span-7 space-y-5">
                   <div className="space-y-1.5">
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#1E3F2E] flex items-center gap-1.5">
-                      <Compass className="w-3.5 h-3.5 text-[#2D5A43]" />
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                      <Compass className="w-3.5 h-3.5 text-[#0284C7]" />
                       <span>Foundational Health Philosophy</span>
                     </h4>
-                    <p className="leading-relaxed text-[#2C4035]">
+                    <p className="leading-relaxed text-[#475569]">
                       {sys.philosophy}
                     </p>
                   </div>
 
                   <div className="space-y-1.5">
-                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#1E3F2E] flex items-center gap-1.5">
-                      <Leaf className="w-3.5 h-3.5 text-[#2D5A43]" />
+                    <h4 className="font-bold text-xs uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                      <Leaf className="w-3.5 h-3.5 text-[#0D9488]" />
                       <span>General Lifestyle & Health Approach</span>
                     </h4>
-                    <p className="leading-relaxed text-[#2C4035]">
+                    <p className="leading-relaxed text-[#475569]">
                       {sys.generalApproach}
                     </p>
                   </div>
                 </div>
 
                 {/* Right 5 cols: Key Pillars */}
-                <div className="md:col-span-5 bg-[#F9FAF8] p-5 sm:p-6 rounded-2xl border border-[#E4E8E3] space-y-3.5">
-                  <h4 className="font-bold text-xs uppercase tracking-wider text-[#1E3F2E] flex items-center gap-1.5">
-                    <Award className="w-3.5 h-3.5 text-[#2D5A43]" />
+                <div className="md:col-span-5 bg-[#F1F5F9] p-5 sm:p-6 rounded-2xl border border-[#E2E8F0] space-y-3.5">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-[#0F172A] flex items-center gap-1.5">
+                    <Award className="w-3.5 h-3.5 text-[#0284C7]" />
                     <span>Four Cornerstones of {sys.name}</span>
                   </h4>
 
-                  <ul className="space-y-2 text-xs text-[#2A4535]">
+                  <ul className="space-y-2 text-xs text-[#0F172A]">
                     {sys.keyPillars.map((p, i) => (
-                      <li key={i} className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-[#E9EFEA]">
-                        <Check className="w-3.5 h-3.5 text-[#2D5A43] mt-0.5 shrink-0" />
+                      <li key={i} className="flex items-start gap-2 bg-white p-2.5 rounded-lg border border-[#E2E8F0]">
+                        <Check className="w-3.5 h-3.5 text-[#0D9488] mt-0.5 shrink-0" />
                         <span className="font-medium">{p}</span>
                       </li>
                     ))}
@@ -477,7 +477,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                     <button
                       type="button"
                       onClick={onOpenAuth || onNavigateToRoles}
-                      className="w-full py-2 px-3 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-xl transition-colors shadow-xs"
+                      className="w-full py-2 px-3 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-xl transition-colors shadow-xs"
                     >
                       Sign In to Explore {sys.name} Regimens
                     </button>
@@ -496,68 +496,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="ayush-in-india"
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 scroll-mt-24"
       >
-        <div className="bg-gradient-to-br from-[#FAFAF7] via-[#F5F8F4] to-[#EDF3EF] rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#D8E2D9] shadow-xs space-y-8">
+        <div className="bg-gradient-to-br from-[#F8FAFC] via-[#F1F5F9] to-[#CCFBF1]/35 rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#CBD5E1] shadow-xs space-y-8">
           <div className="max-w-3xl space-y-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#2D5A43]" />
-              <span className="text-xs font-bold text-[#2D5A43] uppercase tracking-wider">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#0284C7]" />
+              <span className="text-xs font-bold text-[#0284C7] uppercase tracking-wider">
                 Part C · AYUSH in India
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#142A1E]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#0F172A]">
               Traditional Health Landscape & Institutional Presence
             </h2>
-            <p className="text-sm sm:text-base text-[#405648] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
               India has one of the world's richest, continuously practiced living health traditions, formally recognized, standardized, and nurtured through modern institutional frameworks.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs sm:text-sm">
             {/* Card 1: Living Heritage & Cultural Continuum */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E0E8E1] shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center">
+            <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] text-[#0284C7] flex items-center justify-center">
                 <Globe className="w-5 h-5" />
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Living Cultural Continuum
               </h3>
-              <p className="text-xs text-[#4F6858] leading-relaxed">
+              <p className="text-xs text-[#475569] leading-relaxed">
                 For millennia, Indian households have incorporated classical wellness habits into everyday life—from turmeric and ginger teas to seasonal dining (Ritucharya), morning warm water intake (Ushapan), and daily Surya Namaskar. AYUSH codifies these organic practices into systematic sciences.
               </p>
             </div>
 
             {/* Card 2: Institutional Infrastructure */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E0E8E1] shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center">
+            <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] text-[#0284C7] flex items-center justify-center">
                 <Building2 className="w-5 h-5" />
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Institutional Presence & Education
               </h3>
-              <p className="text-xs text-[#4F6858] leading-relaxed">
+              <p className="text-xs text-[#475569] leading-relaxed">
                 India maintains statutory bodies, National Institutes, state medical councils, and hundreds of accredited medical colleges awarding recognized degrees (such as BAMS, MD/MS Ayurveda, BNYS, BUMS, BSMS, and BHMS) to ensure formal clinical training and patient safety.
               </p>
             </div>
 
             {/* Card 3: Research & Evidence-Informed Evolution */}
-            <div className="p-6 rounded-2xl bg-white border border-[#E0E8E1] shadow-xs space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-[#EBF2ED] text-[#2D5A43] flex items-center justify-center">
+            <div className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] text-[#0284C7] flex items-center justify-center">
                 <GraduationCap className="w-5 h-5" />
               </div>
-              <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+              <h3 className="font-serif font-bold text-base text-[#0F172A]">
                 Evidence-Informed Development
               </h3>
-              <p className="text-xs text-[#4F6858] leading-relaxed">
+              <p className="text-xs text-[#475569] leading-relaxed">
                 Modern clinical studies, pharmacopoeial standardization, botanical research, and global initiatives celebrate traditional healthcare as a preventative pillar alongside modern medicine, emphasizing lifestyle modification for non-communicable challenges.
               </p>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-[#DFE8E1] flex flex-wrap items-center justify-between gap-4 text-xs text-[#526B5C]">
+          <div className="pt-2 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-4 text-xs text-[#64748B]">
             <span>
               <strong>Note:</strong> AYUSH Wellness Connect supports this ecosystem through independent educational tools and verified practitioner networking.
             </span>
-            <span className="font-medium text-[#2D5A43]">
+            <span className="font-medium text-[#0D9488]">
               Preserving Classical Integrity · Fostering Contemporary Care
             </span>
           </div>
@@ -572,13 +572,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 scroll-mt-24"
       >
         <div className="max-w-3xl space-y-3">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#EBF2ED] rounded-full text-xs font-semibold text-[#2D5A43]">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#CCFBF1] rounded-full text-xs font-semibold text-[#0F766E]">
             <span>Part D · What This Platform Offers</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#142A1E]">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#0F172A]">
             A Comprehensive Digital Lifestyle Platform
           </h2>
-          <p className="text-sm sm:text-base text-[#405648] leading-relaxed">
+          <p className="text-sm sm:text-base text-[#475569] leading-relaxed">
             AYUSH Wellness Connect translates traditional health science into practical, non-punitive daily support for modern living. Here is what you can experience:
           </p>
         </div>
@@ -588,25 +588,25 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {platformOfferings.map((off, idx) => (
             <div
               key={idx}
-              className="p-6 rounded-2xl bg-white border border-[#E3E9E3] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#CCD5CB] transition-all group"
+              className="p-6 rounded-2xl bg-white border border-[#E2E8F0] shadow-xs flex flex-col justify-between space-y-4 hover:border-[#CBD5E1] transition-all group"
             >
               <div className="space-y-3">
-                <div className="w-10 h-10 rounded-xl bg-[#F0F5F1] flex items-center justify-center group-hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-[#F1F5F9] flex items-center justify-center group-hover:scale-105 transition-transform">
                   {off.icon}
                 </div>
-                <h3 className="font-serif font-bold text-base text-[#1E3F2E]">
+                <h3 className="font-serif font-bold text-base text-[#0F172A]">
                   {off.title}
                 </h3>
-                <p className="text-xs text-[#4F6858] leading-relaxed">
+                <p className="text-xs text-[#475569] leading-relaxed">
                   {off.desc}
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-[#EEF2EC]">
+              <div className="pt-2 border-t border-[#E2E8F0]">
                 <button
                   type="button"
                   onClick={onOpenAuth || onNavigateToRoles}
-                  className="text-xs font-semibold text-[#2D5A43] hover:underline flex items-center gap-1"
+                  className="text-xs font-semibold text-[#0284C7] hover:underline flex items-center gap-1"
                 >
                   <span>Access via User Portal</span>
                   <ChevronRight className="w-3.5 h-3.5" />
@@ -624,19 +624,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         id="disclaimer-section"
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24"
       >
-        <div className="bg-[#FAF4EF] rounded-3xl p-6 sm:p-8 lg:p-10 border border-[#EADBCE] shadow-xs space-y-4">
-          <div className="flex items-center gap-2 text-[#A64B2A]">
+        <div className="bg-amber-50 rounded-3xl p-6 sm:p-8 lg:p-10 border border-amber-200 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 text-amber-700">
             <AlertTriangle className="w-5 h-5 shrink-0" />
             <span className="text-xs font-bold uppercase tracking-wider">
               Part E · Important Public Health Disclaimer
             </span>
           </div>
 
-          <h3 className="text-xl sm:text-2xl font-serif font-bold text-[#2A1E14]">
+          <h3 className="text-xl sm:text-2xl font-serif font-bold text-amber-950">
             Educational Wellness Information Only
           </h3>
 
-          <div className="space-y-2.5 text-xs sm:text-sm text-[#5C4538] leading-relaxed">
+          <div className="space-y-2.5 text-xs sm:text-sm text-amber-900 leading-relaxed">
             <p>
               <strong>1. Non-Diagnostic Educational Scope:</strong> The information, lifestyle questionnaires, and self-care plans provided on AYUSH Wellness Connect are intended solely for general health education, routine habit cultivation, and traditional wellness literacy. They do <strong>not</strong> constitute medical diagnosis, clinical treatment, medical prognostication, or pharmaceutical prescription.
             </p>
@@ -652,9 +652,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 8. CALL TO ACTION / REGISTRATION BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-[#1C3627] text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-lg">
+        <div className="bg-[#0F172A] text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden shadow-lg">
           <div className="relative z-10 max-w-3xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#284E38] text-[#84D4A8] rounded-full text-xs font-semibold">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1E293B] text-[#14B8A6] rounded-full text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Begin Your Personal Dinacharya Journey</span>
             </div>
@@ -663,7 +663,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Ready to experience personalized AYUSH wellness?
             </h2>
 
-            <p className="text-sm sm:text-base text-[#D0E2D6] leading-relaxed">
+            <p className="text-sm sm:text-base text-[#CBD5E1] leading-relaxed">
               Create a free account to take the complete 20-question lifestyle assessment, unlock your tailored daily Dinacharya schedule, track habits, and connect directly with certified AYUSH doctors.
             </p>
 
@@ -671,7 +671,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 type="button"
                 onClick={onOpenAuth || onNavigateToRoles}
-                className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold text-[#1C3627] bg-[#F4FAF6] hover:bg-white rounded-xl shadow-xs transition-colors"
+                className="inline-flex items-center gap-2 px-7 py-3.5 text-sm font-semibold text-[#0F172A] bg-[#F8FAFC] hover:bg-white rounded-xl shadow-xs transition-colors"
               >
                 <span>Sign In / Create Account</span>
                 <ArrowRight className="w-4 h-4" />
@@ -680,7 +680,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 type="button"
                 onClick={onNavigateToRoles}
-                className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-[#2B543D] hover:bg-[#346549] rounded-xl border border-[#407355] transition-colors"
+                className="inline-flex items-center gap-2 px-6 py-3.5 text-sm font-semibold text-white bg-[#1E293B] hover:bg-[#334155] rounded-xl border border-[#334155] transition-colors"
               >
                 <span>Preview Demo Portals</span>
               </button>
