@@ -81,7 +81,9 @@ interface UserDashboardProps {
   onToggleActivity: (id: string) => void;
   programs: WellnessProgram[];
   articles: EducationalArticle[];
-  practitioner: Practitioner;
+  practitioner: Practitioner | null;
+  practitionersLoading?: boolean;
+  practitionersError?: string | null;
   assessmentAnswers: Record<string, string>;
   totalAssessmentQuestions: number;
   onOpenAssessment: () => void;
@@ -110,12 +112,22 @@ interface UserDashboardProps {
   catalogRefreshKey?: number;
 }
 
+function getPractitionerInitials(name: string): string {
+  const cleaned = name.replace(/^Dr\.\s+/i, '').trim();
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'AP';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
 export const UserDashboard: React.FC<UserDashboardProps> = ({
   activities,
   onToggleActivity,
   programs,
   articles,
   practitioner,
+  practitionersLoading = false,
+  practitionersError = null,
   assessmentAnswers,
   totalAssessmentQuestions,
   onOpenAssessment,
@@ -176,7 +188,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     setArticlesLoading(true);
     setArticlesError(null);
     try {
-      const result = await fetchPublishedArticlesForUser({ demoCatalog: articles });
+      const result = await fetchPublishedArticlesForUser({
+        demoCatalog: isConfigured ? undefined : articles,
+      });
       setPublishedArticles(result);
     } catch (err) {
       setArticlesError(
@@ -185,17 +199,19 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     } finally {
       setArticlesLoading(false);
     }
-  }, [articles]);
+  }, [articles, isConfigured]);
 
   const loadPublishedProgramsAndEnrollments = useCallback(async () => {
     setProgramsLoading(true);
     setProgramsError(null);
     try {
-      if (!isLoggedIn && effectiveSeekerUid === GUEST_DINACHARYA_USER_ID) {
+      if (!isConfigured && !isLoggedIn && effectiveSeekerUid === GUEST_DINACHARYA_USER_ID) {
         seedDemoUserEnrollments(effectiveSeekerUid);
       }
       const [loadedPrograms, loadedEnrollments] = await Promise.all([
-        fetchPublishedProgramsForUser({ demoCatalog: programs }),
+        fetchPublishedProgramsForUser({
+          demoCatalog: isConfigured ? undefined : programs,
+        }),
         fetchUserProgramEnrollments(effectiveSeekerUid),
       ]);
       setPublishedPrograms(loadedPrograms);
@@ -207,7 +223,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     } finally {
       setProgramsLoading(false);
     }
-  }, [effectiveSeekerUid, isLoggedIn, programs]);
+  }, [effectiveSeekerUid, isConfigured, isLoggedIn, programs]);
 
   useEffect(() => {
     loadPublishedArticles();
@@ -1635,32 +1651,56 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               Supervising AYUSH Practitioner
             </h3>
 
-            <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E3E8E3] space-y-3.5">
-              <div className="flex items-start gap-3">
-                <div className="w-11 h-11 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold flex items-center justify-center shrink-0">
-                  AS
-                </div>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-sm text-[#1E3F2E]">{practitioner.name}</p>
-                  <p className="text-xs text-[#526B5C]">{practitioner.qualification}</p>
-                  <p className="text-[11px] text-[#2D5A43] font-medium">{practitioner.specialization}</p>
-                </div>
+            {practitionersLoading ? (
+              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E3E8E3] flex items-center gap-2 text-xs text-[#526B5C]">
+                <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
+                <span>Loading verified AYUSH practitioners...</span>
               </div>
-
-              <div className="pt-2 text-xs text-[#405648] border-t border-[#E8ECE6] space-y-1">
-                <p><strong>Next Virtual Review Window:</strong></p>
-                <p className="text-[#526B5C]">{practitioner.nextAvailableSlot}</p>
-              </div>
-
-              <button
-                type="button"
-                onClick={onConnectPractitioner}
-                className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+            ) : practitionersError ? (
+              <div
+                role="alert"
+                className="p-4 rounded-xl bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] flex items-start gap-2"
               >
-                <Video className="w-3.5 h-3.5" />
-                <span>Message or Request Consultation</span>
-              </button>
-            </div>
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{practitionersError}</span>
+              </div>
+            ) : !practitioner ? (
+              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-dashed border-[#D6E0D7] space-y-1.5 text-xs text-[#526B5C]">
+                <p className="font-semibold text-[#1E3F2E]">
+                  No verified AYUSH practitioner is currently available for consultation.
+                </p>
+                <p className="leading-relaxed">
+                  Verified physicians appear here once approved and assigned by a platform administrator.
+                </p>
+              </div>
+            ) : (
+              <div className="p-4 bg-[#FAFBF9] rounded-xl border border-[#E3E8E3] space-y-3.5">
+                <div className="flex items-start gap-3">
+                  <div className="w-11 h-11 rounded-full bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold flex items-center justify-center shrink-0">
+                    {getPractitionerInitials(practitioner.name)}
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="font-bold text-sm text-[#1E3F2E]">{practitioner.name}</p>
+                    <p className="text-xs text-[#526B5C]">{practitioner.qualification}</p>
+                    <p className="text-[11px] text-[#2D5A43] font-medium">{practitioner.specialization}</p>
+                  </div>
+                </div>
+
+                <div className="pt-2 text-xs text-[#405648] border-t border-[#E8ECE6] space-y-1">
+                  <p><strong>Next Virtual Review Window:</strong></p>
+                  <p className="text-[#526B5C]">{practitioner.nextAvailableSlot}</p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={onConnectPractitioner}
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-4 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg transition-colors shadow-xs"
+                >
+                  <Video className="w-3.5 h-3.5" />
+                  <span>Message or Request Consultation</span>
+                </button>
+              </div>
+            )}
 
             {/* Persisted Consultation Requests for Current Seeker */}
             <div className="pt-2 border-t border-[#EEF2EC] space-y-2.5">
@@ -1886,6 +1926,9 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       })}
                     </div>
                   )}
+                  <p className="text-[11px] text-[#637C6D]">
+                    Enrollment status and session counts are stored locally in this browser session.
+                  </p>
                 </div>
 
                 {/* Sub-section 2: Available Published Programmes */}

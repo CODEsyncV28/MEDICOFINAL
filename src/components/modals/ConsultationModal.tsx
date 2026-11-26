@@ -11,9 +11,11 @@ import {
   validateConsultationInput,
 } from '../../services/consultationService';
 
+import { isFirebaseConfigured } from '../../lib/firebase';
+
 interface ConsultationModalProps {
   isOpen: boolean;
-  practitioner: Practitioner;
+  practitioner: Practitioner | null;
   seekerUid: string;
   seekerName: string;
   onClose: () => void;
@@ -62,7 +64,7 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
     wasOpenRef.current = isOpen;
   }, [isOpen]);
 
-  if (!isOpen) return null;
+  if (!isOpen || !practitioner) return null;
 
   const handleClose = () => {
     setValidationError(null);
@@ -273,7 +275,9 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
                   Request Sent to {createdRecord.practitionerName}
                 </h3>
                 <p className="text-xs text-[#526B5C] max-w-sm mx-auto leading-relaxed">
-                  Your consultation request has been saved to Local Persistent Demo Storage and added to {createdRecord.practitionerName}'s consultation inbox.
+                  {isFirebaseConfigured
+                    ? `Your consultation request has been saved to Cloud Firestore and added to ${createdRecord.practitionerName}'s consultation inbox.`
+                    : `Your consultation request has been saved to Local Persistent Demo Storage and added to ${createdRecord.practitionerName}'s consultation inbox.`}
                 </p>
               </div>
               <div className="p-3.5 bg-white border border-[#E4E8E3] rounded-xl text-xs text-[#3E5547] text-left space-y-1.5">

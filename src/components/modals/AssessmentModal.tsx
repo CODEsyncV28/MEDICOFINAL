@@ -29,7 +29,7 @@ import {
 interface AssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete: (answers: Record<string, string>, categoryNotes?: Record<string, string>) => void;
+  onComplete: (answers: Record<string, string>, categoryNotes?: Record<string, string>) => Promise<void> | void;
   initialAnswers?: Record<string, string>;
 }
 
@@ -43,6 +43,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
   const [categoryNotes, setCategoryNotes] = useState<Record<string, string>>({});
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [showValidationSummary, setShowValidationSummary] = useState(false);
   const wasOpenRef = useRef(false);
@@ -55,6 +56,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
       setCategoryNotes(resetState.categoryNotes);
       setCurrentQuestionIndex(resetState.currentQuestionIndex);
       setIsFinished(resetState.isFinished);
+      setIsSubmitting(false);
       setValidationError(resetState.validationError);
       setShowValidationSummary(resetState.showValidationSummary);
     }
@@ -88,7 +90,7 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
     setCategoryNotes((prev) => ({ ...prev, [currentQ.category]: text }));
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (!answers[currentQ.id]?.trim()) {
       setValidationError(
         `Please select an answer for Question #${currentQuestionIndex + 1} (${currentCatInfo?.name}) before proceeding.`
@@ -112,8 +114,19 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
     setValidationError(null);
     setShowValidationSummary(false);
-    setIsFinished(true);
-    onComplete(extractCanonicalAnswers(answers), categoryNotes);
+    setIsSubmitting(true);
+    try {
+      await onComplete(extractCanonicalAnswers(answers), categoryNotes);
+      setIsFinished(true);
+    } catch (err) {
+      setValidationError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to save assessment. Please check your connection and try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handlePrev = () => {
@@ -465,15 +478,22 @@ export const AssessmentModal: React.FC<AssessmentModalProps> = ({
 
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleNext}
-                className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white rounded-lg transition-colors ${
+                className={`inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white rounded-lg transition-colors disabled:opacity-60 ${
                   !isCurrentAnswered ||
                   (currentQuestionIndex === totalQuestions - 1 && !validation.isValid)
                     ? 'bg-slate-400 hover:bg-slate-500'
                     : 'bg-[#2D5A43] hover:bg-[#234835]'
                 }`}
               >
-                <span>{currentQuestionIndex === totalQuestions - 1 ? 'Generate Wellness Plan' : 'Next'}</span>
+                <span>
+                  {isSubmitting
+                    ? 'Saving Assessment...'
+                    : currentQuestionIndex === totalQuestions - 1
+                    ? 'Generate Wellness Plan'
+                    : 'Next'}
+                </span>
                 <ChevronRight className="w-4 h-4" />
               </button>
             </>

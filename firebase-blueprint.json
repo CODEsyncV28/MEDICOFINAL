@@ -10,7 +10,7 @@
         "displayName": { "type": "string", "maxLength": 80, "description": "User full name or display pseudonym." },
         "role": { "type": "string", "enum": ["user", "practitioner", "admin"], "description": "Authorized platform access tier." },
         "agreedToTerms": { "type": "boolean", "description": "Whether user agreed to health educational terms." },
-        "assignedPractitionerId": { "type": "string", "description": "UID of supervising AYUSH doctor." },
+        "assignedPractitionerId": { "type": "string", "description": "Optional reference UID of supervising AYUSH doctor; /clientProfiles/{userId}.assignedPractitionerId is the canonical RBAC source of truth." },
         "prakritiBaseline": { "type": "string", "description": "Constitutional dosha baseline from assessment." },
         "createdAt": { "type": "string", "description": "ISO timestamp of registration." },
         "updatedAt": { "type": "string", "description": "ISO timestamp of last profile update." }
@@ -126,7 +126,7 @@
         "topic": { "type": "string", "maxLength": 120 },
         "preferredSlot": { "type": "string", "enum": ["morning", "afternoon", "evening"] },
         "notes": { "type": "string", "maxLength": 800 },
-        "status": { "type": "string", "enum": ["pending", "confirmed", "completed", "cancelled"] },
+        "status": { "type": "string", "enum": ["pending", "confirmed", "rescheduled", "rejected", "completed", "cancelled"] },
         "createdAt": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
@@ -168,7 +168,40 @@
         "assignedPractitionerId": { "type": "string" },
         "updatedAt": { "type": "string" }
       },
-      "required": ["userId", "clientName", "assignedPractitionerId", "updatedAt"]
+      "required": ["userId", "clientName", "updatedAt"]
+    },
+    "AssessmentVersionHistory": {
+      "title": "AssessmentVersionHistory",
+      "description": "Immutable versioned snapshot of a lifestyle assessment stored under /assessments/{assessmentId}/history/{versionId}.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "version": { "type": "number" },
+        "completedAt": { "type": "string" },
+        "totalAnswered": { "type": "number" },
+        "totalQuestions": { "type": "number" },
+        "isComplete": { "type": "boolean" }
+      },
+      "required": ["id", "userId", "version", "completedAt", "totalAnswered", "totalQuestions", "isComplete"]
+    },
+    "WellnessPlan": {
+      "title": "WellnessPlan",
+      "description": "Personalized educational Dinacharya wellness plan generated from a lifestyle assessment.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "version": { "type": "number" },
+        "assessmentId": { "type": "string" },
+        "generatedAt": { "type": "string" },
+        "title": { "type": "string", "maxLength": 200 },
+        "constitutionTendency": { "type": "string", "maxLength": 120 },
+        "primaryFocus": { "type": "string", "maxLength": 200 },
+        "summary": { "type": "string", "maxLength": 1500 },
+        "educationalDisclaimer": { "type": "string", "maxLength": 1000 }
+      },
+      "required": ["id", "userId", "version", "assessmentId", "generatedAt", "title", "constitutionTendency", "primaryFocus", "summary", "educationalDisclaimer"]
     }
   },
   "firestore": {
@@ -183,6 +216,14 @@
     "/assessments/{assessmentId}": {
       "schema": { "$ref": "#/entities/LifestyleAssessment" },
       "description": "Lifestyle habits assessment. Accessible only to owning seeker, assigned practitioner, or platform admin."
+    },
+    "/assessments/{assessmentId}/history/{versionId}": {
+      "schema": { "$ref": "#/entities/AssessmentVersionHistory" },
+      "description": "Immutable versioned assessment snapshots under assess_{userId}/history/v{N}."
+    },
+    "/wellnessPlans/{planId}": {
+      "schema": { "$ref": "#/entities/WellnessPlan" },
+      "description": "Personalized educational Dinacharya wellness plans. Readable by owner, assigned practitioner, or admin."
     },
     "/dailyActivities/{activityId}": {
       "schema": { "$ref": "#/entities/DailyActivityLog" },

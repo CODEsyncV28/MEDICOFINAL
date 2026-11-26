@@ -3,7 +3,15 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     // -------------------------------------------------------------------------
-    // Helper Functions
+    // Global Safety Net: Default-Deny Catch-All
+    // Any unmatched collection, document, or subcollection is denied by default.
+    // -------------------------------------------------------------------------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // -------------------------------------------------------------------------
+    // Core Identity, Path & Type Validation Helpers
     // -------------------------------------------------------------------------
     function isSignedIn() {
       return request.auth != null;
@@ -13,238 +21,905 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    function userDocExists(uid) {
-      return exists(/databases/$(database)/documents/users/$(uid));
+    function isValidId(id) {
+      return id is string &&
+        id.size() >= 1 &&
+        id.size() <= 128 &&
+        id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
-    // Role lookups strictly derived from trusted database document (never client claims)
-    function getUserData(uid) {
-      return get(/databases/$(database)/documents/users/$(uid)).data;
+    function isNonEmptyString(val, maxLen) {
+      return val is string && val.size() >= 1 && val.size() <= maxLen;
+    }
+
+    function isValidOptionalString(data, field, maxLen) {
+      return !(field in data) ||
+        data[field] == null ||
+        (data[field] is string && data[field].size() <= maxLen);
+    }
+
+    function isValidOptionalTimestamp(data, field) {
+      return !(field in data) ||
+        data[field] == null ||
+        data[field] is timestamp;
+    }
+
+    function isValidDateString(d) {
+      return d is string &&
+        d.size() == 10 &&
+        d.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+
+    // Role lookups strictly derived from trusted /users/{uid} database document
+    // (never from client-controlled custom claims or unverified token attributes)
+    function callerRole() {
+      return exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', '')
+        : '';
     }
 
     function isAdmin() {
-      return isSignedIn() &&
-        userDocExists(request.auth.uid) &&
-        ('role' in getUserData(request.auth.uid)) &&
-        getUserData(request.auth.uid).role == 'admin';
+      return isSignedIn() && callerRole() == 'admin';
     }
 
     function isPractitioner() {
-      return isSignedIn() &&
-        userDocExists(request.auth.uid) &&
-        ('role' in getUserData(request.auth.uid)) &&
-        getUserData(request.auth.uid).role == 'practitioner';
+      return isSignedIn() && callerRole() == 'practitioner';
     }
 
-    // PHASE 2: Safe practitioner check handling missing docs, missing fields, null assignments
     function isAssignedPractitioner(clientUid) {
       return isPractitioner() &&
-        userDocExists(clientUid) &&
-        ('assignedPractitionerId' in getUserData(clientUid)) &&
-        getUserData(clientUid).assignedPractitionerId != null &&
-        getUserData(clientUid).assignedPractitionerId == request.auth.uid;
-    }
-
-    // Global Safety Net: Default Deny All
-    match /{document=**} {
-      allow read, write: if false;
+        isValidId(clientUid) &&
+        exists(/databases/$(database)/documents/clientProfiles/$(clientUid)) &&
+        get(/databases/$(database)/documents/clientProfiles/$(clientUid)).data.get('assignedPractitionerId', null) == request.auth.uid;
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 1: Users Collection Security
+    // Entity Validation Blueprints (Anti-Update-Gap & Payload Hardening)
+    // -------------------------------------------------------------------------
+    function isValidUserPayload(data) {
+      return data.keys().hasAll(['uid', 'role', 'agreedToTerms', 'createdAt']) &&
+        data.keys().hasOnly([
+          'uid',
+          'email',
+          'displayName',
+          'role',
+          'agreedToTerms',
+          'isActive',
+          'assignedPractitionerId',
+          'assignedPractitionerName',
+          'prakritiBaseline',
+          'avatarUrl',
+          'createdAt',
+          'updatedAt',
+          'createdAtServer',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.uid) &&
+        data.role in ['user', 'practitioner', 'admin'] &&
+        data.agreedToTerms is bool &&
+        isNonEmptyString(data.createdAt, 64) &&
+        isValidOptionalString(data, 'email', 254) &&
+        isValidOptionalString(data, 'displayName', 80) &&
+        isValidOptionalString(data, 'assignedPractitionerId', 128) &&
+        isValidOptionalString(data, 'assignedPractitionerName', 100) &&
+        isValidOptionalString(data, 'prakritiBaseline', 120) &&
+        isValidOptionalString(data, 'avatarUrl', 500) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        (!('isActive' in data) || data.isActive is bool) &&
+        isValidOptionalTimestamp(data, 'createdAtServer') &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidClientProfile(data) {
+      return data.keys().hasAll(['userId', 'clientName', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'userId',
+          'clientName',
+          'age',
+          'gender',
+          'primaryGoal',
+          'enrolledProgram',
+          'discipline',
+          'adherenceRate',
+          'assessmentCompleted',
+          'lastCheckIn',
+          'practitionerNotes',
+          'status',
+          'assignedPractitionerId',
+          'isSimulated',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.userId) &&
+        isNonEmptyString(data.clientName, 100) &&
+        isNonEmptyString(data.updatedAt, 64) &&
+        (!('age' in data) || (data.age is number && data.age >= 0 && data.age <= 130)) &&
+        isValidOptionalString(data, 'gender', 40) &&
+        isValidOptionalString(data, 'primaryGoal', 200) &&
+        isValidOptionalString(data, 'enrolledProgram', 150) &&
+        isValidOptionalString(data, 'discipline', 60) &&
+        (!('adherenceRate' in data) || (data.adherenceRate is number && data.adherenceRate >= 0 && data.adherenceRate <= 100)) &&
+        (!('assessmentCompleted' in data) || data.assessmentCompleted is bool) &&
+        isValidOptionalString(data, 'lastCheckIn', 80) &&
+        isValidOptionalString(data, 'practitionerNotes', 1000) &&
+        (!('status' in data) || data.status in ['Active', 'Needs Review', 'On Track']) &&
+        isValidOptionalString(data, 'assignedPractitionerId', 128) &&
+        (!('isSimulated' in data) || data.isSimulated is bool) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidAssessmentMain(data) {
+      return data.keys().hasAll(['id', 'userId', 'answers', 'totalAnswered', 'totalQuestions', 'isComplete', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'latestVersion',
+          'answers',
+          'totalAnswered',
+          'totalQuestions',
+          'isComplete',
+          'circadianBalanceCategory',
+          'digestiveAgniCategory',
+          'movementCategory',
+          'stressCategory',
+          'constitutionTendency',
+          'completedAt',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        data.answers is map &&
+        data.answers.size() <= 50 &&
+        data.totalAnswered is number && data.totalAnswered >= 0 && data.totalAnswered <= 50 &&
+        data.totalQuestions is number && data.totalQuestions >= 1 && data.totalQuestions <= 50 &&
+        data.isComplete is bool &&
+        isNonEmptyString(data.updatedAt, 64) &&
+        (!('latestVersion' in data) || (data.latestVersion is int && data.latestVersion >= 1)) &&
+        isValidOptionalString(data, 'circadianBalanceCategory', 120) &&
+        isValidOptionalString(data, 'digestiveAgniCategory', 120) &&
+        isValidOptionalString(data, 'movementCategory', 120) &&
+        isValidOptionalString(data, 'stressCategory', 120) &&
+        isValidOptionalString(data, 'constitutionTendency', 120) &&
+        isValidOptionalString(data, 'completedAt', 64) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidAssessmentVersion(data) {
+      return data.keys().hasAll(['id', 'userId', 'version', 'completedAt', 'answers', 'totalAnswered', 'totalQuestions', 'isComplete', 'analysis']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'version',
+          'completedAt',
+          'answers',
+          'categoryNotes',
+          'totalAnswered',
+          'totalQuestions',
+          'isComplete',
+          'analysis',
+          'comparisonWithPrevious',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        data.version is int && data.version >= 1 &&
+        isNonEmptyString(data.completedAt, 64) &&
+        data.answers is map &&
+        data.answers.size() <= 50 &&
+        (!('categoryNotes' in data) || (data.categoryNotes is map && data.categoryNotes.size() <= 20)) &&
+        data.totalAnswered is number && data.totalAnswered >= 0 && data.totalAnswered <= 50 &&
+        data.totalQuestions is number && data.totalQuestions >= 1 && data.totalQuestions <= 50 &&
+        data.isComplete is bool &&
+        data.analysis is map &&
+        (!('comparisonWithPrevious' in data) || data.comparisonWithPrevious == null || data.comparisonWithPrevious is map) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidWellnessPlan(data) {
+      return data.keys().hasAll(['id', 'userId', 'version', 'assessmentId', 'generatedAt', 'title', 'constitutionTendency', 'primaryFocus', 'summary', 'educationalDisclaimer']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'version',
+          'assessmentId',
+          'generatedAt',
+          'title',
+          'constitutionTendency',
+          'primaryFocus',
+          'summary',
+          'dailyRoutine',
+          'morningHabits',
+          'eveningHabits',
+          'sleepSuggestions',
+          'foodAndNutrition',
+          'physicalActivity',
+          'stressAndBreathing',
+          'weeklyGoals',
+          'educationalDisclaimer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        data.version is int && data.version >= 1 &&
+        isValidId(data.assessmentId) &&
+        isNonEmptyString(data.generatedAt, 64) &&
+        isNonEmptyString(data.title, 200) &&
+        isNonEmptyString(data.constitutionTendency, 120) &&
+        isNonEmptyString(data.primaryFocus, 200) &&
+        isNonEmptyString(data.summary, 1500) &&
+        isNonEmptyString(data.educationalDisclaimer, 1000) &&
+        (!('dailyRoutine' in data) || (data.dailyRoutine is list && data.dailyRoutine.size() <= 20)) &&
+        (!('morningHabits' in data) || (data.morningHabits is list && data.morningHabits.size() <= 20)) &&
+        (!('eveningHabits' in data) || (data.eveningHabits is list && data.eveningHabits.size() <= 20)) &&
+        (!('sleepSuggestions' in data) || (data.sleepSuggestions is list && data.sleepSuggestions.size() <= 20)) &&
+        (!('foodAndNutrition' in data) || (data.foodAndNutrition is list && data.foodAndNutrition.size() <= 20)) &&
+        (!('physicalActivity' in data) || (data.physicalActivity is list && data.physicalActivity.size() <= 20)) &&
+        (!('stressAndBreathing' in data) || (data.stressAndBreathing is list && data.stressAndBreathing.size() <= 20)) &&
+        (!('weeklyGoals' in data) || (data.weeklyGoals is list && data.weeklyGoals.size() <= 20));
+    }
+
+    function isValidDailyActivity(data) {
+      return data.keys().hasAll(['id', 'userId', 'activityKey', 'dateString', 'completed']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'activityKey',
+          'title',
+          'category',
+          'discipline',
+          'timeOfDay',
+          'durationMinutes',
+          'benefit',
+          'dateString',
+          'completed',
+          'completedAt'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        isNonEmptyString(data.activityKey, 80) &&
+        isValidDateString(data.dateString) &&
+        data.completed is bool &&
+        isValidOptionalString(data, 'completedAt', 64) &&
+        isValidOptionalString(data, 'title', 150) &&
+        isValidOptionalString(data, 'category', 60) &&
+        isValidOptionalString(data, 'discipline', 60) &&
+        (!('timeOfDay' in data) || data.timeOfDay in ['Morning', 'Afternoon', 'Evening']) &&
+        (!('durationMinutes' in data) || (data.durationMinutes is number && data.durationMinutes >= 0 && data.durationMinutes <= 480)) &&
+        isValidOptionalString(data, 'benefit', 300);
+    }
+
+    function isValidWellnessProgram(data) {
+      return data.keys().hasAll(['id', 'title', 'discipline', 'creatorPractitionerId', 'isPublished']) &&
+        data.keys().hasOnly([
+          'id',
+          'title',
+          'discipline',
+          'category',
+          'durationWeeks',
+          'totalSessions',
+          'creatorPractitionerId',
+          'practitionerName',
+          'practitionerTitle',
+          'description',
+          'nextSessionTemplate',
+          'level',
+          'status',
+          'isPublished',
+          'submittedAt',
+          'reviewedByAdminId',
+          'reviewedAt',
+          'publishedAt',
+          'reviewNotes',
+          'isSimulated',
+          'createdAt',
+          'updatedAt',
+          'createdAtServer',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isNonEmptyString(data.title, 150) &&
+        data.discipline in ['Ayurveda', 'Yoga & Naturopathy', 'Unani', 'Siddha', 'Homeopathy'] &&
+        isValidId(data.creatorPractitionerId) &&
+        data.isPublished is bool &&
+        isValidOptionalString(data, 'category', 80) &&
+        (!('durationWeeks' in data) || (data.durationWeeks is number && data.durationWeeks >= 1 && data.durationWeeks <= 104)) &&
+        (!('totalSessions' in data) || (data.totalSessions is number && data.totalSessions >= 1 && data.totalSessions <= 500)) &&
+        isValidOptionalString(data, 'practitionerName', 100) &&
+        isValidOptionalString(data, 'practitionerTitle', 100) &&
+        isValidOptionalString(data, 'description', 1000) &&
+        isValidOptionalString(data, 'nextSessionTemplate', 200) &&
+        (!('level' in data) || data.level in ['Beginner', 'Intermediate', 'Deepening']) &&
+        (!('status' in data) || data.status in ['draft', 'pending_approval', 'published', 'revision_requested']) &&
+        isValidOptionalString(data, 'submittedAt', 64) &&
+        isValidOptionalString(data, 'reviewedByAdminId', 128) &&
+        isValidOptionalString(data, 'reviewedAt', 64) &&
+        isValidOptionalString(data, 'publishedAt', 64) &&
+        isValidOptionalString(data, 'reviewNotes', 500) &&
+        (!('isSimulated' in data) || data.isSimulated is bool) &&
+        isValidOptionalString(data, 'createdAt', 64) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        isValidOptionalTimestamp(data, 'createdAtServer') &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidEducationalArticle(data) {
+      return data.keys().hasAll(['id', 'title', 'discipline', 'authorId', 'status', 'summary']) &&
+        data.keys().hasOnly([
+          'id',
+          'title',
+          'discipline',
+          'category',
+          'readTime',
+          'authorId',
+          'authorName',
+          'authorQualification',
+          'summary',
+          'fullContent',
+          'keyTakeaways',
+          'status',
+          'submittedAt',
+          'reviewedByAdminId',
+          'reviewedAt',
+          'publishedAt',
+          'reviewNotes',
+          'isSimulated',
+          'createdAt',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isNonEmptyString(data.title, 200) &&
+        isNonEmptyString(data.discipline, 60) &&
+        isValidId(data.authorId) &&
+        data.status in ['draft', 'pending_approval', 'published', 'revision_requested'] &&
+        isNonEmptyString(data.summary, 500) &&
+        isValidOptionalString(data, 'category', 80) &&
+        isValidOptionalString(data, 'readTime', 40) &&
+        isValidOptionalString(data, 'authorName', 100) &&
+        isValidOptionalString(data, 'authorQualification', 100) &&
+        isValidOptionalString(data, 'fullContent', 10000) &&
+        (!('keyTakeaways' in data) || (data.keyTakeaways is list && data.keyTakeaways.size() <= 15)) &&
+        isValidOptionalString(data, 'submittedAt', 64) &&
+        isValidOptionalString(data, 'reviewedByAdminId', 128) &&
+        isValidOptionalString(data, 'reviewedAt', 64) &&
+        isValidOptionalString(data, 'publishedAt', 64) &&
+        isValidOptionalString(data, 'reviewNotes', 500) &&
+        (!('isSimulated' in data) || data.isSimulated is bool) &&
+        isValidOptionalString(data, 'createdAt', 64) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidPractitioner(data) {
+      return data.keys().hasAll(['id', 'userId', 'name', 'qualification', 'councilRegistration', 'isVerified']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'name',
+          'qualification',
+          'discipline',
+          'specialization',
+          'experienceYears',
+          'councilRegistration',
+          'isVerified',
+          'activeClientsCount',
+          'rating',
+          'bio',
+          'nextAvailableSlot',
+          'createdAt',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        isNonEmptyString(data.name, 100) &&
+        isNonEmptyString(data.qualification, 100) &&
+        isNonEmptyString(data.councilRegistration, 120) &&
+        data.isVerified is bool &&
+        isValidOptionalString(data, 'discipline', 60) &&
+        isValidOptionalString(data, 'specialization', 120) &&
+        (!('experienceYears' in data) || (data.experienceYears is number && data.experienceYears >= 0 && data.experienceYears <= 80)) &&
+        (!('activeClientsCount' in data) || (data.activeClientsCount is number && data.activeClientsCount >= 0)) &&
+        (!('rating' in data) || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
+        isValidOptionalString(data, 'bio', 800) &&
+        isValidOptionalString(data, 'nextAvailableSlot', 100) &&
+        isValidOptionalString(data, 'createdAt', 64) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidConsultation(data) {
+      return data.keys().hasAll(['id', 'userId', 'practitionerId', 'topic', 'status', 'createdAt']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'userName',
+          'practitionerId',
+          'practitionerName',
+          'topic',
+          'topicLabel',
+          'preferredDate',
+          'preferredSlot',
+          'notes',
+          'status',
+          'scheduledTime',
+          'practitionerNotes',
+          'isSimulated',
+          'createdAt',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        isValidId(data.practitionerId) &&
+        isNonEmptyString(data.topic, 120) &&
+        data.status in ['pending', 'confirmed', 'rescheduled', 'rejected', 'completed', 'cancelled'] &&
+        isNonEmptyString(data.createdAt, 64) &&
+        isValidOptionalString(data, 'userName', 100) &&
+        isValidOptionalString(data, 'practitionerName', 100) &&
+        isValidOptionalString(data, 'topicLabel', 150) &&
+        isValidOptionalString(data, 'preferredDate', 32) &&
+        (!('preferredSlot' in data) || data.preferredSlot in ['morning', 'afternoon', 'evening']) &&
+        isValidOptionalString(data, 'notes', 800) &&
+        isValidOptionalString(data, 'scheduledTime', 80) &&
+        isValidOptionalString(data, 'practitionerNotes', 800) &&
+        (!('isSimulated' in data) || data.isSimulated is bool) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    function isValidContentApproval(data) {
+      return data.keys().hasAll(['id', 'targetId', 'submittedByAuthorId', 'status', 'submittedAt']) &&
+        data.keys().hasOnly([
+          'id',
+          'targetType',
+          'targetId',
+          'title',
+          'submittedByAuthorId',
+          'submittedByAuthorName',
+          'discipline',
+          'category',
+          'submittedAt',
+          'status',
+          'reviewNotes',
+          'reviewedByAdminId',
+          'reviewedAt',
+          'updatedAt',
+          'reviewedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.targetId) &&
+        isValidId(data.submittedByAuthorId) &&
+        data.status in ['Pending Review', 'Approved', 'Revision Requested'] &&
+        isNonEmptyString(data.submittedAt, 64) &&
+        (!('targetType' in data) || data.targetType in ['article', 'regimen']) &&
+        isValidOptionalString(data, 'title', 200) &&
+        isValidOptionalString(data, 'submittedByAuthorName', 100) &&
+        isValidOptionalString(data, 'discipline', 60) &&
+        isValidOptionalString(data, 'category', 80) &&
+        isValidOptionalString(data, 'reviewNotes', 500) &&
+        isValidOptionalString(data, 'reviewedByAdminId', 128) &&
+        isValidOptionalString(data, 'reviewedAt', 64) &&
+        isValidOptionalString(data, 'updatedAt', 64) &&
+        isValidOptionalTimestamp(data, 'reviewedAtServer');
+    }
+
+    // -------------------------------------------------------------------------
+    // 1. Users Collection (/users/{userId}) — PII Isolated
     // -------------------------------------------------------------------------
     match /users/{userId} {
-      // Sensitive private info: only owner or admin can read. Practitioners cannot read /users/{userId}.
-      allow read: if isOwner(userId) || isAdmin();
+      allow get: if isOwner(userId) || isAdmin();
+      allow list: if isAdmin();
 
-      // On creation, role must be 'user'. Privileged fields cannot be injected.
       allow create: if isOwner(userId) &&
+        isValidId(userId) &&
+        isValidUserPayload(request.resource.data) &&
         request.resource.data.uid == userId &&
         request.resource.data.role == 'user' &&
         (!('isActive' in request.resource.data) || request.resource.data.isActive == true) &&
         (!('assignedPractitionerId' in request.resource.data) || request.resource.data.assignedPractitionerId == null) &&
         (!('assignedPractitionerName' in request.resource.data) || request.resource.data.assignedPractitionerName == null);
 
-      // Normal users can ONLY modify safe, non-privileged profile fields.
-      // Modifying role, isActive, assignedPractitionerId, etc. is strictly blocked.
-      allow update: if (
-        isOwner(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'displayName',
-          'avatarUrl',
-          'prakritiBaseline',
-          'agreedToTerms',
-          'updatedAt',
-          'updatedAtServer'
-        ])
-      ) || isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidUserPayload(request.resource.data) &&
+        request.resource.data.uid == resource.data.uid &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        (
+          (
+            request.auth.uid == userId &&
+            request.resource.data.role == resource.data.role &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'displayName',
+              'avatarUrl',
+              'prakritiBaseline',
+              'agreedToTerms',
+              'updatedAt',
+              'updatedAtServer'
+            ])
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 2: Limited Practitioner-Facing Client Profile Collection
+    // 2. Client Profiles Collection (/clientProfiles/{userId})
     // -------------------------------------------------------------------------
     match /clientProfiles/{userId} {
-      // Exposes only non-sensitive summary info (goals, program, adherence, practitioner notes).
-      // Readable by owner, admin, or explicitly assigned practitioner.
-      allow read: if isOwner(userId) || isAdmin() || isAssignedPractitioner(userId);
+      allow get: if isOwner(userId) ||
+        isAdmin() ||
+        (isPractitioner() && resource.data.get('assignedPractitionerId', null) == request.auth.uid);
+      allow list: if isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid) ||
+        (isPractitioner() && resource.data.assignedPractitionerId == request.auth.uid);
 
-      allow create: if isOwner(userId) || isAdmin();
+      allow create: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidClientProfile(request.resource.data) &&
+        (
+          (
+            request.auth.uid == userId &&
+            request.resource.data.userId == userId &&
+            (!('assignedPractitionerId' in request.resource.data) || request.resource.data.assignedPractitionerId == null) &&
+            (!('practitionerNotes' in request.resource.data) || request.resource.data.practitionerNotes == null)
+          ) ||
+          isAdmin()
+        );
 
-      // Owner can update their goals/program; assigned practitioner can update clinical notes/status; admin has full rights.
-      allow update: if (
-        isOwner(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'primaryGoal',
-          'enrolledProgram',
-          'discipline',
-          'updatedAt',
-          'updatedAtServer'
-        ])
-      ) || (
-        isAssignedPractitioner(userId) &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'practitionerNotes',
-          'status',
-          'adherenceRate',
-          'lastCheckIn',
-          'updatedAt',
-          'updatedAtServer'
-        ])
-      ) || isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(userId) &&
+        isValidClientProfile(request.resource.data) &&
+        request.resource.data.userId == resource.data.userId &&
+        (
+          (
+            request.auth.uid == userId &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'primaryGoal',
+              'enrolledProgram',
+              'discipline',
+              'updatedAt',
+              'updatedAtServer'
+            ])
+          ) ||
+          (
+            isPractitioner() &&
+            resource.data.get('assignedPractitionerId', null) == request.auth.uid &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'practitionerNotes',
+              'status',
+              'adherenceRate',
+              'lastCheckIn',
+              'updatedAt',
+              'updatedAtServer'
+            ])
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 3: Lifestyle Assessments Collection
+    // 3. Lifestyle Assessments (/assessments/{assessmentId}) + History Subcollection
     // -------------------------------------------------------------------------
     match /assessments/{assessmentId} {
-      allow read: if isSignedIn() && (
+      allow get: if isSignedIn() && (
         resource.data.userId == request.auth.uid ||
         isAdmin() ||
         isAssignedPractitioner(resource.data.userId)
       );
 
-      // Strict document ID: assess_{request.auth.uid}
-      allow create: if isSignedIn() &&
-        assessmentId == ('assess_' + request.auth.uid) &&
-        request.resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
 
-      // Ownership integrity: cannot overwrite or change userId
+      allow create: if isSignedIn() &&
+        isValidId(assessmentId) &&
+        assessmentId == ('assess_' + request.auth.uid) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.id == assessmentId &&
+        isValidAssessmentMain(request.resource.data);
+
       allow update: if isSignedIn() &&
+        isValidId(assessmentId) &&
         assessmentId == ('assess_' + request.auth.uid) &&
         resource.data.userId == request.auth.uid &&
-        request.resource.data.userId == request.auth.uid;
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.id == resource.data.id &&
+        isValidAssessmentMain(request.resource.data);
+
+      allow delete: if isAdmin();
+
+      // Versioned Assessment History Subcollection (/assessments/{assessmentId}/history/{versionId})
+      match /history/{versionId} {
+        allow get: if isSignedIn() && (
+          resource.data.userId == request.auth.uid ||
+          isAdmin() ||
+          isAssignedPractitioner(resource.data.userId)
+        );
+
+        // Path-scoped list allows getDocs(collection(db, 'assessments', 'assess_{uid}', 'history'))
+        allow list: if isSignedIn() && (
+          assessmentId == ('assess_' + request.auth.uid) ||
+          isAdmin()
+        );
+
+        allow create: if isSignedIn() &&
+          isValidId(assessmentId) &&
+          isValidId(versionId) &&
+          assessmentId == ('assess_' + request.auth.uid) &&
+          versionId.matches('^v[0-9]+$') &&
+          request.resource.data.userId == request.auth.uid &&
+          isValidAssessmentVersion(request.resource.data);
+
+        // Immutable historical snapshots (only admin can modify/delete)
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. Modular Wellness Plans (/wellnessPlans/{planId})
+    // -------------------------------------------------------------------------
+    match /wellnessPlans/{planId} {
+      allow get: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin() ||
+        isAssignedPractitioner(resource.data.userId)
+      );
+
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
+
+      allow create: if isSignedIn() &&
+        isValidId(planId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.id == planId &&
+        isValidWellnessPlan(request.resource.data);
+
+      allow update: if isSignedIn() &&
+        isValidId(planId) &&
+        isValidWellnessPlan(request.resource.data) &&
+        (
+          (
+            resource.data.userId == request.auth.uid &&
+            request.resource.data.userId == resource.data.userId &&
+            request.resource.data.id == resource.data.id
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // Daily Activities Collection
+    // 5. Daily Activities Collection (/dailyActivities/{activityId})
     // -------------------------------------------------------------------------
     match /dailyActivities/{activityId} {
-      allow read: if isSignedIn() && (
+      allow get: if isSignedIn() && (
         resource.data.userId == request.auth.uid ||
         isAdmin() ||
         isAssignedPractitioner(resource.data.userId)
       );
 
-      allow create, update: if isSignedIn() &&
-        request.resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
 
-      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() &&
+        isValidId(activityId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.id == activityId &&
+        isValidDailyActivity(request.resource.data);
+
+      allow update: if isSignedIn() &&
+        isValidId(activityId) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.id == resource.data.id &&
+        isValidDailyActivity(request.resource.data);
+
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid ||
+        isAdmin()
+      );
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 5: Wellness Programs Collection
+    // 6. Wellness Programs Collection (/wellnessPrograms/{programId})
     // -------------------------------------------------------------------------
     match /wellnessPrograms/{programId} {
-      allow read: if resource.data.isPublished == true || (
+      allow read: if (
+        resource.data.isPublished == true &&
+        resource.data.get('status', '') == 'published'
+      ) || (
         isSignedIn() && (resource.data.creatorPractitionerId == request.auth.uid || isAdmin())
       );
 
-      // Authors cannot self-publish on create: isPublished must be false unless Admin
-      allow create: if isSignedIn() && (isPractitioner() || isAdmin()) &&
+      allow create: if isSignedIn() &&
+        isValidId(programId) &&
         request.resource.data.creatorPractitionerId == request.auth.uid &&
-        (isAdmin() || request.resource.data.isPublished == false);
+        request.resource.data.id == programId &&
+        isValidWellnessProgram(request.resource.data) &&
+        (
+          isAdmin() ||
+          (
+            isPractitioner() &&
+            request.resource.data.isPublished == false &&
+            (!('status' in request.resource.data) || request.resource.data.status in ['draft', 'pending_approval']) &&
+            (!('reviewedByAdminId' in request.resource.data) || request.resource.data.reviewedByAdminId == null) &&
+            (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == null)
+          )
+        );
 
-      // Practitioner authors can update content, but cannot change isPublished to true
-      allow update: if (
-        isSignedIn() &&
-        isPractitioner() &&
-        resource.data.creatorPractitionerId == request.auth.uid &&
-        request.resource.data.creatorPractitionerId == request.auth.uid &&
-        request.resource.data.isPublished == false
-      ) || isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(programId) &&
+        isValidWellnessProgram(request.resource.data) &&
+        (
+          (
+            resource.data.creatorPractitionerId == request.auth.uid &&
+            request.resource.data.creatorPractitionerId == resource.data.creatorPractitionerId &&
+            request.resource.data.id == resource.data.id &&
+            resource.data.isPublished == false &&
+            (!('status' in resource.data) || resource.data.status != 'published') &&
+            request.resource.data.isPublished == false &&
+            (!('status' in request.resource.data) || request.resource.data.status in ['draft', 'pending_approval']) &&
+            (
+              request.resource.data.get('reviewedByAdminId', null) == null ||
+              (
+                request.resource.data.get('status', '') == 'draft' &&
+                request.resource.data.get('reviewedByAdminId', null) == resource.data.get('reviewedByAdminId', null)
+              )
+            ) &&
+            request.resource.data.get('publishedAt', null) == null &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'title',
+              'discipline',
+              'category',
+              'durationWeeks',
+              'totalSessions',
+              'level',
+              'description',
+              'nextSessionTemplate',
+              'status',
+              'isPublished',
+              'submittedAt',
+              'reviewedByAdminId',
+              'reviewedAt',
+              'publishedAt',
+              'reviewNotes',
+              'updatedAt',
+              'updatedAtServer'
+            ]) &&
+            isPractitioner()
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 5: Educational Articles Collection
+    // 7. Educational Articles Collection (/educationalArticles/{articleId})
     // -------------------------------------------------------------------------
     match /educationalArticles/{articleId} {
       allow read: if resource.data.status == 'published' || (
         isSignedIn() && (resource.data.authorId == request.auth.uid || isAdmin())
       );
 
-      // Authors cannot publish directly: status must be 'draft' or 'pending_approval' unless Admin
-      allow create: if isSignedIn() && (isPractitioner() || isAdmin()) &&
+      allow create: if isSignedIn() &&
+        isValidId(articleId) &&
         request.resource.data.authorId == request.auth.uid &&
-        (isAdmin() || request.resource.data.status in ['draft', 'pending_approval']);
+        request.resource.data.id == articleId &&
+        isValidEducationalArticle(request.resource.data) &&
+        (
+          isAdmin() ||
+          (
+            isPractitioner() &&
+            request.resource.data.status in ['draft', 'pending_approval'] &&
+            (!('reviewedByAdminId' in request.resource.data) || request.resource.data.reviewedByAdminId == null) &&
+            (!('publishedAt' in request.resource.data) || request.resource.data.publishedAt == null)
+          )
+        );
 
-      // Practitioner authors can edit draft/pending_approval, but cannot approve or publish
-      allow update: if (
-        isSignedIn() &&
-        isPractitioner() &&
-        resource.data.authorId == request.auth.uid &&
-        request.resource.data.authorId == request.auth.uid &&
-        request.resource.data.status in ['draft', 'pending_approval'] &&
-        resource.data.status != 'published'
-      ) || isAdmin();
+      allow update: if isSignedIn() &&
+        isValidId(articleId) &&
+        isValidEducationalArticle(request.resource.data) &&
+        (
+          (
+            resource.data.authorId == request.auth.uid &&
+            request.resource.data.authorId == resource.data.authorId &&
+            request.resource.data.id == resource.data.id &&
+            resource.data.status != 'published' &&
+            request.resource.data.status in ['draft', 'pending_approval'] &&
+            (
+              request.resource.data.get('reviewedByAdminId', null) == null ||
+              (
+                request.resource.data.status == 'draft' &&
+                request.resource.data.get('reviewedByAdminId', null) == resource.data.get('reviewedByAdminId', null)
+              )
+            ) &&
+            request.resource.data.get('publishedAt', null) == null &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'title',
+              'discipline',
+              'category',
+              'readTime',
+              'summary',
+              'fullContent',
+              'keyTakeaways',
+              'status',
+              'submittedAt',
+              'reviewedByAdminId',
+              'reviewedAt',
+              'publishedAt',
+              'reviewNotes',
+              'updatedAt',
+              'updatedAtServer'
+            ]) &&
+            isPractitioner()
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 6: Practitioner Profiles Collection (Governance)
+    // 8. Practitioner Profiles Collection (/practitioners/{practitionerId})
     // -------------------------------------------------------------------------
     match /practitioners/{practitionerId} {
       allow read: if resource.data.isVerified == true || (
         isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin())
       );
 
-      // Practitioner profile must be created unverified
       allow create: if isSignedIn() &&
+        isValidId(practitionerId) &&
         request.resource.data.userId == request.auth.uid &&
-        request.resource.data.isVerified == false;
+        request.resource.data.id == practitionerId &&
+        request.resource.data.isVerified == false &&
+        isValidPractitioner(request.resource.data);
 
-      // Verification and credential changes can ONLY be approved by Admin.
-      // Practitioners can only update non-credential bio fields.
-      allow update: if isAdmin() || (
-        isSignedIn() &&
-        resource.data.userId == request.auth.uid &&
-        request.resource.data.userId == resource.data.userId &&
-        request.resource.data.isVerified == resource.data.isVerified &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'bio',
-          'specialization',
-          'nextAvailableSlot',
-          'activeClientsCount',
-          'rating',
-          'updatedAt',
-          'updatedAtServer'
-        ])
-      );
+      allow update: if isSignedIn() &&
+        isValidId(practitionerId) &&
+        isValidPractitioner(request.resource.data) &&
+        (
+          (
+            resource.data.userId == request.auth.uid &&
+            request.resource.data.userId == resource.data.userId &&
+            request.resource.data.id == resource.data.id &&
+            request.resource.data.isVerified == resource.data.isVerified &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'bio',
+              'specialization',
+              'nextAvailableSlot',
+              'updatedAt',
+              'updatedAtServer'
+            ])
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // PHASE 4: Consultations Collection Security
+    // 9. Consultations Collection (/consultations/{consultationId})
     // -------------------------------------------------------------------------
+    function isTerminalConsultationStatus(status) {
+      return status in ['rejected', 'completed', 'cancelled'];
+    }
+
+    function isValidPractitionerConsultationTransition(fromStatus, toStatus) {
+      return (fromStatus == 'pending' && toStatus in ['confirmed', 'rescheduled', 'rejected', 'cancelled']) ||
+        (fromStatus in ['confirmed', 'rescheduled'] && toStatus in ['confirmed', 'rescheduled', 'completed', 'cancelled']);
+    }
+
     match /consultations/{consultationId} {
       allow read: if isSignedIn() && (
         resource.data.userId == request.auth.uid ||
@@ -252,53 +927,89 @@ service cloud.firestore {
         isAdmin()
       );
 
-      // Normal user creating consultation: status must be 'pending', no scheduledTime or practitionerNotes
       allow create: if isSignedIn() &&
+        isValidId(consultationId) &&
         request.resource.data.userId == request.auth.uid &&
+        request.resource.data.id == consultationId &&
         request.resource.data.status == 'pending' &&
         (!('scheduledTime' in request.resource.data) || request.resource.data.scheduledTime == null) &&
-        (!('practitionerNotes' in request.resource.data) || request.resource.data.practitionerNotes == null);
+        (!('practitionerNotes' in request.resource.data) || request.resource.data.practitionerNotes == null) &&
+        isValidConsultation(request.resource.data);
 
-      // Normal user can only cancel their consultation or update their preferred slot/topic/notes.
-      // They CANNOT mark as completed/confirmed or change userId/practitionerId.
-      // Practitioner can update status (confirmed/completed/cancelled), scheduledTime, notes.
-      allow update: if (
-        isSignedIn() &&
-        resource.data.userId == request.auth.uid &&
-        request.resource.data.userId == resource.data.userId &&
-        request.resource.data.practitionerId == resource.data.practitionerId &&
+      allow update: if isSignedIn() &&
+        isValidId(consultationId) &&
+        isValidConsultation(request.resource.data) &&
         (
-          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-            'preferredSlot',
-            'topic',
-            'notes',
-            'status',
-            'updatedAt',
-            'updatedAtServer'
-          ]) &&
-          (request.resource.data.status == resource.data.status || request.resource.data.status == 'cancelled')
-        )
-      ) || (
-        isSignedIn() &&
-        isPractitioner() &&
-        resource.data.practitionerId == request.auth.uid &&
-        request.resource.data.userId == resource.data.userId &&
-        request.resource.data.practitionerId == resource.data.practitionerId &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'status',
-          'scheduledTime',
-          'practitionerNotes',
-          'updatedAt',
-          'updatedAtServer'
-        ]) &&
-        request.resource.data.status in ['confirmed', 'completed', 'cancelled']
-      ) || isAdmin();
+          (
+            resource.data.userId == request.auth.uid &&
+            !isTerminalConsultationStatus(resource.data.status) &&
+            request.resource.data.userId == resource.data.userId &&
+            request.resource.data.practitionerId == resource.data.practitionerId &&
+            request.resource.data.id == resource.data.id &&
+            request.resource.data.createdAt == resource.data.createdAt &&
+            (request.resource.data.status == resource.data.status || request.resource.data.status == 'cancelled') &&
+            (
+              resource.data.status == 'pending'
+                ? request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                    'preferredSlot',
+                    'preferredDate',
+                    'topic',
+                    'topicLabel',
+                    'notes',
+                    'status',
+                    'updatedAt',
+                    'updatedAtServer'
+                  ])
+                : request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                    'notes',
+                    'status',
+                    'scheduledTime',
+                    'updatedAt',
+                    'updatedAtServer'
+                  ]) &&
+                  (
+                    request.resource.data.status != 'cancelled' ||
+                    request.resource.data.get('scheduledTime', null) == null
+                  ) &&
+                  (
+                    request.resource.data.status == 'cancelled' ||
+                    request.resource.data.get('scheduledTime', null) == resource.data.get('scheduledTime', null)
+                  )
+            )
+          ) ||
+          (
+            resource.data.practitionerId == request.auth.uid &&
+            !isTerminalConsultationStatus(resource.data.status) &&
+            isValidPractitionerConsultationTransition(resource.data.status, request.resource.data.status) &&
+            request.resource.data.userId == resource.data.userId &&
+            request.resource.data.practitionerId == resource.data.practitionerId &&
+            request.resource.data.id == resource.data.id &&
+            request.resource.data.createdAt == resource.data.createdAt &&
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+              'status',
+              'scheduledTime',
+              'practitionerNotes',
+              'updatedAt',
+              'updatedAtServer'
+            ]) &&
+            (
+              !(request.resource.data.status in ['confirmed', 'rescheduled']) ||
+              isNonEmptyString(request.resource.data.get('scheduledTime', null), 80)
+            ) &&
+            (
+              !(request.resource.data.status in ['rejected', 'cancelled']) ||
+              request.resource.data.get('scheduledTime', null) == null
+            ) &&
+            isPractitioner()
+          ) ||
+          isAdmin()
+        );
 
       allow delete: if isAdmin();
     }
 
     // -------------------------------------------------------------------------
-    // Content Approvals Queue Collection
+    // 10. Content Approvals Queue Collection (/contentApprovals/{approvalId})
     // -------------------------------------------------------------------------
     match /contentApprovals/{approvalId} {
       allow read: if isSignedIn() && (
@@ -307,11 +1018,18 @@ service cloud.firestore {
       );
 
       allow create: if isSignedIn() &&
+        isValidId(approvalId) &&
         request.resource.data.submittedByAuthorId == request.auth.uid &&
-        request.resource.data.status == 'Pending Review';
+        request.resource.data.id == approvalId &&
+        request.resource.data.status == 'Pending Review' &&
+        (!('reviewedByAdminId' in request.resource.data) || request.resource.data.reviewedByAdminId == null) &&
+        (!('reviewNotes' in request.resource.data) || request.resource.data.reviewNotes == null) &&
+        isValidContentApproval(request.resource.data) &&
+        (isPractitioner() || isAdmin());
 
-      // Only administrators can approve or request revision on items
-      allow update: if isAdmin();
+      allow update: if isAdmin() &&
+        isValidId(approvalId) &&
+        isValidContentApproval(request.resource.data);
 
       allow delete: if isAdmin();
     }

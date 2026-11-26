@@ -1,6 +1,21 @@
 import { ConsultationDocument, ConsultationStatus } from '../types/firebase';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+
+function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+  if (firestoreOverride) return firestoreOverride;
+  return isFirebaseConfigured && db ? db : null;
+}
 
 const LOCAL_CONSULTATIONS_KEY = 'ayush_consultations_store';
 const LOCAL_CONSULTATIONS_SEEDED_KEY = 'ayush_consultations_demo_seeded';
@@ -215,11 +230,19 @@ export interface CreateConsultationInput {
  * persisting to Local Persistent Demo Storage (and Cloud Firestore when configured).
  */
 export async function createConsultationRequest(
-  input: CreateConsultationInput
+  input: CreateConsultationInput,
+  firestoreOverride?: Firestore | null
 ): Promise<ConsultationDocument> {
   const validation = validateConsultationInput(input);
   if (!validation.isValid) {
     throw new Error(validation.message || 'Invalid consultation request details.');
+  }
+
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb && input.practitionerId.trim() === 'prac-1') {
+    throw new Error(
+      'No verified practitioner account is available for live consultation scheduling.'
+    );
   }
 
   const randomSuffix = Math.random().toString(36).slice(2, 7);
@@ -245,13 +268,12 @@ export async function createConsultationRequest(
     updatedAt: now,
   };
 
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'consultations', id), docData);
-      return docData;
-    } catch (err) {
-      console.warn('Error saving consultation request to Cloud Firestore:', err);
-    }
+  if (activeDb) {
+    await setDoc(doc(activeDb, 'consultations', id), docData);
+    const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
+    store[id] = docData;
+    setLocalData(LOCAL_CONSULTATIONS_KEY, store);
+    return docData;
   }
 
   const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
@@ -271,17 +293,17 @@ function sortNewestFirst(records: ConsultationDocument[]): ConsultationDocument[
 /**
  * Fetches consultation requests belonging exclusively to a specific seeker UID.
  */
-export async function fetchConsultationsForUser(userId: string): Promise<ConsultationDocument[]> {
+export async function fetchConsultationsForUser(
+  userId: string,
+  firestoreOverride?: Firestore | null
+): Promise<ConsultationDocument[]> {
   if (!userId || !userId.trim()) return [];
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(collection(db, 'consultations'), where('userId', '==', userId));
-      const snap = await getDocs(q);
-      return sortNewestFirst(snap.docs.map((d) => d.data() as ConsultationDocument));
-    } catch (err) {
-      console.warn('Error fetching seeker consultations from Cloud Firestore:', err);
-    }
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    const q = query(collection(activeDb, 'consultations'), where('userId', '==', userId));
+    const snap = await getDocs(q);
+    return sortNewestFirst(snap.docs.map((d) => d.data() as ConsultationDocument));
   }
 
   const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
@@ -294,21 +316,22 @@ export async function fetchConsultationsForUser(userId: string): Promise<Consult
  * Fetches consultation requests addressed exclusively to a specific practitioner ID.
  */
 export async function fetchConsultationsForPractitioner(
-  practitionerId: string
+  practitionerId: string,
+  firestoreOverride?: Firestore | null
 ): Promise<ConsultationDocument[]> {
   if (!practitionerId || !practitionerId.trim()) return [];
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(
-        collection(db, 'consultations'),
-        where('practitionerId', '==', practitionerId)
-      );
-      const snap = await getDocs(q);
-      return sortNewestFirst(snap.docs.map((d) => d.data() as ConsultationDocument));
-    } catch (err) {
-      console.warn('Error fetching practitioner consultations from Cloud Firestore:', err);
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    if (practitionerId.trim() === 'prac-1') {
+      return [];
     }
+    const q = query(
+      collection(activeDb, 'consultations'),
+      where('practitionerId', '==', practitionerId)
+    );
+    const snap = await getDocs(q);
+    return sortNewestFirst(snap.docs.map((d) => d.data() as ConsultationDocument));
   }
 
   const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
@@ -324,13 +347,46 @@ export interface UpdateConsultationStatusPayload {
   practitionerNotes?: string | null;
 }
 
+export const TERMINAL_CONSULTATION_STATUSES: ConsultationStatus[] = [
+  'rejected',
+  'completed',
+  'cancelled',
+];
+
+export function isValidPractitionerConsultationTransition(
+  fromStatus: ConsultationStatus,
+  toStatus: ConsultationStatus
+): boolean {
+  if (TERMINAL_CONSULTATION_STATUSES.includes(fromStatus)) {
+    return false;
+  }
+  if (fromStatus === 'pending') {
+    return (
+      toStatus === 'confirmed' ||
+      toStatus === 'rescheduled' ||
+      toStatus === 'rejected' ||
+      toStatus === 'cancelled'
+    );
+  }
+  if (fromStatus === 'confirmed' || fromStatus === 'rescheduled') {
+    return (
+      toStatus === 'confirmed' ||
+      toStatus === 'rescheduled' ||
+      toStatus === 'completed' ||
+      toStatus === 'cancelled'
+    );
+  }
+  return false;
+}
+
 /**
  * Updates a consultation request status (confirmed, rescheduled, rejected, completed, cancelled)
  * along with optional scheduled appointment slot and practitioner review notes.
  */
 export async function updateConsultationStatus(
   consultationId: string,
-  payload: UpdateConsultationStatusPayload
+  payload: UpdateConsultationStatusPayload,
+  firestoreOverride?: Firestore | null
 ): Promise<ConsultationDocument> {
   if (!consultationId || !consultationId.trim()) {
     throw new Error('Consultation ID is required.');
@@ -344,36 +400,74 @@ export async function updateConsultationStatus(
   }
 
   const now = new Date().toISOString();
+  const activeDb = resolveActiveDb(firestoreOverride);
+  const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const updatePayload: Record<string, unknown> = {
-        status: payload.status,
-        updatedAt: now,
-      };
-      if (payload.scheduledTime !== undefined) {
-        updatePayload.scheduledTime = payload.scheduledTime?.trim() || null;
-      }
-      if (payload.practitionerNotes !== undefined) {
-        updatePayload.practitionerNotes = payload.practitionerNotes?.trim() || null;
-      }
-      await updateDoc(doc(db, 'consultations', consultationId), updatePayload);
-    } catch (err) {
-      console.warn('Error updating consultation in Cloud Firestore:', err);
+  if (activeDb) {
+    const consultRef = doc(activeDb, 'consultations', consultationId);
+    const snap = await getDoc(consultRef);
+    if (!snap.exists()) {
+      throw new Error(`Consultation request "${consultationId}" was not found in Cloud Firestore.`);
     }
+
+    const existing = snap.data() as ConsultationDocument;
+    if (payload.practitionerId && existing.practitionerId !== payload.practitionerId) {
+      throw new Error('Unauthorized: This consultation belongs to a different practitioner.');
+    }
+    if (!isValidPractitionerConsultationTransition(existing.status, payload.status)) {
+      throw new Error(
+        `Invalid consultation transition: cannot change status from "${existing.status}" to "${payload.status}".`
+      );
+    }
+
+    const nextScheduledTime =
+      payload.status === 'rejected' || payload.status === 'cancelled'
+        ? null
+        : payload.scheduledTime !== undefined
+        ? payload.scheduledTime?.trim() || null
+        : existing.scheduledTime ?? null;
+    const nextPractitionerNotes =
+      payload.practitionerNotes !== undefined
+        ? payload.practitionerNotes?.trim() || null
+        : existing.practitionerNotes ?? null;
+
+    const updatePayload: Record<string, unknown> = {
+      status: payload.status,
+      scheduledTime: nextScheduledTime,
+      updatedAt: now,
+    };
+    if (payload.practitionerNotes !== undefined) {
+      updatePayload.practitionerNotes = nextPractitionerNotes;
+    }
+
+    await updateDoc(consultRef, updatePayload);
+
+    const updated: ConsultationDocument = {
+      ...existing,
+      status: payload.status,
+      scheduledTime: nextScheduledTime,
+      practitionerNotes: nextPractitionerNotes,
+      updatedAt: now,
+    };
+
+    store[consultationId] = updated;
+    setLocalData(LOCAL_CONSULTATIONS_KEY, store);
+    return updated;
   }
 
-  const store = getLocalData<ConsultationDocument>(LOCAL_CONSULTATIONS_KEY);
+  // Demo Mode (Local Persistent Demo Storage)
   const existing = store[consultationId];
   if (!existing) {
     throw new Error(`Consultation request "${consultationId}" was not found.`);
   }
 
-  if (
-    payload.practitionerId &&
-    existing.practitionerId !== payload.practitionerId
-  ) {
+  if (payload.practitionerId && existing.practitionerId !== payload.practitionerId) {
     throw new Error('Unauthorized: This consultation belongs to a different practitioner.');
+  }
+  if (!isValidPractitionerConsultationTransition(existing.status, payload.status)) {
+    throw new Error(
+      `Invalid consultation transition: cannot change status from "${existing.status}" to "${payload.status}".`
+    );
   }
 
   const updated: ConsultationDocument = {
@@ -404,12 +498,17 @@ export async function confirmConsultation(
   consultationId: string,
   scheduledTime: string,
   practitionerNotes?: string,
-  practitionerId?: string
+  practitionerId?: string,
+  firestoreOverride?: Firestore | null
 ): Promise<ConsultationDocument> {
-  return updateConsultationStatus(consultationId, {
-    status: 'confirmed',
-    practitionerId,
-    scheduledTime,
-    practitionerNotes: practitionerNotes ?? null,
-  });
+  return updateConsultationStatus(
+    consultationId,
+    {
+      status: 'confirmed',
+      practitionerId,
+      scheduledTime,
+      practitionerNotes: practitionerNotes ?? null,
+    },
+    firestoreOverride
+  );
 }

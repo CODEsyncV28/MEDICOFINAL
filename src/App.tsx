@@ -24,11 +24,19 @@ import {
   fetchConsultationsForUser,
   seedDemoConsultations,
 } from './services/consultationService';
-import { seedDemoClientProfiles } from './services/practitionerService';
+import {
+  fetchVerifiedPractitioners,
+  fetchSeekerAssignedPractitionerId,
+  seedDemoClientProfiles,
+} from './services/practitionerService';
 import { seedDemoArticles } from './services/contentService';
 import { seedDemoPrograms } from './services/programService';
 import { seedDemoAuditLog } from './services/adminService';
 import { canAccessPortal } from './utils/portalAccess';
+import {
+  resolvePractitionerForSeeker,
+  resolvePractitionerForWorkspace,
+} from './utils/practitionerIdentity';
 import {
   submitAssessment,
   fetchLatestAssessment,
@@ -49,7 +57,7 @@ import {
   WellnessPlan,
   AssessmentVersionRecord,
 } from './types/assessment';
-import { ConsultationDocument } from './types/firebase';
+import { ConsultationDocument, PractitionerDocument } from './types/firebase';
 import {
   INITIAL_DAILY_ACTIVITIES,
   INITIAL_PROGRAMS,
@@ -78,6 +86,10 @@ function AppContent() {
 
   // Explicit hackathon Demo Mode portal switcher (off by default)
   const [demoPortalEnabled, setDemoPortalEnabled] = useState<boolean>(false);
+  const [verifiedPractitioners, setVerifiedPractitioners] = useState<PractitionerDocument[]>([]);
+  const [practitionersLoading, setPractitionersLoading] = useState<boolean>(isConfigured);
+  const [practitionersError, setPractitionersError] = useState<string | null>(null);
+  const [seekerAssignedPractitionerId, setSeekerAssignedPractitionerId] = useState<string | null>(null);
 
   // Initial assessment: 3 answered for guest preview (canonical question IDs only)
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({
@@ -112,14 +124,62 @@ function AppContent() {
     }, 3500);
   };
 
-  // Seed synthetic demo records once on startup
+  // Seed synthetic demo records ONLY in Demo Mode, and hydrate verified Firestore practitioners in live mode
   useEffect(() => {
-    seedDemoConsultations();
-    seedDemoClientProfiles(PRIMARY_PRACTITIONER.id, INITIAL_CLIENTS);
-    seedDemoArticles();
-    seedDemoPrograms();
-    seedDemoAuditLog();
-  }, []);
+    if (!isConfigured) {
+      seedDemoConsultations();
+      seedDemoClientProfiles(PRIMARY_PRACTITIONER.id, INITIAL_CLIENTS);
+      seedDemoArticles();
+      seedDemoPrograms();
+      seedDemoAuditLog();
+      setPractitionersLoading(false);
+      setPractitionersError(null);
+      return;
+    }
+
+    let isMounted = true;
+    setPractitionersLoading(true);
+    setPractitionersError(null);
+
+    fetchVerifiedPractitioners()
+      .then((docs) => {
+        if (!isMounted) return;
+        setVerifiedPractitioners(docs);
+      })
+      .catch((err) => {
+        if (!isMounted) return;
+        setVerifiedPractitioners([]);
+        setPractitionersError(
+          err instanceof Error
+            ? err.message
+            : 'Unable to load verified AYUSH practitioners from Firestore.'
+        );
+      })
+      .finally(() => {
+        if (isMounted) {
+          setPractitionersLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isConfigured]);
+
+  const workspacePractitioner = resolvePractitionerForWorkspace(
+    PRIMARY_PRACTITIONER,
+    firebaseUser?.uid ?? null,
+    userProfile,
+    demoPortalEnabled && userProfile?.role !== 'practitioner',
+    verifiedPractitioners
+  );
+  const seekerPractitioner = resolvePractitionerForSeeker(
+    PRIMARY_PRACTITIONER,
+    userProfile,
+    verifiedPractitioners,
+    isConfigured,
+    seekerAssignedPractitionerId
+  );
 
   const refreshUserConsultations = async (uid?: string) => {
     const targetUid = uid || (firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID);
@@ -216,10 +276,16 @@ function AppContent() {
           );
         }
 
-        // 3. Fetch persisted consultation requests for current seeker
-        const consultDocs = await fetchConsultationsForUser(effectiveUid);
+        // 3. Fetch persisted consultation requests & clientProfile practitioner assignment for current seeker
+        const [consultDocs, assignedPracUid] = await Promise.all([
+          fetchConsultationsForUser(effectiveUid),
+          isConfigured && firebaseUser
+            ? fetchSeekerAssignedPractitionerId(firebaseUser.uid)
+            : Promise.resolve(null),
+        ]);
         if (isMounted) {
           setUserConsultations(consultDocs);
+          setSeekerAssignedPractitionerId(assignedPracUid);
         }
       } catch (err) {
         console.warn('Hydration skipped or offline:', err);
@@ -351,8 +417,13 @@ function AppContent() {
         showToast('Baseline Assessment saved! Your personalized Wellness Plan has been generated.');
       }
     } catch (err) {
-      console.warn('Error during submitAssessment:', err);
-      showToast('Assessment submitted successfully.');
+      console.error('Error during submitAssessment:', err);
+      showToast(
+        err instanceof Error
+          ? err.message
+          : 'Could not save assessment. Please verify your connection and permissions.'
+      );
+      throw err;
     }
   };
 
@@ -434,7 +505,9 @@ function AppContent() {
                 onToggleActivity={handleToggleActivity}
                 programs={programs}
                 articles={articles}
-                practitioner={PRIMARY_PRACTITIONER}
+                practitioner={seekerPractitioner}
+                practitionersLoading={practitionersLoading}
+                practitionersError={practitionersError}
                 assessmentAnswers={assessmentAnswers}
                 totalAssessmentQuestions={EXPANDED_ASSESSMENT_QUESTIONS.length}
                 onOpenAssessment={() => setIsAssessmentOpen(true)}
@@ -461,7 +534,7 @@ function AppContent() {
 
             {currentRole === 'practitioner' && (
               <PractitionerDashboard
-                practitioner={PRIMARY_PRACTITIONER}
+                practitioner={workspacePractitioner}
                 programs={programs}
                 articles={articles}
                 programsRefreshKey={practitionerProgramsRefreshKey}
@@ -517,8 +590,8 @@ function AppContent() {
       />
 
       <ConsultationModal
-        isOpen={isConsultationOpen}
-        practitioner={PRIMARY_PRACTITIONER}
+        isOpen={isConsultationOpen && Boolean(seekerPractitioner)}
+        practitioner={seekerPractitioner}
         seekerUid={firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID}
         seekerName={
           userProfile?.displayName ||
@@ -538,7 +611,7 @@ function AppContent() {
       <NewRegimenModal
         isOpen={isNewRegimenOpen}
         onClose={() => setIsNewRegimenOpen(false)}
-        practitioner={PRIMARY_PRACTITIONER}
+        practitioner={workspacePractitioner}
         onSaved={(saved) => {
           setPractitionerProgramsRefreshKey((prev) => prev + 1);
           showToast(

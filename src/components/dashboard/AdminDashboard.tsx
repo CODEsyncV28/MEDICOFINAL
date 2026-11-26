@@ -1093,6 +1093,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
+          {programActionError && !selectedProgram && (
+            <div role="alert" className="p-3.5 rounded-lg bg-[#FDF2F0] border border-[#ECC8C1] text-xs text-[#9B2C1B] font-medium">
+              {programActionError}
+            </div>
+          )}
+
           {programsLoading ? (
             <div className="p-8 rounded-xl border border-[#E0E7E1] bg-[#FAFBF9] flex items-center justify-center gap-2 text-xs text-[#526B5C]">
               <Loader2 className="w-4 h-4 animate-spin text-[#2D5A43]" />
@@ -1212,8 +1218,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <span className="text-[11px] font-semibold text-[#2D5A43] uppercase tracking-wider">
                   System Accountability
                 </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#E8EFEA] text-[#244E38] border border-[#CCDCD2]">
-                  Live Session Audit Trail
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#FAF2EF] text-[#A64B2A] border border-[#F0DCD5]">
+                  Session Prototype Log (Browser-Local)
                 </span>
               </div>
               <h2 className="text-xl font-serif font-bold text-[#1E3F2E] mt-0.5">
@@ -1297,7 +1303,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </div>
 
           <div className="p-3 bg-[#F8FAF8] rounded-xl border border-[#DCE6DE] text-xs text-[#526B5C]">
-            <strong>Audit Transparency Note:</strong> All administrative approval decisions taken in this console are logged here in real-time. Actions are synchronized with Firestore backend collections when cloud persistence is active.
+            <strong>Audit Storage Scope:</strong> Administrative moderation decisions (content articles and wellness programmes) persist across sessions in Cloud Firestore, while this Governance Audit Log timeline is stored in browser-local session storage as a prototype activity feed and is not synced across devices.
           </div>
         </section>
       )}

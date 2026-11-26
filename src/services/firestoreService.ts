@@ -199,7 +199,11 @@ export async function fetchPublishedPrograms(): Promise<WellnessProgramDocument[
   const path = 'wellnessPrograms';
 
   try {
-    const q = query(collection(db, 'wellnessPrograms'), where('isPublished', '==', true));
+    const q = query(
+      collection(db, 'wellnessPrograms'),
+      where('isPublished', '==', true),
+      where('status', '==', 'published')
+    );
     const snap = await getDocs(q);
     return snap.docs.map((d) => d.data() as WellnessProgramDocument);
   } catch (error) {

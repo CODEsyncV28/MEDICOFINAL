@@ -46,15 +46,22 @@ import {
   ProgramApprovalStatus,
 } from '../../types/firebase';
 import {
+  TERMINAL_CONSULTATION_STATUSES,
   fetchConsultationsForPractitioner,
   getConsultationTopicLabel,
   getPreferredSlotLabel,
+  isValidPractitionerConsultationTransition,
   updateConsultationStatus,
 } from '../../services/consultationService';
 import {
+  AssignedClientWellnessSnapshot,
+  fetchAssignedClientWellnessSnapshot,
   fetchClientsForPractitioner,
   updateClientObservationNotes,
 } from '../../services/practitionerService';
+import { fetchLatestAssessment } from '../../services/assessmentService';
+import { fetchLatestWellnessPlan } from '../../services/wellnessPlanService';
+import { isFirebaseConfigured } from '../../lib/firebase';
 import {
   fetchArticlesForPractitioner,
   saveOrSubmitArticle,
@@ -64,6 +71,14 @@ import {
   saveOrSubmitProgram,
 } from '../../services/programService';
 import { SafetyBanner } from '../common/SafetyBanner';
+
+function getPractitionerInitials(name: string): string {
+  const cleaned = name.replace(/^Dr\.\s+/i, '').trim();
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'AP';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
 
 interface PractitionerDashboardProps {
   practitioner: Practitioner;
@@ -145,6 +160,10 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   const [savingNotes, setSavingNotes] = useState<boolean>(false);
   const [notesError, setNotesError] = useState<string | null>(null);
   const [saveNotesToast, setSaveNotesToast] = useState<string | null>(null);
+  const [clientWellnessSnapshot, setClientWellnessSnapshot] =
+    useState<AssignedClientWellnessSnapshot | null>(null);
+  const [clientWellnessLoading, setClientWellnessLoading] = useState<boolean>(false);
+  const [clientWellnessError, setClientWellnessError] = useState<string | null>(null);
 
   // Programme management & editing (hydrated from programService)
   const [programList, setProgramList] = useState<WellnessProgramDocument[]>([]);
@@ -176,7 +195,9 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   const [consultationsLoading, setConsultationsLoading] = useState<boolean>(true);
   const [consultationsError, setConsultationsError] = useState<string | null>(null);
   const [activeConsultationModal, setActiveConsultationModal] = useState<ConsultationDocument | null>(null);
-  const [consultationModalAction, setConsultationModalAction] = useState<'confirmed' | 'rescheduled' | 'rejected'>('confirmed');
+  const [consultationModalAction, setConsultationModalAction] = useState<
+    'confirmed' | 'rescheduled' | 'rejected' | 'completed'
+  >('confirmed');
   const [scheduledSlotInput, setScheduledSlotInput] = useState<string>('Tomorrow at 02:00 PM');
   const [consultationNoteInput, setConsultationNoteInput] = useState<string>('');
   const [isUpdatingConsultation, setIsUpdatingConsultation] = useState<boolean>(false);
@@ -268,13 +289,51 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     });
   }, [clientList, searchTerm, statusFilter, disciplineFilter]);
 
-  // Handle open client detail
-  const handleOpenClientDetail = (client: ClientRecord) => {
+  // Handle open client detail & load permitted assessment / wellness plan summary
+  const handleOpenClientDetail = async (client: ClientRecord) => {
     setSelectedClient(client);
     setEditingNotes(client.practitionerNotes || '');
     setEditingStatus(client.status);
     setSaveNotesToast(null);
     setNotesError(null);
+    setClientWellnessSnapshot(null);
+    setClientWellnessError(null);
+    setClientWellnessLoading(true);
+
+    try {
+      if (isFirebaseConfigured) {
+        const snapshot = await fetchAssignedClientWellnessSnapshot(client.id);
+        setClientWellnessSnapshot(snapshot);
+      } else {
+        const [latestAssess, latestPlan] = await Promise.all([
+          fetchLatestAssessment(client.id),
+          fetchLatestWellnessPlan(client.id),
+        ]);
+        if (latestAssess || latestPlan) {
+          setClientWellnessSnapshot({
+            constitutionTendency:
+              latestAssess?.analysis.constitutionTendency || latestPlan?.constitutionTendency || null,
+            circadianBalanceCategory: latestAssess?.analysis.circadianRhythmCategory || null,
+            digestiveAgniCategory: latestAssess?.analysis.digestiveAgniCategory || null,
+            movementCategory: latestAssess?.analysis.movementPranaCategory || null,
+            stressCategory: latestAssess?.analysis.stressMindCategory || null,
+            latestVersion: latestAssess?.version ?? latestPlan?.version ?? null,
+            completedAt: latestAssess?.completedAt || null,
+            planTitle: latestPlan?.title || null,
+            planPrimaryFocus: latestPlan?.primaryFocus || null,
+            planSummary: latestPlan?.summary || null,
+          });
+        }
+      }
+    } catch (err) {
+      setClientWellnessError(
+        err instanceof Error
+          ? err.message
+          : 'Unable to retrieve permitted assessment and wellness summary.'
+      );
+    } finally {
+      setClientWellnessLoading(false);
+    }
   };
 
   // Handle save client observation note persistently via practitionerService
@@ -428,8 +487,14 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
   const handleOpenConsultationModal = (
     item: ConsultationDocument,
-    action: 'confirmed' | 'rescheduled' | 'rejected'
+    action: 'confirmed' | 'rescheduled' | 'rejected' | 'completed'
   ) => {
+    if (
+      TERMINAL_CONSULTATION_STATUSES.includes(item.status) ||
+      !isValidPractitionerConsultationTransition(item.status, action)
+    ) {
+      return;
+    }
     setActiveConsultationModal(item);
     setConsultationModalAction(action);
     setConsultationModalError(null);
@@ -440,7 +505,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
     setConsultationNoteInput(item.practitionerNotes || '');
   };
 
-  // Handle consultation confirm, reschedule, or decline persistently
+  // Handle consultation confirm, reschedule, complete, or decline persistently
   const handleUpdateConsultation = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeConsultationModal) return;
@@ -456,11 +521,17 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
 
     setIsUpdatingConsultation(true);
     try {
+      const nextScheduledTime =
+        consultationModalAction === 'rejected'
+          ? null
+          : consultationModalAction === 'completed'
+          ? activeConsultationModal.scheduledTime || scheduledSlotInput.trim() || null
+          : scheduledSlotInput.trim();
+
       const updated = await updateConsultationStatus(activeConsultationModal.id, {
         status: consultationModalAction,
         practitionerId: practitioner.id,
-        scheduledTime:
-          consultationModalAction === 'rejected' ? null : scheduledSlotInput.trim(),
+        scheduledTime: nextScheduledTime,
         practitionerNotes: consultationNoteInput.trim() || null,
       });
 
@@ -529,7 +600,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
       <section className="bg-gradient-to-br from-[#FAFAF7] via-[#F6F8F5] to-[#EEF4F0] rounded-2xl p-6 sm:p-8 border border-[#E0E7E1] shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-start gap-4">
           <div className="w-16 h-16 rounded-2xl bg-[#E5EDE7] text-[#2D5A43] font-serif font-bold text-2xl flex items-center justify-center shrink-0 border border-[#D0DDD3] shadow-xs">
-            AS
+            {getPractitionerInitials(practitioner.name)}
           </div>
           <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2.5">
@@ -1008,29 +1079,54 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       )}
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
-                      <button
-                        type="button"
-                        onClick={() => handleOpenConsultationModal(item, 'confirmed')}
-                        className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
-                      >
-                        {item.status === 'pending' ? 'Accept & Confirm' : 'Confirm Slot'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenConsultationModal(item, 'rescheduled')}
-                        className="px-3.5 py-1.5 text-xs font-semibold text-[#1E4E79] bg-[#E8F0F7] hover:bg-[#DCE8F2] border border-[#C6D8E8] rounded-lg transition-colors"
-                      >
-                        Reschedule
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleOpenConsultationModal(item, 'rejected')}
-                        className="px-3.5 py-1.5 text-xs font-semibold text-[#9B2C1B] bg-[#FDF2F0] hover:bg-[#F9E3DF] border border-[#ECC8C1] rounded-lg transition-colors"
-                      >
-                        Decline
-                      </button>
-                    </div>
+                    {TERMINAL_CONSULTATION_STATUSES.includes(item.status) ? (
+                      <div className="flex items-center justify-end pt-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-100 text-slate-600 border border-slate-200 text-xs font-semibold">
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Finalized — {badge.label} consultations cannot be reopened</span>
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                        {isValidPractitionerConsultationTransition(item.status, 'confirmed') && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenConsultationModal(item, 'confirmed')}
+                            className="px-3.5 py-1.5 text-xs font-semibold text-white bg-[#2D5A43] hover:bg-[#234835] rounded-lg shadow-xs transition-colors"
+                          >
+                            {item.status === 'pending' ? 'Accept & Confirm' : 'Confirm Slot'}
+                          </button>
+                        )}
+                        {isValidPractitionerConsultationTransition(item.status, 'rescheduled') && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenConsultationModal(item, 'rescheduled')}
+                            className="px-3.5 py-1.5 text-xs font-semibold text-[#1E4E79] bg-[#E8F0F7] hover:bg-[#DCE8F2] border border-[#C6D8E8] rounded-lg transition-colors"
+                          >
+                            Reschedule
+                          </button>
+                        )}
+                        {(item.status === 'confirmed' || item.status === 'rescheduled') &&
+                          isValidPractitionerConsultationTransition(item.status, 'completed') && (
+                            <button
+                              type="button"
+                              onClick={() => handleOpenConsultationModal(item, 'completed')}
+                              className="px-3.5 py-1.5 text-xs font-semibold text-[#244E38] bg-[#EBF2ED] hover:bg-[#DCE9E0] border border-[#C8D8CE] rounded-lg transition-colors"
+                            >
+                              Mark Completed
+                            </button>
+                          )}
+                        {isValidPractitionerConsultationTransition(item.status, 'rejected') && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenConsultationModal(item, 'rejected')}
+                            className="px-3.5 py-1.5 text-xs font-semibold text-[#9B2C1B] bg-[#FDF2F0] hover:bg-[#F9E3DF] border border-[#ECC8C1] rounded-lg transition-colors"
+                          >
+                            Decline
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -1040,7 +1136,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           <div className="p-3 bg-[#F8FAF8] rounded-xl border border-[#DCE6DE] text-xs text-[#4F6858] flex items-start gap-2">
             <Info className="w-4 h-4 text-[#2D5A43] shrink-0 mt-0.5" />
             <span>
-              <strong>Consultation Authorization Rules:</strong> As the assigned physician, you are authorized to confirm, reschedule, or decline appointment requests addressed to {practitioner.name} and attach review notes.
+              <strong>Consultation Authorization Rules:</strong> As the assigned physician, you may confirm, reschedule, or decline pending requests, or mark active sessions completed. Finalized (declined, completed, or cancelled) consultations remain locked.
             </span>
           </div>
         </section>
@@ -1440,6 +1536,81 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <p className="text-sm font-semibold text-[#1E3F2E]">
                   {selectedClient.primaryGoal}
                 </p>
+              </div>
+
+              {/* Permitted Assessment & Active Wellness Plan Summary */}
+              <div className="p-4 bg-white rounded-xl border border-[#E0E7E1] space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-[#2D5A43] uppercase tracking-wider">
+                    Permitted Assessment &amp; Active Wellness Plan Summary
+                  </span>
+                  {clientWellnessSnapshot?.latestVersion && (
+                    <span className="text-[10px] px-2 py-0.5 rounded bg-[#EBF2ED] text-[#244E38] font-semibold">
+                      Version {clientWellnessSnapshot.latestVersion}
+                    </span>
+                  )}
+                </div>
+
+                {clientWellnessLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-[#526B5C] py-1">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-[#2D5A43]" />
+                    <span>Loading permitted wellness records...</span>
+                  </div>
+                ) : clientWellnessError ? (
+                  <p className="text-xs text-[#9B2C1B]">{clientWellnessError}</p>
+                ) : !clientWellnessSnapshot ? (
+                  <p className="text-xs text-[#526B5C]">
+                    No completed assessment or personalized wellness plan recorded for this client yet.
+                  </p>
+                ) : (
+                  <div className="space-y-2 text-xs text-[#3C5345]">
+                    {clientWellnessSnapshot.constitutionTendency && (
+                      <p>
+                        <strong>Constitutional Tendency:</strong>{' '}
+                        {clientWellnessSnapshot.constitutionTendency}
+                      </p>
+                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {clientWellnessSnapshot.circadianBalanceCategory && (
+                        <div className="p-2 rounded-lg bg-[#FAFBF9] border border-[#E5ECE7]">
+                          <span className="text-[10px] font-semibold uppercase text-[#526B5C] block">
+                            Circadian Rhythm
+                          </span>
+                          <span className="font-semibold text-[#1E3F2E]">
+                            {clientWellnessSnapshot.circadianBalanceCategory}
+                          </span>
+                        </div>
+                      )}
+                      {clientWellnessSnapshot.digestiveAgniCategory && (
+                        <div className="p-2 rounded-lg bg-[#FAFBF9] border border-[#E5ECE7]">
+                          <span className="text-[10px] font-semibold uppercase text-[#526B5C] block">
+                            Digestive Agni
+                          </span>
+                          <span className="font-semibold text-[#1E3F2E]">
+                            {clientWellnessSnapshot.digestiveAgniCategory}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    {clientWellnessSnapshot.planTitle && (
+                      <div className="p-2.5 rounded-lg bg-[#F7FAF8] border border-[#D5E2D8] space-y-1">
+                        <p className="font-semibold text-[#1E3F2E]">
+                          {clientWellnessSnapshot.planTitle}
+                        </p>
+                        {clientWellnessSnapshot.planPrimaryFocus && (
+                          <p className="text-[11px] text-[#2D5A43] font-medium">
+                            Primary Focus: {clientWellnessSnapshot.planPrimaryFocus}
+                          </p>
+                        )}
+                        {clientWellnessSnapshot.planSummary && (
+                          <p className="text-[11px] text-[#526B5C] leading-relaxed">
+                            {clientWellnessSnapshot.planSummary}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Practitioner Observation Notes Editor */}
@@ -1905,6 +2076,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                     ? 'Confirm Consultation'
                     : consultationModalAction === 'rescheduled'
                     ? 'Reschedule Consultation'
+                    : consultationModalAction === 'completed'
+                    ? 'Mark Consultation Completed'
                     : 'Decline Consultation Request'}
                 </h3>
               </div>
@@ -1940,32 +2113,40 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <span className="block text-xs font-semibold text-[#1E3F2E] mb-1.5">
                   Practitioner Decision
                 </span>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="flex flex-wrap gap-2">
                   {(
                     [
                       { value: 'confirmed', label: 'Accept / Confirm' },
                       { value: 'rescheduled', label: 'Reschedule' },
+                      { value: 'completed', label: 'Mark Completed' },
                       { value: 'rejected', label: 'Decline' },
                     ] as const
-                  ).map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => {
-                        setConsultationModalAction(opt.value);
-                        setConsultationModalError(null);
-                      }}
-                      className={`py-2 px-2 text-xs rounded-lg border font-semibold transition-colors ${
-                        consultationModalAction === opt.value
-                          ? opt.value === 'rejected'
-                            ? 'border-[#9B2C1B] bg-[#FDF2F0] text-[#9B2C1B]'
-                            : 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E]'
-                          : 'border-[#CCD5CB] bg-white text-slate-700 hover:bg-slate-50'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
+                  )
+                    .filter((opt) =>
+                      isValidPractitionerConsultationTransition(
+                        activeConsultationModal.status,
+                        opt.value
+                      )
+                    )
+                    .map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setConsultationModalAction(opt.value);
+                          setConsultationModalError(null);
+                        }}
+                        className={`flex-1 min-w-[100px] py-2 px-2 text-xs rounded-lg border font-semibold transition-colors ${
+                          consultationModalAction === opt.value
+                            ? opt.value === 'rejected'
+                              ? 'border-[#9B2C1B] bg-[#FDF2F0] text-[#9B2C1B]'
+                              : 'border-[#2D5A43] bg-[#EBF2ED] text-[#1E3F2E]'
+                            : 'border-[#CCD5CB] bg-white text-slate-700 hover:bg-slate-50'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
                 </div>
               </div>
 
@@ -1979,7 +2160,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 </div>
               )}
 
-              {consultationModalAction !== 'rejected' && (
+              {(consultationModalAction === 'confirmed' ||
+                consultationModalAction === 'rescheduled') && (
                 <div>
                   <label
                     htmlFor="practitioner-scheduled-slot"
@@ -2008,6 +2190,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 >
                   {consultationModalAction === 'rejected'
                     ? 'Reason / Alternative Guidance for Seeker'
+                    : consultationModalAction === 'completed'
+                    ? 'Post-Consultation Summary Notes'
                     : 'Physician Pre-Consultation Instructions'}
                 </label>
                 <textarea
@@ -2047,6 +2231,8 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       ? 'Confirm Appointment'
                       : consultationModalAction === 'rescheduled'
                       ? 'Save Rescheduled Time'
+                      : consultationModalAction === 'completed'
+                      ? 'Mark as Completed'
                       : 'Confirm Decline'}
                   </span>
                 </button>

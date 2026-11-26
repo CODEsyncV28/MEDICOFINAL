@@ -69,8 +69,8 @@ class FirestoreRulesEngine {
 
   private isAssignedPractitioner(ctx: RequestContext, clientUid: string): boolean {
     if (!this.isPractitioner(ctx)) return false;
-    if (!this.userDocExists(clientUid)) return false;
-    const clientData = this.getUserData(clientUid);
+    const clientData = this.db.clientProfiles[clientUid];
+    if (!clientData) return false;
     if (!('assignedPractitionerId' in clientData)) return false;
     if (clientData.assignedPractitionerId === null) return false;
     return clientData.assignedPractitionerId === ctx.auth?.uid;
@@ -148,17 +148,26 @@ class FirestoreRulesEngine {
   }
 
   // 4. Consultations collection
-  canUpdateConsultation(ctx: RequestContext, consultationId: string): boolean {
+  canUpdateConsultation(ctx: RequestContext, _consultationId: string): boolean {
     if (this.isAdmin(ctx)) return true;
     if (!this.isSignedIn(ctx)) return false;
 
     const before = ctx.resource?.data || {};
     const after = ctx.requestResource?.data || {};
     const diff = this.getDiffKeys(before, after);
+    const terminal = ['rejected', 'completed', 'cancelled'];
+    if (terminal.includes(before.status)) return false;
 
     // Normal user branch
-    if (before.userId === ctx.auth?.uid && after.userId === before.userId && after.practitionerId === before.practitionerId) {
-      const safeUserKeys = ['preferredSlot', 'topic', 'notes', 'status', 'updatedAt', 'updatedAtServer'];
+    if (
+      before.userId === ctx.auth?.uid &&
+      after.userId === before.userId &&
+      after.practitionerId === before.practitionerId
+    ) {
+      const safeUserKeys =
+        before.status === 'pending'
+          ? ['preferredSlot', 'preferredDate', 'topic', 'topicLabel', 'notes', 'status', 'updatedAt', 'updatedAtServer']
+          : ['notes', 'status', 'scheduledTime', 'updatedAt', 'updatedAtServer'];
       const keysAllowed = this.hasOnly(diff, safeUserKeys);
       const statusAllowed = after.status === before.status || after.status === 'cancelled';
       if (keysAllowed && statusAllowed) return true;
@@ -173,8 +182,10 @@ class FirestoreRulesEngine {
     ) {
       const safePractitionerKeys = ['status', 'scheduledTime', 'practitionerNotes', 'updatedAt', 'updatedAtServer'];
       const keysAllowed = this.hasOnly(diff, safePractitionerKeys);
-      const statusAllowed = ['confirmed', 'completed', 'cancelled'].includes(after.status);
-      if (keysAllowed && statusAllowed) return true;
+      const transitionAllowed =
+        (before.status === 'pending' && ['confirmed', 'rescheduled', 'rejected', 'cancelled'].includes(after.status)) ||
+        (['confirmed', 'rescheduled'].includes(before.status) && ['confirmed', 'rescheduled', 'completed', 'cancelled'].includes(after.status));
+      if (keysAllowed && transitionAllowed) return true;
     }
 
     return false;
@@ -441,5 +452,54 @@ describe('Firestore Security Rules Verification Suite', () => {
     };
     const allowed = engine.canUpdateContentApproval(ctx);
     assert.strictEqual(allowed, false, 'Author must not be able to update content approval queue');
+  });
+
+  // Test 11: Rejected consultations are terminal and cannot be reopened
+  it('11. Rejected consultations are terminal and cannot be reopened by practitioner or seeker', () => {
+    const reopenCtx: RequestContext = {
+      auth: { uid: 'dr_ayurveda_1' },
+      resource: {
+        data: {
+          id: 'consult_rej',
+          userId: 'user_123',
+          practitionerId: 'dr_ayurveda_1',
+          status: 'rejected',
+          scheduledTime: null,
+        },
+      },
+      requestResource: {
+        data: {
+          id: 'consult_rej',
+          userId: 'user_123',
+          practitionerId: 'dr_ayurveda_1',
+          status: 'confirmed',
+          scheduledTime: '2026-12-01T10:00:00Z',
+        },
+      },
+    };
+    assert.strictEqual(engine.canUpdateConsultation(reopenCtx, 'consult_rej'), false);
+
+    const pendingToCompletedCtx: RequestContext = {
+      auth: { uid: 'dr_ayurveda_1' },
+      resource: {
+        data: {
+          id: 'consult_pend',
+          userId: 'user_123',
+          practitionerId: 'dr_ayurveda_1',
+          status: 'pending',
+          scheduledTime: null,
+        },
+      },
+      requestResource: {
+        data: {
+          id: 'consult_pend',
+          userId: 'user_123',
+          practitionerId: 'dr_ayurveda_1',
+          status: 'completed',
+          scheduledTime: null,
+        },
+      },
+    };
+    assert.strictEqual(engine.canUpdateConsultation(pendingToCompletedCtx, 'consult_pend'), false);
   });
 });

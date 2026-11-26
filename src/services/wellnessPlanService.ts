@@ -10,7 +10,12 @@ import {
   AssessmentVersionRecord,
 } from '../types/assessment';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { doc, getDoc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { Firestore, doc, setDoc, collection, query, where, getDocs } from 'firebase/firestore';
+
+function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+  if (firestoreOverride) return firestoreOverride;
+  return isFirebaseConfigured && db ? db : null;
+}
 
 const LOCAL_PLANS_KEY = 'ayush_wellness_plans_store';
 const memoryPlansStore = new Map<string, string>();
@@ -269,89 +274,94 @@ export function generateWellnessPlan(
   };
 }
 
-/**
- * Saves a generated wellness plan, preserving history across versions.
- */
-export async function saveWellnessPlan(plan: WellnessPlan): Promise<void> {
-  // 1. Cloud Firestore branch
-  if (isFirebaseConfigured && db) {
-    try {
-      const planDocRef = doc(db, 'wellnessPlans', plan.id);
-      await setDoc(planDocRef, plan, { merge: true });
-    } catch (err) {
-      console.warn('Could not persist wellness plan to Cloud Firestore:', err);
-    }
-  }
-
-  // 2. Persistent Local Storage branch
+function cacheWellnessPlanLocally(plan: WellnessPlan): void {
   try {
     const store = getLocalPlans();
     const userPlans = store[plan.userId] || [];
-    // Do not duplicate if same version exists, update instead; otherwise prepend
     const existingIdx = userPlans.findIndex((p) => p.id === plan.id || p.version === plan.version);
     if (existingIdx >= 0) {
       userPlans[existingIdx] = plan;
     } else {
       userPlans.unshift(plan);
     }
-    // Sort descending by version
     userPlans.sort((a, b) => b.version - a.version);
     store[plan.userId] = userPlans;
     setLocalPlans(store);
   } catch (err) {
-    console.warn('Error saving local wellness plan:', err);
+    console.warn('Error saving local wellness plan cache:', err);
   }
+}
+
+/**
+ * Saves a generated wellness plan, preserving history across versions.
+ */
+export async function saveWellnessPlan(
+  plan: WellnessPlan,
+  firestoreOverride?: Firestore | null
+): Promise<void> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+
+  // 1. Cloud Firestore branch (authoritative; throws on error, updates local cache only after success)
+  if (activeDb) {
+    const planDocRef = doc(activeDb, 'wellnessPlans', plan.id);
+    await setDoc(planDocRef, plan, { merge: true });
+    cacheWellnessPlanLocally(plan);
+    return;
+  }
+
+  // 2. Persistent Local Storage branch (Demo Mode)
+  cacheWellnessPlanLocally(plan);
 }
 
 /**
  * Retrieves latest wellness plan for a user.
  */
-export async function fetchLatestWellnessPlan(userId: string): Promise<WellnessPlan | null> {
+export async function fetchLatestWellnessPlan(
+  userId: string,
+  firestoreOverride?: Firestore | null
+): Promise<WellnessPlan | null> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+
   // 1. Cloud Firestore branch
-  if (isFirebaseConfigured && db) {
-    try {
-      const plansRef = collection(db, 'wellnessPlans');
-      const q = query(plansRef, where('userId', '==', userId));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const plans = snap.docs.map((d) => d.data() as WellnessPlan);
-        plans.sort((a, b) => b.version - a.version);
-        return plans[0];
-      }
-    } catch (err) {
-      console.warn('Error fetching latest plan from Cloud Firestore:', err);
-    }
+  if (activeDb) {
+    const plansRef = collection(activeDb, 'wellnessPlans');
+    const q = query(plansRef, where('userId', '==', userId));
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    const plans = snap.docs.map((d) => d.data() as WellnessPlan);
+    plans.sort((a, b) => b.version - a.version);
+    return plans[0];
   }
 
-  // 2. Persistent Local Storage branch
+  // 2. Persistent Local Storage branch (Demo Mode)
   const store = getLocalPlans();
-  const userPlans = store[userId] || [];
+  const userPlans = [...(store[userId] || [])];
+  userPlans.sort((a, b) => b.version - a.version);
   return userPlans.length > 0 ? userPlans[0] : null;
 }
 
 /**
  * Retrieves the full chronological history of wellness plans for a user.
  */
-export async function fetchWellnessPlanHistory(userId: string): Promise<WellnessPlan[]> {
+export async function fetchWellnessPlanHistory(
+  userId: string,
+  firestoreOverride?: Firestore | null
+): Promise<WellnessPlan[]> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+
   // 1. Cloud Firestore branch
-  if (isFirebaseConfigured && db) {
-    try {
-      const plansRef = collection(db, 'wellnessPlans');
-      const q = query(plansRef, where('userId', '==', userId));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        const plans = snap.docs.map((d) => d.data() as WellnessPlan);
-        plans.sort((a, b) => b.version - a.version);
-        return plans;
-      }
-    } catch (err) {
-      console.warn('Error fetching plan history from Cloud Firestore:', err);
-    }
+  if (activeDb) {
+    const plansRef = collection(activeDb, 'wellnessPlans');
+    const q = query(plansRef, where('userId', '==', userId));
+    const snap = await getDocs(q);
+    const plans = snap.docs.map((d) => d.data() as WellnessPlan);
+    plans.sort((a, b) => b.version - a.version);
+    return plans;
   }
 
-  // 2. Persistent Local Storage branch
+  // 2. Persistent Local Storage branch (Demo Mode)
   const store = getLocalPlans();
-  const userPlans = store[userId] || [];
+  const userPlans = [...(store[userId] || [])];
   userPlans.sort((a, b) => b.version - a.version);
   return userPlans;
 }

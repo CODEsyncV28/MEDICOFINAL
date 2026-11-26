@@ -1,7 +1,21 @@
 import { ClientRecord } from '../types';
-import { ClientProfileDocument } from '../types/firebase';
+import { ClientProfileDocument, PractitionerDocument } from '../types/firebase';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+
+function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+  if (firestoreOverride) return firestoreOverride;
+  return isFirebaseConfigured && db ? db : null;
+}
 
 const LOCAL_CLIENT_PROFILES_KEY = 'ayush_client_profiles_store';
 const LOCAL_CLIENT_SEEDED_PREFIX = 'ayush_client_profiles_seeded_';
@@ -118,23 +132,24 @@ export function seedDemoClientProfiles(
  * Prevents one practitioner's notes or records from leaking into another practitioner's portal.
  */
 export async function fetchClientsForPractitioner(
-  practitionerId: string
+  practitionerId: string,
+  firestoreOverride?: Firestore | null
 ): Promise<ClientRecord[]> {
   if (!practitionerId || !practitionerId.trim()) return [];
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(
-        collection(db, 'clientProfiles'),
-        where('assignedPractitionerId', '==', practitionerId)
-      );
-      const snap = await getDocs(q);
-      return snap.docs.map((d) =>
-        mapDocumentToClientRecord(d.data() as ClientProfileDocument)
-      );
-    } catch (err) {
-      console.warn('Error fetching practitioner clients from Cloud Firestore:', err);
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    if (practitionerId.trim() === 'prac-1') {
+      return [];
     }
+    const q = query(
+      collection(activeDb, 'clientProfiles'),
+      where('assignedPractitionerId', '==', practitionerId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs.map((d) =>
+      mapDocumentToClientRecord(d.data() as ClientProfileDocument)
+    );
   }
 
   const store = getLocalData<ClientProfileDocument>(LOCAL_CLIENT_PROFILES_KEY);
@@ -163,7 +178,8 @@ export async function updateClientObservationNotes(
   practitionerNotes: string,
   status: 'Active' | 'Needs Review' | 'On Track',
   practitionerId: string = 'prac-1',
-  fallbackClient?: Partial<ClientRecord>
+  fallbackClient?: Partial<ClientRecord>,
+  firestoreOverride?: Firestore | null
 ): Promise<ClientRecord> {
   if (!userId || !userId.trim()) {
     throw new Error('Client identifier is required.');
@@ -173,20 +189,45 @@ export async function updateClientObservationNotes(
   }
 
   const now = new Date().toISOString();
+  const activeDb = resolveActiveDb(firestoreOverride);
 
-  // 1. Cloud Firestore branch
-  if (isFirebaseConfigured && db) {
-    try {
-      const profileRef = doc(db, 'clientProfiles', userId);
-      await updateDoc(profileRef, {
-        practitionerNotes,
-        status,
-        lastCheckIn: 'Updated just now',
-        updatedAt: now,
-      });
-    } catch (err) {
-      console.warn('Error updating client notes in Cloud Firestore:', err);
+  // 1. Cloud Firestore branch (authoritative in live mode)
+  if (activeDb) {
+    if (practitionerId.trim() === 'prac-1') {
+      throw new Error(
+        'Live Firebase mode requires an authenticated practitioner UID instead of demo ID prac-1.'
+      );
     }
+    const profileRef = doc(activeDb, 'clientProfiles', userId);
+    const snap = await getDoc(profileRef);
+    if (!snap.exists()) {
+      throw new Error(`Client profile "${userId}" was not found in Cloud Firestore.`);
+    }
+    const existingRemote = snap.data() as ClientProfileDocument;
+    if (existingRemote.assignedPractitionerId !== practitionerId) {
+      throw new Error('Unauthorized: This client is not assigned to your practitioner account.');
+    }
+
+    await updateDoc(profileRef, {
+      practitionerNotes,
+      status,
+      lastCheckIn: 'Updated just now',
+      updatedAt: now,
+    });
+
+    const updatedRemote: ClientProfileDocument = {
+      ...existingRemote,
+      practitionerNotes,
+      status,
+      lastCheckIn: 'Updated just now',
+      updatedAt: now,
+    };
+
+    const store = getLocalData<ClientProfileDocument>(LOCAL_CLIENT_PROFILES_KEY);
+    store[makeCompositeKey(practitionerId, userId)] = updatedRemote;
+    setLocalData(LOCAL_CLIENT_PROFILES_KEY, store);
+
+    return mapDocumentToClientRecord(updatedRemote);
   }
 
   // 2. Local Demo Storage branch (strictly scoped per practitionerId + userId)
@@ -231,22 +272,22 @@ export async function updateClientObservationNotes(
  */
 export async function fetchClientProfile(
   userId: string,
-  practitionerId: string = 'prac-1'
+  practitionerId: string = 'prac-1',
+  firestoreOverride?: Firestore | null
 ): Promise<ClientProfileDocument | null> {
   if (!userId || !userId.trim()) return null;
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDoc(doc(db, 'clientProfiles', userId));
-      if (snap.exists()) {
-        const data = snap.data() as ClientProfileDocument;
-        return data.assignedPractitionerId === practitionerId ? data : null;
-      }
-      return null;
-    } catch (err) {
-      console.warn('Error fetching client profile from Cloud Firestore:', err);
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    if (practitionerId.trim() === 'prac-1') {
       return null;
     }
+    const snap = await getDoc(doc(activeDb, 'clientProfiles', userId));
+    if (snap.exists()) {
+      const data = snap.data() as ClientProfileDocument;
+      return data.assignedPractitionerId === practitionerId ? data : null;
+    }
+    return null;
   }
 
   const store = getLocalData<ClientProfileDocument>(LOCAL_CLIENT_PROFILES_KEY);
@@ -259,4 +300,147 @@ export async function fetchClientProfile(
     return legacyDoc;
   }
   return null;
+}
+
+/**
+ * Fetches verified AYUSH practitioner profiles from Cloud Firestore (/practitioners)
+ * so seekers resolve verified practitioner Auth UIDs (`userId`) for consultations.
+ * Strictly excludes unverified profiles and static demo ID `prac-1` as an Auth UID.
+ */
+export async function fetchVerifiedPractitioners(
+  firestoreOverride?: Firestore | null
+): Promise<PractitionerDocument[]> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (!activeDb) return [];
+
+  const q = query(collection(activeDb, 'practitioners'), where('isVerified', '==', true));
+  const snap = await getDocs(q);
+  return snap.docs
+    .map((d) => d.data() as PractitionerDocument)
+    .filter(
+      (docItem) =>
+        docItem.isVerified === true &&
+        Boolean(docItem.userId?.trim()) &&
+        docItem.userId.trim() !== 'prac-1'
+    );
+}
+
+export interface AssignedClientWellnessSnapshot {
+  constitutionTendency: string | null;
+  circadianBalanceCategory: string | null;
+  digestiveAgniCategory: string | null;
+  movementCategory: string | null;
+  stressCategory: string | null;
+  latestVersion: number | null;
+  completedAt: string | null;
+  planTitle: string | null;
+  planPrimaryFocus: string | null;
+  planSummary: string | null;
+}
+
+/**
+ * Fetches permitted assessment and active wellness plan summary for an assigned client
+ * using deterministic document IDs (`assess_{uid}` and `plan_{uid}_v{version}`),
+ * matching `allow get` in firestore.rules (`isAssignedPractitioner(resource.data.userId)`).
+ */
+export async function fetchAssignedClientWellnessSnapshot(
+  clientUid: string,
+  firestoreOverride?: Firestore | null
+): Promise<AssignedClientWellnessSnapshot | null> {
+  if (!clientUid?.trim()) return null;
+
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (!activeDb) {
+    return null;
+  }
+
+  try {
+    const assessSnap = await getDoc(doc(activeDb, 'assessments', `assess_${clientUid}`));
+    if (!assessSnap.exists()) {
+      return null;
+    }
+
+    const assessData = assessSnap.data() as {
+      latestVersion?: number;
+      constitutionTendency?: string;
+      circadianBalanceCategory?: string;
+      digestiveAgniCategory?: string;
+      movementCategory?: string;
+      stressCategory?: string;
+      completedAt?: string;
+    };
+
+    const latestVersion =
+      typeof assessData.latestVersion === 'number' ? assessData.latestVersion : null;
+
+    let planTitle: string | null = null;
+    let planPrimaryFocus: string | null = null;
+    let planSummary: string | null = null;
+
+    if (latestVersion !== null && latestVersion >= 1) {
+      try {
+        const planSnap = await getDoc(
+          doc(activeDb, 'wellnessPlans', `plan_${clientUid}_v${latestVersion}`)
+        );
+        if (planSnap.exists()) {
+          const planData = planSnap.data() as {
+            title?: string;
+            primaryFocus?: string;
+            summary?: string;
+          };
+          planTitle = planData.title || null;
+          planPrimaryFocus = planData.primaryFocus || null;
+          planSummary = planData.summary || null;
+        }
+      } catch {
+        // Plan may not exist yet or not be readable
+      }
+    }
+
+    return {
+      constitutionTendency: assessData.constitutionTendency || null,
+      circadianBalanceCategory: assessData.circadianBalanceCategory || null,
+      digestiveAgniCategory: assessData.digestiveAgniCategory || null,
+      movementCategory: assessData.movementCategory || null,
+      stressCategory: assessData.stressCategory || null,
+      latestVersion,
+      completedAt: assessData.completedAt || null,
+      planTitle,
+      planPrimaryFocus,
+      planSummary,
+    };
+  } catch (err: any) {
+    // Firestore denies `get` on non-existent docs when rules read `resource.data.userId`
+    if (err?.code === 'permission-denied' || err?.code === 'not-found') {
+      return null;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Reads `/clientProfiles/{userId}.assignedPractitionerId` for the signed-in seeker.
+ * Returns `null` if no clientProfile exists yet or no verified Auth UID is assigned.
+ */
+export async function fetchSeekerAssignedPractitionerId(
+  userUid: string,
+  firestoreOverride?: Firestore | null
+): Promise<string | null> {
+  if (!userUid?.trim()) return null;
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (!activeDb) return null;
+
+  try {
+    const snap = await getDoc(doc(activeDb, 'clientProfiles', userUid.trim()));
+    if (!snap.exists()) return null;
+    const data = snap.data() as ClientProfileDocument;
+    const assigned = data.assignedPractitionerId?.trim();
+    if (!assigned || assigned === 'prac-1') return null;
+    return assigned;
+  } catch (err: any) {
+    if (err?.code === 'permission-denied' || err?.code === 'not-found') {
+      return null;
+    }
+    throw err;
+  }
 }

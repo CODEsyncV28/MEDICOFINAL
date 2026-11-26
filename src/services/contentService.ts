@@ -4,7 +4,22 @@ import {
   EducationalArticleDocument,
 } from '../types/firebase';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+
+function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+  if (firestoreOverride) return firestoreOverride;
+  return isFirebaseConfigured && db ? db : null;
+}
 
 export const LOCAL_ARTICLES_KEY = 'ayush_articles_store';
 export const SEEDED_ARTICLES_FLAG_KEY = 'ayush_articles_demo_seeded';
@@ -304,7 +319,8 @@ export function seedDemoArticles(): EducationalArticleDocument[] {
  * Practitioners can never directly set status to 'published'.
  */
 export async function saveOrSubmitArticle(
-  input: SaveOrSubmitArticleInput
+  input: SaveOrSubmitArticleInput,
+  firestoreOverride?: Firestore | null
 ): Promise<EducationalArticleDocument> {
   const validation = validateArticleInput(input);
   if (!validation.isValid) {
@@ -322,8 +338,148 @@ export async function saveOrSubmitArticle(
     ? 'pending_approval'
     : 'draft';
 
+  const activeDb = resolveActiveDb(firestoreOverride);
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
 
+  if (activeDb) {
+    if (input.authorId.trim() === 'prac-1') {
+      throw new Error(
+        'Live Firebase mode requires an authenticated practitioner UID instead of demo ID prac-1.'
+      );
+    }
+
+    const authorQuery = query(
+      collection(activeDb, 'educationalArticles'),
+      where('authorId', '==', input.authorId)
+    );
+
+    if (input.id) {
+      const articleRef = doc(activeDb, 'educationalArticles', input.id);
+      const snap = await getDoc(articleRef);
+      if (!snap.exists()) {
+        throw new Error('The article record could not be found in Cloud Firestore.');
+      }
+
+      const existing = snap.data() as EducationalArticleDocument;
+      if (existing.authorId !== input.authorId) {
+        throw new Error('Unauthorized: You may only edit articles authored by your account.');
+      }
+      if (existing.status === 'published') {
+        throw new Error(
+          'Published articles cannot be modified directly by authors. Contact an administrator to request revisions.'
+        );
+      }
+
+      const existingDocsSnap = await getDocs(authorQuery);
+      const duplicateTitle = existingDocsSnap.docs
+        .map((d) => d.data() as EducationalArticleDocument)
+        .find(
+          (item) =>
+            item.id !== input.id &&
+            item.title.trim().toLowerCase() === normalizedTitle
+        );
+      if (duplicateTitle) {
+        throw new Error('Another article with this title already exists in your workspace.');
+      }
+
+      const readTime = input.readTime?.trim() || existing.readTime || '5 min read';
+      const keyTakeaways = input.keyTakeaways?.length
+        ? input.keyTakeaways
+        : existing.keyTakeaways || [];
+      const submittedAt = input.submitForReview ? now : existing.submittedAt ?? null;
+      const reviewedByAdminId = input.submitForReview
+        ? null
+        : existing.reviewedByAdminId ?? null;
+      const reviewedAt = input.submitForReview ? null : existing.reviewedAt ?? null;
+      const reviewNotes = input.submitForReview ? null : existing.reviewNotes ?? null;
+
+      await updateDoc(articleRef, {
+        title: trimmedTitle,
+        discipline: input.discipline,
+        category: input.category,
+        readTime,
+        summary: trimmedSummary,
+        fullContent: trimmedContent,
+        keyTakeaways,
+        status: nextStatus,
+        submittedAt,
+        reviewedByAdminId,
+        reviewedAt,
+        publishedAt: null,
+        reviewNotes,
+        updatedAt: now,
+      });
+
+      const updated: EducationalArticleDocument = {
+        ...existing,
+        title: trimmedTitle,
+        discipline: input.discipline,
+        category: input.category,
+        readTime,
+        summary: trimmedSummary,
+        fullContent: trimmedContent,
+        keyTakeaways,
+        status: nextStatus,
+        submittedAt,
+        reviewedByAdminId,
+        reviewedAt,
+        publishedAt: null,
+        reviewNotes,
+        updatedAt: now,
+      };
+
+      store[updated.id] = updated;
+      setLocalMap(LOCAL_ARTICLES_KEY, store);
+      return updated;
+    }
+
+    const existingDocsSnap = await getDocs(authorQuery);
+    const existingDuplicate = existingDocsSnap.docs
+      .map((d) => d.data() as EducationalArticleDocument)
+      .find((item) => item.title.trim().toLowerCase() === normalizedTitle);
+    if (existingDuplicate) {
+      throw new Error(
+        'An article with this title already exists in your workspace. Please edit the existing article instead of creating a duplicate.'
+      );
+    }
+
+    const newId = generateUniqueArticleId();
+    const created: EducationalArticleDocument = {
+      id: newId,
+      title: trimmedTitle,
+      discipline: input.discipline,
+      category: input.category,
+      readTime: input.readTime?.trim() || '5 min read',
+      authorId: input.authorId,
+      authorName: input.authorName,
+      authorQualification: input.authorQualification,
+      summary: trimmedSummary,
+      fullContent: trimmedContent,
+      keyTakeaways: input.keyTakeaways?.length
+        ? input.keyTakeaways
+        : [
+            'Focuses on classical non-diagnostic health cultivation.',
+            'Safe culinary awareness of traditional wellness practices.',
+            'Consult a qualified practitioner for personalized guidance.',
+          ],
+      status: nextStatus,
+      submittedAt: input.submitForReview ? now : null,
+      reviewedByAdminId: null,
+      reviewedAt: null,
+      publishedAt: null,
+      reviewNotes: null,
+      isSimulated: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await setDoc(doc(activeDb, 'educationalArticles', created.id), created);
+    store[created.id] = created;
+    setLocalMap(LOCAL_ARTICLES_KEY, store);
+    return created;
+  }
+
+  // Demo Mode (Local Persistent Demo Storage)
   if (input.id) {
     const existing = store[input.id];
     if (!existing) {
@@ -362,14 +518,6 @@ export async function saveOrSubmitArticle(
       reviewNotes: input.submitForReview ? null : existing.reviewNotes ?? null,
       updatedAt: now,
     };
-
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'educationalArticles', updated.id), updated, { merge: true });
-      } catch (err) {
-        console.warn('Could not persist article update in Firestore:', err);
-      }
-    }
 
     store[updated.id] = updated;
     setLocalMap(LOCAL_ARTICLES_KEY, store);
@@ -418,14 +566,6 @@ export async function saveOrSubmitArticle(
     updatedAt: now,
   };
 
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'educationalArticles', created.id), created);
-    } catch (err) {
-      console.warn('Could not save new article in Firestore:', err);
-    }
-  }
-
   store[created.id] = created;
   setLocalMap(LOCAL_ARTICLES_KEY, store);
   return created;
@@ -435,23 +575,21 @@ export async function saveOrSubmitArticle(
  * Fetches educational articles authored strictly by the specified practitioner.
  */
 export async function fetchArticlesForPractitioner(
-  practitionerId: string
+  practitionerId: string,
+  firestoreOverride?: Firestore | null
 ): Promise<EducationalArticleDocument[]> {
   if (!practitionerId?.trim()) return [];
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(
-        collection(db, 'educationalArticles'),
-        where('authorId', '==', practitionerId)
-      );
-      const snap = await getDocs(q);
-      return snap.docs
-        .map((d) => d.data() as EducationalArticleDocument)
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    } catch (err) {
-      console.warn('Could not fetch practitioner articles from Firestore:', err);
-    }
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    const q = query(
+      collection(activeDb, 'educationalArticles'),
+      where('authorId', '==', practitionerId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => d.data() as EducationalArticleDocument)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
@@ -464,23 +602,22 @@ export async function fetchArticlesForPractitioner(
  * Fetches submitted, approved, and revision-requested articles for Admin governance moderation.
  * Private practitioner drafts ('draft') are excluded until submitted for review.
  */
-export async function fetchArticlesForAdminModeration(): Promise<EducationalArticleDocument[]> {
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDocs(collection(db, 'educationalArticles'));
-      return snap.docs
-        .map((d) => d.data() as EducationalArticleDocument)
-        .filter((art) => art.status !== 'draft')
-        .sort((a, b) => {
-          const priority = (s: ArticleApprovalStatus) =>
-            s === 'pending_approval' ? 0 : s === 'revision_requested' ? 1 : 2;
-          const pDiff = priority(a.status) - priority(b.status);
-          if (pDiff !== 0) return pDiff;
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        });
-    } catch (err) {
-      console.warn('Could not fetch moderation articles from Firestore:', err);
-    }
+export async function fetchArticlesForAdminModeration(
+  firestoreOverride?: Firestore | null
+): Promise<EducationalArticleDocument[]> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    const snap = await getDocs(collection(activeDb, 'educationalArticles'));
+    return snap.docs
+      .map((d) => d.data() as EducationalArticleDocument)
+      .filter((art) => art.status !== 'draft')
+      .sort((a, b) => {
+        const priority = (s: ArticleApprovalStatus) =>
+          s === 'pending_approval' ? 0 : s === 'revision_requested' ? 1 : 2;
+        const pDiff = priority(a.status) - priority(b.status);
+        if (pDiff !== 0) return pDiff;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
   }
 
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
@@ -500,7 +637,8 @@ export async function fetchArticlesForAdminModeration(): Promise<EducationalArti
  * Blocks non-admin roles and prevents self-approval by the authoring practitioner.
  */
 export async function reviewArticleDecision(
-  input: ReviewArticleDecisionInput
+  input: ReviewArticleDecisionInput,
+  firestoreOverride?: Firestore | null
 ): Promise<EducationalArticleDocument> {
   if (input.reviewerRole !== 'admin') {
     throw new Error(
@@ -511,7 +649,55 @@ export async function reviewArticleDecision(
     throw new Error('Reviewer administrator ID is required.');
   }
 
+  const now = new Date().toISOString();
+  const defaultNote =
+    input.decision === 'published'
+      ? 'Approved by Platform Governance Administrator for non-diagnostic educational compliance.'
+      : 'Ensure culinary dosage safety and non-diagnostic framing are explicitly stated.';
+  const finalNotes = input.reviewNotes?.trim() || defaultNote;
+
+  const activeDb = resolveActiveDb(firestoreOverride);
   const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
+
+  if (activeDb) {
+    const articleRef = doc(activeDb, 'educationalArticles', input.articleId);
+    const snap = await getDoc(articleRef);
+    if (!snap.exists()) {
+      throw new Error('Article submission not found in Cloud Firestore.');
+    }
+
+    const existing = snap.data() as EducationalArticleDocument;
+    if (existing.authorId === input.reviewerId) {
+      throw new Error('Unauthorized: Authors cannot approve or review their own submissions.');
+    }
+    if (existing.status === 'draft') {
+      throw new Error('Private practitioner drafts cannot be moderated until submitted for review.');
+    }
+
+    const updated: EducationalArticleDocument = {
+      ...existing,
+      status: input.decision,
+      reviewedByAdminId: input.reviewerId,
+      reviewedAt: now,
+      publishedAt: input.decision === 'published' ? now : null,
+      reviewNotes: finalNotes,
+      updatedAt: now,
+    };
+
+    await updateDoc(articleRef, {
+      status: updated.status,
+      reviewedByAdminId: updated.reviewedByAdminId,
+      reviewedAt: updated.reviewedAt,
+      publishedAt: updated.publishedAt,
+      reviewNotes: updated.reviewNotes,
+      updatedAt: updated.updatedAt,
+    });
+
+    store[updated.id] = updated;
+    setLocalMap(LOCAL_ARTICLES_KEY, store);
+    return updated;
+  }
+
   const existing = store[input.articleId];
   if (!existing) {
     throw new Error('Article submission not found.');
@@ -523,13 +709,6 @@ export async function reviewArticleDecision(
     throw new Error('Private practitioner drafts cannot be moderated until submitted for review.');
   }
 
-  const now = new Date().toISOString();
-  const defaultNote =
-    input.decision === 'published'
-      ? 'Approved by Platform Governance Administrator for non-diagnostic educational compliance.'
-      : 'Ensure culinary dosage safety and non-diagnostic framing are explicitly stated.';
-  const finalNotes = input.reviewNotes?.trim() || defaultNote;
-
   const updated: EducationalArticleDocument = {
     ...existing,
     status: input.decision,
@@ -539,21 +718,6 @@ export async function reviewArticleDecision(
     reviewNotes: finalNotes,
     updatedAt: now,
   };
-
-  if (isFirebaseConfigured && db) {
-    try {
-      await updateDoc(doc(db, 'educationalArticles', updated.id), {
-        status: updated.status,
-        reviewedByAdminId: updated.reviewedByAdminId,
-        reviewedAt: updated.reviewedAt,
-        publishedAt: updated.publishedAt,
-        reviewNotes: updated.reviewNotes,
-        updatedAt: updated.updatedAt,
-      });
-    } catch (err) {
-      console.warn('Could not persist article moderation decision in Firestore:', err);
-    }
-  }
 
   store[updated.id] = updated;
   setLocalMap(LOCAL_ARTICLES_KEY, store);
@@ -595,20 +759,22 @@ function toPublishedUserArticle(docItem: EducationalArticleDocument): PublishedU
  *   (so retracted or revision-requested items are never resurrected from static demo fallbacks).
  * - Never exposes internal reviewNotes or reviewedByAdminId to seekers.
  */
-export async function fetchPublishedArticlesForUser(options?: {
-  demoCatalog?: EducationalArticle[];
-}): Promise<PublishedUserArticle[]> {
+export async function fetchPublishedArticlesForUser(
+  options?: {
+    demoCatalog?: EducationalArticle[];
+  },
+  firestoreOverride?: Firestore | null
+): Promise<PublishedUserArticle[]> {
   let allRecords: EducationalArticleDocument[] = [];
+  const activeDb = resolveActiveDb(firestoreOverride);
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDocs(collection(db, 'educationalArticles'));
-      allRecords = snap.docs.map((d) => d.data() as EducationalArticleDocument);
-    } catch (err) {
-      console.warn('Could not fetch published articles from Firestore:', err);
-      const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
-      allRecords = Object.values(store);
-    }
+  if (activeDb) {
+    const q = query(
+      collection(activeDb, 'educationalArticles'),
+      where('status', '==', 'published')
+    );
+    const snap = await getDocs(q);
+    allRecords = snap.docs.map((d) => d.data() as EducationalArticleDocument);
   } else {
     const store = getLocalMap<EducationalArticleDocument>(LOCAL_ARTICLES_KEY);
     allRecords = Object.values(store);

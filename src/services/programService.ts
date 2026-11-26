@@ -4,7 +4,22 @@ import {
   WellnessProgramDocument,
 } from '../types/firebase';
 import { db, isFirebaseConfigured } from '../lib/firebase';
-import { collection, doc, getDocs, query, setDoc, updateDoc, where } from 'firebase/firestore';
+import {
+  Firestore,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+
+function resolveActiveDb(firestoreOverride?: Firestore | null): Firestore | null {
+  if (firestoreOverride) return firestoreOverride;
+  return isFirebaseConfigured && db ? db : null;
+}
 
 export const LOCAL_PROGRAMS_KEY = 'ayush_programs_store';
 export const SEEDED_PROGRAMS_FLAG_KEY = 'ayush_programs_demo_seeded';
@@ -282,7 +297,8 @@ export function seedDemoPrograms(): WellnessProgramDocument[] {
  * Practitioners cannot directly publish programmes (isPublished always stays false until Admin approves).
  */
 export async function saveOrSubmitProgram(
-  input: SaveOrSubmitProgramInput
+  input: SaveOrSubmitProgramInput,
+  firestoreOverride?: Firestore | null
 ): Promise<WellnessProgramDocument> {
   const validation = validateProgramInput(input);
   if (!validation.isValid) {
@@ -298,8 +314,149 @@ export async function saveOrSubmitProgram(
     ? 'pending_approval'
     : 'draft';
 
+  const activeDb = resolveActiveDb(firestoreOverride);
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
 
+  if (activeDb) {
+    if (input.creatorPractitionerId.trim() === 'prac-1') {
+      throw new Error(
+        'Live Firebase mode requires an authenticated practitioner UID instead of demo ID prac-1.'
+      );
+    }
+
+    const practitionerQuery = query(
+      collection(activeDb, 'wellnessPrograms'),
+      where('creatorPractitionerId', '==', input.creatorPractitionerId)
+    );
+
+    if (input.id) {
+      const progRef = doc(activeDb, 'wellnessPrograms', input.id);
+      const snap = await getDoc(progRef);
+      if (!snap.exists()) {
+        throw new Error('The wellness programme record could not be found in Cloud Firestore.');
+      }
+
+      const existing = snap.data() as WellnessProgramDocument;
+      if (existing.creatorPractitionerId !== input.creatorPractitionerId) {
+        throw new Error('Unauthorized: You may only edit programmes created by your account.');
+      }
+      if (existing.isPublished || existing.status === 'published') {
+        throw new Error(
+          'Published programmes cannot be modified directly by practitioners. Contact an administrator to request revisions.'
+        );
+      }
+
+      const existingDocsSnap = await getDocs(practitionerQuery);
+      const duplicateTitle = existingDocsSnap.docs
+        .map((d) => d.data() as WellnessProgramDocument)
+        .find(
+          (item) =>
+            item.id !== input.id &&
+            item.title.trim().toLowerCase() === normalizedTitle
+        );
+      if (duplicateTitle) {
+        throw new Error('Another wellness programme with this title already exists in your library.');
+      }
+
+      const nextSessionTemplate =
+        input.nextSessionTemplate?.trim() ||
+        existing.nextSessionTemplate ||
+        'Module 1: Orientation & Foundations';
+      const submittedAt = input.submitForReview ? now : existing.submittedAt ?? null;
+      const reviewedByAdminId = input.submitForReview
+        ? null
+        : existing.reviewedByAdminId ?? null;
+      const reviewedAt = input.submitForReview ? null : existing.reviewedAt ?? null;
+      const reviewNotes = input.submitForReview ? null : existing.reviewNotes ?? null;
+
+      await updateDoc(progRef, {
+        title: trimmedTitle,
+        discipline: input.discipline,
+        category: input.category,
+        durationWeeks: weeks,
+        totalSessions: weeks * 4,
+        level: input.level,
+        description: trimmedDescription,
+        nextSessionTemplate,
+        status: nextStatus,
+        isPublished: false,
+        submittedAt,
+        reviewedByAdminId,
+        reviewedAt,
+        publishedAt: null,
+        reviewNotes,
+        updatedAt: now,
+      });
+
+      const updated: WellnessProgramDocument = {
+        ...existing,
+        title: trimmedTitle,
+        discipline: input.discipline,
+        category: input.category,
+        durationWeeks: weeks,
+        totalSessions: weeks * 4,
+        level: input.level,
+        description: trimmedDescription,
+        nextSessionTemplate,
+        status: nextStatus,
+        isPublished: false,
+        submittedAt,
+        reviewedByAdminId,
+        reviewedAt,
+        publishedAt: null,
+        reviewNotes,
+        updatedAt: now,
+      };
+
+      store[updated.id] = updated;
+      setLocalMap(LOCAL_PROGRAMS_KEY, store);
+      return updated;
+    }
+
+    const existingDocsSnap = await getDocs(practitionerQuery);
+    const existingDuplicate = existingDocsSnap.docs
+      .map((d) => d.data() as WellnessProgramDocument)
+      .find((item) => item.title.trim().toLowerCase() === normalizedTitle);
+    if (existingDuplicate) {
+      throw new Error(
+        'A wellness programme with this title already exists in your workspace. Please edit the existing programme instead of creating a duplicate.'
+      );
+    }
+
+    const newId = generateUniqueProgramId();
+    const created: WellnessProgramDocument = {
+      id: newId,
+      title: trimmedTitle,
+      discipline: input.discipline,
+      category: input.category,
+      durationWeeks: weeks,
+      totalSessions: weeks * 4,
+      creatorPractitionerId: input.creatorPractitionerId,
+      practitionerName: input.practitionerName,
+      practitionerTitle: input.practitionerTitle,
+      description: trimmedDescription,
+      nextSessionTemplate:
+        input.nextSessionTemplate?.trim() || 'Module 1: Orientation & Foundations',
+      level: input.level,
+      status: nextStatus,
+      isPublished: false,
+      submittedAt: input.submitForReview ? now : null,
+      reviewedByAdminId: null,
+      reviewedAt: null,
+      publishedAt: null,
+      reviewNotes: null,
+      isSimulated: false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    await setDoc(doc(activeDb, 'wellnessPrograms', created.id), created);
+    store[created.id] = created;
+    setLocalMap(LOCAL_PROGRAMS_KEY, store);
+    return created;
+  }
+
+  // Demo Mode (Local Persistent Demo Storage)
   if (input.id) {
     const existing = store[input.id];
     if (!existing) {
@@ -339,14 +496,6 @@ export async function saveOrSubmitProgram(
       reviewNotes: input.submitForReview ? null : existing.reviewNotes ?? null,
       updatedAt: now,
     };
-
-    if (isFirebaseConfigured && db) {
-      try {
-        await setDoc(doc(db, 'wellnessPrograms', updated.id), updated, { merge: true });
-      } catch (err) {
-        console.warn('Could not persist programme update in Firestore:', err);
-      }
-    }
 
     store[updated.id] = updated;
     setLocalMap(LOCAL_PROGRAMS_KEY, store);
@@ -391,14 +540,6 @@ export async function saveOrSubmitProgram(
     updatedAt: now,
   };
 
-  if (isFirebaseConfigured && db) {
-    try {
-      await setDoc(doc(db, 'wellnessPrograms', created.id), created);
-    } catch (err) {
-      console.warn('Could not persist new programme in Firestore:', err);
-    }
-  }
-
   store[created.id] = created;
   setLocalMap(LOCAL_PROGRAMS_KEY, store);
   return created;
@@ -408,23 +549,21 @@ export async function saveOrSubmitProgram(
  * Fetches wellness programmes strictly owned by the given practitioner.
  */
 export async function fetchProgramsForPractitioner(
-  practitionerId: string
+  practitionerId: string,
+  firestoreOverride?: Firestore | null
 ): Promise<WellnessProgramDocument[]> {
   if (!practitionerId?.trim()) return [];
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(
-        collection(db, 'wellnessPrograms'),
-        where('creatorPractitionerId', '==', practitionerId)
-      );
-      const snap = await getDocs(q);
-      return snap.docs
-        .map((d) => d.data() as WellnessProgramDocument)
-        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    } catch (err) {
-      console.warn('Could not fetch practitioner programmes from Firestore:', err);
-    }
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    const q = query(
+      collection(activeDb, 'wellnessPrograms'),
+      where('creatorPractitionerId', '==', practitionerId)
+    );
+    const snap = await getDocs(q);
+    return snap.docs
+      .map((d) => d.data() as WellnessProgramDocument)
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }
 
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
@@ -437,23 +576,22 @@ export async function fetchProgramsForPractitioner(
  * Fetches submitted, published, and revision-requested programmes for Admin governance approval.
  * Private practitioner drafts ('draft') are excluded until submitted.
  */
-export async function fetchProgramsForAdminApproval(): Promise<WellnessProgramDocument[]> {
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDocs(collection(db, 'wellnessPrograms'));
-      return snap.docs
-        .map((d) => d.data() as WellnessProgramDocument)
-        .filter((prog) => prog.status !== 'draft')
-        .sort((a, b) => {
-          const priority = (s: ProgramApprovalStatus) =>
-            s === 'pending_approval' ? 0 : s === 'revision_requested' ? 1 : 2;
-          const pDiff = priority(a.status) - priority(b.status);
-          if (pDiff !== 0) return pDiff;
-          return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-        });
-    } catch (err) {
-      console.warn('Could not fetch admin approval programmes from Firestore:', err);
-    }
+export async function fetchProgramsForAdminApproval(
+  firestoreOverride?: Firestore | null
+): Promise<WellnessProgramDocument[]> {
+  const activeDb = resolveActiveDb(firestoreOverride);
+  if (activeDb) {
+    const snap = await getDocs(collection(activeDb, 'wellnessPrograms'));
+    return snap.docs
+      .map((d) => d.data() as WellnessProgramDocument)
+      .filter((prog) => prog.status !== 'draft')
+      .sort((a, b) => {
+        const priority = (s: ProgramApprovalStatus) =>
+          s === 'pending_approval' ? 0 : s === 'revision_requested' ? 1 : 2;
+        const pDiff = priority(a.status) - priority(b.status);
+        if (pDiff !== 0) return pDiff;
+        return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+      });
   }
 
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
@@ -473,7 +611,8 @@ export async function fetchProgramsForAdminApproval(): Promise<WellnessProgramDo
  * Blocks non-admin roles and self-approval by the creating practitioner.
  */
 export async function reviewProgramDecision(
-  input: ReviewProgramDecisionInput
+  input: ReviewProgramDecisionInput,
+  firestoreOverride?: Firestore | null
 ): Promise<WellnessProgramDocument> {
   if (input.reviewerRole !== 'admin') {
     throw new Error(
@@ -484,7 +623,57 @@ export async function reviewProgramDecision(
     throw new Error('Reviewer administrator ID is required.');
   }
 
+  const now = new Date().toISOString();
+  const defaultNote =
+    input.decision === 'published'
+      ? 'Approved for public seeker catalog after non-diagnostic compliance review.'
+      : 'Ensure safety disclaimers specify non-diagnostic scope and contraindication notes.';
+  const finalNotes = input.reviewNotes?.trim() || defaultNote;
+
+  const activeDb = resolveActiveDb(firestoreOverride);
   const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
+
+  if (activeDb) {
+    const progRef = doc(activeDb, 'wellnessPrograms', input.programId);
+    const snap = await getDoc(progRef);
+    if (!snap.exists()) {
+      throw new Error('Wellness programme submission not found in Cloud Firestore.');
+    }
+
+    const existing = snap.data() as WellnessProgramDocument;
+    if (existing.creatorPractitionerId === input.reviewerId) {
+      throw new Error('Unauthorized: Practitioners cannot approve their own wellness programmes.');
+    }
+    if (existing.status === 'draft') {
+      throw new Error('Private practitioner drafts cannot be approved until submitted for review.');
+    }
+
+    const updated: WellnessProgramDocument = {
+      ...existing,
+      status: input.decision,
+      isPublished: input.decision === 'published',
+      reviewedByAdminId: input.reviewerId,
+      reviewedAt: now,
+      publishedAt: input.decision === 'published' ? now : null,
+      reviewNotes: finalNotes,
+      updatedAt: now,
+    };
+
+    await updateDoc(progRef, {
+      status: updated.status,
+      isPublished: updated.isPublished,
+      reviewedByAdminId: updated.reviewedByAdminId,
+      reviewedAt: updated.reviewedAt,
+      publishedAt: updated.publishedAt,
+      reviewNotes: updated.reviewNotes,
+      updatedAt: updated.updatedAt,
+    });
+
+    store[updated.id] = updated;
+    setLocalMap(LOCAL_PROGRAMS_KEY, store);
+    return updated;
+  }
+
   const existing = store[input.programId];
   if (!existing) {
     throw new Error('Wellness programme submission not found.');
@@ -496,13 +685,6 @@ export async function reviewProgramDecision(
     throw new Error('Private practitioner drafts cannot be approved until submitted for review.');
   }
 
-  const now = new Date().toISOString();
-  const defaultNote =
-    input.decision === 'published'
-      ? 'Approved for public seeker catalog after non-diagnostic compliance review.'
-      : 'Ensure safety disclaimers specify non-diagnostic scope and contraindication notes.';
-  const finalNotes = input.reviewNotes?.trim() || defaultNote;
-
   const updated: WellnessProgramDocument = {
     ...existing,
     status: input.decision,
@@ -513,22 +695,6 @@ export async function reviewProgramDecision(
     reviewNotes: finalNotes,
     updatedAt: now,
   };
-
-  if (isFirebaseConfigured && db) {
-    try {
-      await updateDoc(doc(db, 'wellnessPrograms', updated.id), {
-        status: updated.status,
-        isPublished: updated.isPublished,
-        reviewedByAdminId: updated.reviewedByAdminId,
-        reviewedAt: updated.reviewedAt,
-        publishedAt: updated.publishedAt,
-        reviewNotes: updated.reviewNotes,
-        updatedAt: updated.updatedAt,
-      });
-    } catch (err) {
-      console.warn('Could not persist programme approval decision in Firestore:', err);
-    }
-  }
 
   store[updated.id] = updated;
   setLocalMap(LOCAL_PROGRAMS_KEY, store);
@@ -569,20 +735,23 @@ function toPublishedUserProgram(docItem: WellnessProgramDocument): PublishedUser
  *   (so retracted or revision-requested items never resurface from static fallbacks).
  * - Never exposes internal reviewNotes or reviewedByAdminId.
  */
-export async function fetchPublishedProgramsForUser(options?: {
-  demoCatalog?: WellnessProgram[];
-}): Promise<PublishedUserProgram[]> {
+export async function fetchPublishedProgramsForUser(
+  options?: {
+    demoCatalog?: WellnessProgram[];
+  },
+  firestoreOverride?: Firestore | null
+): Promise<PublishedUserProgram[]> {
   let allRecords: WellnessProgramDocument[] = [];
+  const activeDb = resolveActiveDb(firestoreOverride);
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDocs(collection(db, 'wellnessPrograms'));
-      allRecords = snap.docs.map((d) => d.data() as WellnessProgramDocument);
-    } catch (err) {
-      console.warn('Could not fetch published programmes from Firestore:', err);
-      const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
-      allRecords = Object.values(store);
-    }
+  if (activeDb) {
+    const q = query(
+      collection(activeDb, 'wellnessPrograms'),
+      where('isPublished', '==', true),
+      where('status', '==', 'published')
+    );
+    const snap = await getDocs(q);
+    allRecords = snap.docs.map((d) => d.data() as WellnessProgramDocument);
   } else {
     const store = getLocalMap<WellnessProgramDocument>(LOCAL_PROGRAMS_KEY);
     allRecords = Object.values(store);
