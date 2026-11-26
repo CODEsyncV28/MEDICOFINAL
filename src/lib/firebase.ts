@@ -20,7 +20,13 @@ const firebaseConfig = {
   appId: env.VITE_FIREBASE_APP_ID || '',
 };
 
-const databaseId = env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || '(default)';
+const databaseId = '(default)';
+const envDatabaseId = (env.VITE_FIREBASE_FIRESTORE_DATABASE_ID || databaseId).trim();
+if (envDatabaseId !== databaseId) {
+  console.warn(
+    `[AYUSH Wellness Connect] Ignoring unintended Firestore database ID "${envDatabaseId}". Using "${databaseId}".`
+  );
+}
 
 export const isFirebaseConfigured = Boolean(
   firebaseConfig.apiKey &&
@@ -36,9 +42,7 @@ if (isFirebaseConfigured) {
   try {
     app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
     auth = getAuth(app);
-    db = databaseId && databaseId !== '(default)'
-      ? getFirestore(app, databaseId)
-      : getFirestore(app);
+    db = getFirestore(app, '(default)');
   } catch (error) {
     console.error('Failed to initialize Firebase SDK:', error);
   }
