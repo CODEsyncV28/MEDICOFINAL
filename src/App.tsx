@@ -11,6 +11,7 @@ import { ContentReaderModal } from './components/modals/ContentReaderModal';
 import { ConsultationModal } from './components/modals/ConsultationModal';
 import { NewRegimenModal } from './components/modals/NewRegimenModal';
 import { AuthModal } from './components/modals/AuthModal';
+import { WellnessCompanionModal } from './components/companion/WellnessCompanionModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ReminderProvider } from './contexts/ReminderContext';
 import { InAppReminderBanner } from './components/reminders/InAppReminderBanner';
@@ -29,6 +30,7 @@ import {
 import {
   fetchVerifiedPractitioners,
   fetchSeekerAssignedPractitionerId,
+  getDemoPractitionerSettingsOverride,
   seedDemoClientProfiles,
 } from './services/practitionerService';
 import { seedDemoArticles } from './services/contentService';
@@ -36,6 +38,7 @@ import { seedDemoPrograms } from './services/programService';
 import { seedDemoAuditLog } from './services/adminService';
 import { canAccessPortal } from './utils/portalAccess';
 import {
+  mapPractitionerDocumentToPractitioner,
   resolvePractitionerForSeeker,
   resolvePractitionerForWorkspace,
 } from './utils/practitionerIdentity';
@@ -52,6 +55,7 @@ import {
 import {
   RoleType,
   DailyActivity,
+  Practitioner,
   WellnessProgram,
   EducationalArticle,
 } from './types';
@@ -111,6 +115,11 @@ function AppContent() {
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
   const [readingArticle, setReadingArticle] = useState<EducationalArticle | null>(null);
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
+  const [selectedConsultationPractitioner, setSelectedConsultationPractitioner] =
+    useState<Practitioner | null>(null);
+  const [consultationPrefillNotes, setConsultationPrefillNotes] = useState<string>('');
+  const [isCompanionOpen, setIsCompanionOpen] = useState(false);
+  const [practitionerSettingsTick, setPractitionerSettingsTick] = useState(0);
   const [isNewRegimenOpen, setIsNewRegimenOpen] = useState(false);
   const [practitionerProgramsRefreshKey, setPractitionerProgramsRefreshKey] = useState(0);
   const [userCatalogRefreshKey, setUserCatalogRefreshKey] = useState(0);
@@ -169,15 +178,23 @@ function AppContent() {
     return () => {
       isMounted = false;
     };
-  }, [isConfigured, demoPortalEnabled]);
+  }, [isConfigured, demoPortalEnabled, practitionerSettingsTick]);
 
-  const workspacePractitioner = resolvePractitionerForWorkspace(
+  const workspaceBase = resolvePractitionerForWorkspace(
     PRIMARY_PRACTITIONER,
     firebaseUser?.uid ?? null,
     userProfile,
     demoPortalEnabled && userProfile?.role !== 'practitioner',
     verifiedPractitioners
   );
+  const workspaceOverride =
+    !isConfigured || (demoPortalEnabled && userProfile?.role !== 'practitioner')
+      ? getDemoPractitionerSettingsOverride(workspaceBase.id)
+      : null;
+  const workspacePractitioner: Practitioner = workspaceOverride
+    ? { ...workspaceBase, ...workspaceOverride }
+    : workspaceBase;
+
   const seekerPractitioner = resolvePractitionerForSeeker(
     PRIMARY_PRACTITIONER,
     userProfile,
@@ -185,6 +202,28 @@ function AppContent() {
     isConfigured,
     seekerAssignedPractitionerId
   );
+
+  // Real verified practitioners pool for AYUSH AI Wellness Companion matching:
+  // Live Firebase mode strictly uses verified Firestore records (never prac-1 or synthetic fallbacks).
+  // Unauthenticated Demo Mode Sandbox Preview uses verified records if present, otherwise demo practitioner + local overrides.
+  const companionPractitionerPool: Practitioner[] = React.useMemo(() => {
+    const mappedVerified = verifiedPractitioners
+      .filter((p) => p.isVerified === true && Boolean(p.userId?.trim()) && p.userId.trim() !== 'prac-1')
+      .map((p) => mapPractitionerDocumentToPractitioner(p, PRIMARY_PRACTITIONER));
+
+    if (mappedVerified.length > 0) {
+      return mappedVerified;
+    }
+
+    if (isConfigured && (!demoPortalEnabled || Boolean(firebaseUser))) {
+      return [];
+    }
+
+    const demoOverride = getDemoPractitionerSettingsOverride(PRIMARY_PRACTITIONER.id);
+    return [
+      demoOverride ? { ...PRIMARY_PRACTITIONER, ...demoOverride } : PRIMARY_PRACTITIONER,
+    ];
+  }, [verifiedPractitioners, isConfigured, demoPortalEnabled, firebaseUser, practitionerSettingsTick]);
 
   const refreshUserConsultations = async (uid?: string) => {
     const targetUid = uid || (firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID);
@@ -556,7 +595,12 @@ function AppContent() {
                 onOpenAssessment={() => setIsAssessmentOpen(true)}
                 onCompleteAssessment={handleAssessmentComplete}
                 onReadArticle={(art) => setReadingArticle(art)}
-                onConnectPractitioner={() => setIsConsultationOpen(true)}
+                onConnectPractitioner={() => {
+                  setSelectedConsultationPractitioner(seekerPractitioner);
+                  setConsultationPrefillNotes('');
+                  setIsConsultationOpen(true);
+                }}
+                onOpenCompanion={() => setIsCompanionOpen(true)}
                 demoPortalEnabled={demoPortalEnabled}
                 onSwitchRole={() => handleSelectRole('practitioner')}
                 userName={userProfile?.displayName || undefined}
@@ -584,6 +628,7 @@ function AppContent() {
                 onOpenNewRegimen={() => setIsNewRegimenOpen(true)}
                 onReadArticle={(art) => setReadingArticle(art)}
                 onConsultationUpdated={() => refreshUserConsultations()}
+                onProfileUpdated={() => setPractitionerSettingsTick((prev) => prev + 1)}
                 canSwitchToAdmin={
                   canAccessPortal({
                     targetRole: 'admin',
@@ -641,21 +686,48 @@ function AppContent() {
       />
 
       <ConsultationModal
-        isOpen={isConsultationOpen && Boolean(seekerPractitioner)}
-        practitioner={seekerPractitioner}
+        isOpen={isConsultationOpen && Boolean(selectedConsultationPractitioner || seekerPractitioner)}
+        practitioner={selectedConsultationPractitioner || seekerPractitioner}
         seekerUid={firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID}
         seekerName={
           userProfile?.displayName ||
           firebaseUser?.email?.split('@')[0] ||
           'Seeker (Demo Preview)'
         }
-        onClose={() => setIsConsultationOpen(false)}
+        initialNotes={consultationPrefillNotes}
+        onClose={() => {
+          setIsConsultationOpen(false);
+          setSelectedConsultationPractitioner(null);
+          setConsultationPrefillNotes('');
+        }}
         onCreated={(created) => {
           setUserConsultations((prev) => [
             created,
             ...prev.filter((item) => item.id !== created.id),
           ]);
           showToast(`Consultation request sent to ${created.practitionerName}.`);
+        }}
+      />
+
+      <WellnessCompanionModal
+        isOpen={isCompanionOpen}
+        onClose={() => setIsCompanionOpen(false)}
+        userId={effectiveUid}
+        isLoggedIn={Boolean(firebaseUser)}
+        isConfigured={isConfigured}
+        assessmentAnswers={assessmentAnswers}
+        totalAssessmentQuestions={EXPANDED_ASSESSMENT_QUESTIONS.length}
+        activePlan={activePlan}
+        assessmentHistory={assessmentHistory}
+        activities={activities}
+        availablePractitioners={companionPractitionerPool}
+        practitionersLoading={practitionersLoading}
+        onOpenAssessment={() => setIsAssessmentOpen(true)}
+        onSelectPractitionerForConsultation={(prac, prefillNotes) => {
+          setIsCompanionOpen(false);
+          setSelectedConsultationPractitioner(prac);
+          setConsultationPrefillNotes(prefillNotes || '');
+          setIsConsultationOpen(true);
         }}
       />
 

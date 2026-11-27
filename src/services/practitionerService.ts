@@ -451,3 +451,78 @@ export async function fetchSeekerAssignedPractitionerId(
     throw err;
   }
 }
+
+const LOCAL_PRACTITIONER_SETTINGS_KEY = 'ayush_practitioner_settings_v1';
+
+export interface PractitionerConsultationSettingsInput {
+  practitionerId: string;
+  consultationFee: number | null;
+  consultationCurrency: string;
+  consultationFormat: 'online' | 'in_person' | 'both' | null;
+  location: string | null;
+  languages: string[];
+  nextAvailableSlot: string;
+  bio: string;
+}
+
+export function getDemoPractitionerSettingsOverride(
+  practitionerId: string
+): Partial<PractitionerConsultationSettingsInput> | null {
+  const store = getLocalData<Partial<PractitionerConsultationSettingsInput>>(
+    LOCAL_PRACTITIONER_SETTINGS_KEY
+  );
+  return store[practitionerId] || null;
+}
+
+/**
+ * Updates verified practitioner consultation charges, format, location, languages,
+ * and availability slot in Cloud Firestore (/practitioners/{practitionerId}) or local demo store.
+ */
+export async function updatePractitionerConsultationSettings(
+  input: PractitionerConsultationSettingsInput,
+  firestoreOverride?: Firestore | null,
+  useDemoStorage: boolean = false
+): Promise<void> {
+  const pracId = input.practitionerId?.trim();
+  if (!pracId) {
+    throw new Error('Practitioner identifier is required.');
+  }
+  if (
+    input.consultationFee !== null &&
+    (!Number.isFinite(input.consultationFee) ||
+      input.consultationFee < 0 ||
+      input.consultationFee > 100000)
+  ) {
+    throw new Error('Consultation fee must be a valid amount between 0 and 100,000.');
+  }
+
+  const now = new Date().toISOString();
+  const payload = {
+    consultationFee: input.consultationFee,
+    consultationCurrency: (input.consultationCurrency || 'INR').trim().toUpperCase(),
+    consultationFormat: input.consultationFormat,
+    location: input.location?.trim() || null,
+    languages: input.languages.map((l) => l.trim()).filter(Boolean).slice(0, 12),
+    nextAvailableSlot: input.nextAvailableSlot.trim(),
+    bio: input.bio.trim(),
+    updatedAt: now,
+  };
+
+  const activeDb = resolveActiveDb(firestoreOverride, useDemoStorage);
+  if (activeDb && pracId !== 'prac-1') {
+    const q = query(collection(activeDb, 'practitioners'), where('userId', '==', pracId));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      await updateDoc(snap.docs[0].ref, payload);
+    } else {
+      await updateDoc(doc(activeDb, 'practitioners', pracId), payload);
+    }
+  }
+
+  const store = getLocalData<Partial<PractitionerConsultationSettingsInput>>(
+    LOCAL_PRACTITIONER_SETTINGS_KEY
+  );
+  store[pracId] = payload;
+  setLocalData(LOCAL_PRACTITIONER_SETTINGS_KEY, store);
+}
+

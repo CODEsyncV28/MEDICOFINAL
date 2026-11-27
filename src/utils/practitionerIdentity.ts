@@ -146,5 +146,12 @@ export function mapPractitionerDocumentToPractitioner(
     rating: typeof docItem.rating === 'number' ? docItem.rating : fallback.rating,
     bio: docItem.bio || fallback.bio,
     nextAvailableSlot: docItem.nextAvailableSlot || fallback.nextAvailableSlot,
+    consultationFee:
+      typeof docItem.consultationFee === 'number' ? docItem.consultationFee : null,
+    consultationCurrency: docItem.consultationCurrency || null,
+    consultationFormat: docItem.consultationFormat || null,
+    location: docItem.location || null,
+    languages: Array.isArray(docItem.languages) ? docItem.languages : null,
+    photoUrl: docItem.photoUrl || null,
   };
 }

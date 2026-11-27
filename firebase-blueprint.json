@@ -110,7 +110,14 @@
         "rating": { "type": "number" },
         "bio": { "type": "string", "maxLength": 800 },
         "nextAvailableSlot": { "type": "string" },
-        "createdAt": { "type": "string" }
+        "consultationFee": { "type": "number", "description": "Optional verified consultation fee set by the practitioner." },
+        "consultationCurrency": { "type": "string", "maxLength": 10, "description": "ISO currency code such as INR." },
+        "consultationFormat": { "type": "string", "enum": ["online", "in_person", "both"] },
+        "location": { "type": "string", "maxLength": 120 },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "photoUrl": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
       },
       "required": ["id", "userId", "name", "qualification", "councilRegistration", "isVerified"]
     },
@@ -203,6 +210,23 @@
         "educationalDisclaimer": { "type": "string", "maxLength": 1000 }
       },
       "required": ["id", "userId", "version", "assessmentId", "generatedAt", "title", "constitutionTendency", "primaryFocus", "summary", "educationalDisclaimer"]
+    },
+    "AIConversation": {
+      "title": "AIConversation",
+      "description": "Private, seeker-isolated AYUSH AI Wellness Companion conversation session.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string", "description": "Owning seeker UID." },
+        "title": { "type": "string", "maxLength": 160 },
+        "hasAssessmentConsent": { "type": "boolean" },
+        "minorGuardianFlag": { "type": "boolean" },
+        "messages": { "type": "array", "description": "Bounded conversation turns." },
+        "latestSummary": { "type": "object", "description": "Optional non-diagnostic concern summary." },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "hasAssessmentConsent", "messages", "createdAt", "updatedAt"]
     }
   },
   "firestore": {
@@ -249,6 +273,10 @@
     "/contentApprovals/{approvalId}": {
       "schema": { "$ref": "#/entities/ContentApproval" },
       "description": "Governance review queue. Readable by submitting authors; reviewed exclusively by platform administrators."
+    },
+    "/aiConversations/{conversationId}": {
+      "schema": { "$ref": "#/entities/AIConversation" },
+      "description": "Private AI Wellness Companion transcripts strictly isolated to the owning seeker."
     }
   }
 }

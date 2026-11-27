@@ -60,6 +60,7 @@ import {
   fetchClientsForPractitioner,
   seedDemoClientProfiles,
   updateClientObservationNotes,
+  updatePractitionerConsultationSettings,
 } from '../../services/practitionerService';
 import { fetchLatestAssessment } from '../../services/assessmentService';
 import { fetchLatestWellnessPlan } from '../../services/wellnessPlanService';
@@ -95,6 +96,7 @@ interface PractitionerDashboardProps {
   onReadArticle: (article: EducationalArticle) => void;
   onSwitchRole?: () => void;
   onConsultationUpdated?: () => void;
+  onProfileUpdated?: () => void;
   canSwitchToAdmin?: boolean;
   isDemoMode?: boolean;
 }
@@ -144,6 +146,7 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   onReadArticle,
   onSwitchRole,
   onConsultationUpdated,
+  onProfileUpdated,
   canSwitchToAdmin = false,
   isDemoMode = false,
 }) => {
@@ -207,6 +210,31 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
   const [consultationNoteInput, setConsultationNoteInput] = useState<string>('');
   const [isUpdatingConsultation, setIsUpdatingConsultation] = useState<boolean>(false);
   const [consultationModalError, setConsultationModalError] = useState<string | null>(null);
+
+  // Practitioner consultation settings modal (fee, format, location, languages)
+  const [isProfileSettingsOpen, setIsProfileSettingsOpen] = useState<boolean>(false);
+  const [feeInput, setFeeInput] = useState<string>(
+    typeof practitioner.consultationFee === 'number'
+      ? String(practitioner.consultationFee)
+      : ''
+  );
+  const [currencyInput, setCurrencyInput] = useState<string>(
+    practitioner.consultationCurrency || 'INR'
+  );
+  const [formatInput, setFormatInput] = useState<'online' | 'in_person' | 'both' | ''>(
+    practitioner.consultationFormat || ''
+  );
+  const [locationInput, setLocationInput] = useState<string>(practitioner.location || '');
+  const [languagesInput, setLanguagesInput] = useState<string>(
+    practitioner.languages?.join(', ') || ''
+  );
+  const [slotSettingsInput, setSlotSettingsInput] = useState<string>(
+    practitioner.nextAvailableSlot || ''
+  );
+  const [bioSettingsInput, setBioSettingsInput] = useState<string>(practitioner.bio || '');
+  const [isSavingProfileSettings, setIsSavingProfileSettings] = useState<boolean>(false);
+  const [profileSettingsError, setProfileSettingsError] = useState<string | null>(null);
+  const [profileSettingsToast, setProfileSettingsToast] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -654,12 +682,52 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                 <Clock className="w-3.5 h-3.5 text-[#0284C7]" />
                 <span>{practitioner.nextAvailableSlot}</span>
               </span>
+              <span>·</span>
+              <span
+                data-testid="practitioner-header-fee-summary"
+                className="inline-flex items-center gap-1 font-semibold text-[#0F766E] bg-[#CCFBF1]/60 px-2 py-0.5 rounded-md border border-[#99F6E4]/80"
+              >
+                {typeof practitioner.consultationFee === 'number'
+                  ? `${practitioner.consultationCurrency === 'USD' ? '$' : '₹'}${practitioner.consultationFee.toLocaleString()}`
+                  : 'Charges not listed'}
+                {practitioner.consultationFormat === 'both'
+                  ? ' · Online & In-Person'
+                  : practitioner.consultationFormat === 'online'
+                    ? ' · Online'
+                    : practitioner.consultationFormat === 'in_person'
+                      ? ' · In-Person'
+                      : ''}
+                {practitioner.location ? ` · ${practitioner.location}` : ''}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-3 self-start lg:self-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setFeeInput(
+                typeof practitioner.consultationFee === 'number'
+                  ? String(practitioner.consultationFee)
+                  : ''
+              );
+              setCurrencyInput(practitioner.consultationCurrency || 'INR');
+              setFormatInput(practitioner.consultationFormat || '');
+              setLocationInput(practitioner.location || '');
+              setLanguagesInput(practitioner.languages?.join(', ') || '');
+              setSlotSettingsInput(practitioner.nextAvailableSlot || '');
+              setBioSettingsInput(practitioner.bio || '');
+              setProfileSettingsError(null);
+              setIsProfileSettingsOpen(true);
+            }}
+            data-testid="practitioner-edit-fees-btn"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-[#0F766E] bg-[#CCFBF1]/70 hover:bg-[#CCFBF1] border border-[#99F6E4] rounded-xl shadow-xs transition-colors"
+          >
+            <Edit3 className="w-4 h-4 text-[#0D9488]" />
+            <span>Consultation Fee &amp; Mode</span>
+          </button>
           <button
             type="button"
             onClick={handleOpenNewArticleModal}
@@ -678,6 +746,16 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
           </button>
         </div>
       </section>
+
+      {profileSettingsToast && (
+        <div
+          role="status"
+          className="p-3 rounded-xl bg-[#CCFBF1] border border-[#99F6E4] text-xs font-semibold text-[#0F766E] flex items-center gap-2"
+        >
+          <CheckCircle2 className="w-4 h-4 text-[#0D9488] shrink-0" />
+          <span>{profileSettingsToast}</span>
+        </div>
+      )}
 
       {/* PRACTITIONER OVERVIEW STATISTIC CARDS */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2265,6 +2343,224 @@ export const PractitionerDashboard: React.FC<PractitionerDashboardProps> = ({
                       ? 'Mark as Completed'
                       : 'Confirm Decline'}
                   </span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Practitioner Consultation Fee & Format Modal */}
+      {isProfileSettingsOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="prac-settings-title"
+          className="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
+        >
+          <div className="bg-[#F8FAFC] w-full max-w-lg rounded-2xl border border-[#CBD5E1] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="px-6 py-4 bg-white border-b border-[#E2E8F0] flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
+                  Directory Listing
+                </span>
+                <h3 id="prac-settings-title" className="text-lg font-serif font-bold text-[#0F172A]">
+                  Consultation Fee &amp; Availability
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsProfileSettingsOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 rounded-lg hover:bg-slate-100"
+                aria-label="Close dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setProfileSettingsError(null);
+                const parsedFee = feeInput.trim() === '' ? null : Number(feeInput.trim());
+                if (parsedFee !== null && (!Number.isFinite(parsedFee) || parsedFee < 0)) {
+                  setProfileSettingsError('Please enter a valid non-negative consultation fee.');
+                  return;
+                }
+                setIsSavingProfileSettings(true);
+                try {
+                  await updatePractitionerConsultationSettings(
+                    {
+                      practitionerId: practitioner.id,
+                      consultationFee: parsedFee,
+                      consultationCurrency: currencyInput || 'INR',
+                      consultationFormat: formatInput || null,
+                      location: locationInput.trim() || null,
+                      languages: languagesInput
+                        .split(',')
+                        .map((s) => s.trim())
+                        .filter(Boolean),
+                      nextAvailableSlot: slotSettingsInput.trim(),
+                      bio: bioSettingsInput.trim(),
+                    },
+                    undefined,
+                    isDemoMode
+                  );
+                  setIsProfileSettingsOpen(false);
+                  setProfileSettingsToast('Consultation fee & directory details saved.');
+                  setTimeout(() => setProfileSettingsToast(null), 4000);
+                  onProfileUpdated?.();
+                } catch (err) {
+                  setProfileSettingsError(
+                    err instanceof Error
+                      ? err.message
+                      : 'Unable to update consultation profile settings.'
+                  );
+                } finally {
+                  setIsSavingProfileSettings(false);
+                }
+              }}
+              className="p-6 overflow-y-auto space-y-4 text-xs"
+            >
+              {profileSettingsError && (
+                <div
+                  role="alert"
+                  className="p-3 rounded-lg bg-[#FFDAD6] border border-[#BA1A1A]/30 text-[#93000A] flex items-center gap-2"
+                >
+                  <AlertCircle className="w-4 h-4 text-[#BA1A1A] shrink-0" />
+                  <span>{profileSettingsError}</span>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label htmlFor="prac-fee-input" className="block font-semibold text-[#0F172A] mb-1">
+                    Consultation Fee (leave blank if unlisted)
+                  </label>
+                  <input
+                    id="prac-fee-input"
+                    type="number"
+                    min={0}
+                    max={100000}
+                    value={feeInput}
+                    onChange={(e) => setFeeInput(e.target.value)}
+                    placeholder="e.g., 600"
+                    className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="prac-currency-select" className="block font-semibold text-[#0F172A] mb-1">
+                    Currency
+                  </label>
+                  <select
+                    id="prac-currency-select"
+                    value={currencyInput}
+                    onChange={(e) => setCurrencyInput(e.target.value)}
+                    className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                  >
+                    <option value="INR">INR (₹)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label htmlFor="prac-format-select" className="block font-semibold text-[#0F172A] mb-1">
+                    Consultation Format
+                  </label>
+                  <select
+                    id="prac-format-select"
+                    value={formatInput}
+                    onChange={(e) =>
+                      setFormatInput(e.target.value as 'online' | 'in_person' | 'both' | '')
+                    }
+                    className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                  >
+                    <option value="">Not specified</option>
+                    <option value="online">Online Only</option>
+                    <option value="in_person">In-Person Clinic</option>
+                    <option value="both">Online &amp; In-Person</option>
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="prac-location-input" className="block font-semibold text-[#0F172A] mb-1">
+                    City / Clinic Location
+                  </label>
+                  <input
+                    id="prac-location-input"
+                    type="text"
+                    maxLength={120}
+                    value={locationInput}
+                    onChange={(e) => setLocationInput(e.target.value)}
+                    placeholder="e.g., Bengaluru"
+                    className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="prac-languages-input" className="block font-semibold text-[#0F172A] mb-1">
+                  Languages Spoken (comma-separated)
+                </label>
+                <input
+                  id="prac-languages-input"
+                  type="text"
+                  value={languagesInput}
+                  onChange={(e) => setLanguagesInput(e.target.value)}
+                  placeholder="e.g., English, Hindi, Kannada"
+                  className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="prac-slot-input" className="block font-semibold text-[#0F172A] mb-1">
+                  Next Available Consultation Slot
+                </label>
+                <input
+                  id="prac-slot-input"
+                  type="text"
+                  maxLength={100}
+                  value={slotSettingsInput}
+                  onChange={(e) => setSlotSettingsInput(e.target.value)}
+                  placeholder="e.g., Tomorrow at 10:30 AM (Virtual Review)"
+                  className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="prac-bio-textarea" className="block font-semibold text-[#0F172A] mb-1">
+                  Short Practice Overview
+                </label>
+                <textarea
+                  id="prac-bio-textarea"
+                  rows={3}
+                  maxLength={800}
+                  value={bioSettingsInput}
+                  onChange={(e) => setBioSettingsInput(e.target.value)}
+                  className="w-full p-2.5 rounded-lg border border-[#CBD5E1] bg-white text-slate-800"
+                />
+              </div>
+
+              <div className="pt-2 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsProfileSettingsOpen(false)}
+                  className="px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-lg"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingProfileSettings}
+                  className="inline-flex items-center gap-1.5 px-5 py-2.5 text-xs font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-lg disabled:opacity-60"
+                >
+                  {isSavingProfileSettings ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Check className="w-3.5 h-3.5" />
+                  )}
+                  <span>Save Directory Details</span>
                 </button>
               </div>
             </form>

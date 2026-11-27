@@ -113,6 +113,8 @@ interface UserDashboardProps {
   catalogRefreshKey?: number;
   // Highlighted Dinacharya activity navigated from notification
   highlightedActivityId?: string | null;
+  // Open AYUSH AI Wellness Companion
+  onOpenCompanion?: () => void;
 }
 
 function getPractitionerInitials(name: string): string {
@@ -155,6 +157,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   consultationsError = null,
   catalogRefreshKey = 0,
   highlightedActivityId: highlightedActivityIdProp = null,
+  onOpenCompanion,
 }) => {
   const reminderCtx = useOptionalReminders();
   const activeHighlightedActivityId =
@@ -584,6 +587,47 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
           </div>
         )}
       </section>
+
+      {/* 1C. AYUSH AI WELLNESS COMPANION BANNER */}
+      {onOpenCompanion && (
+        <section
+          data-testid="companion-entry-card"
+          className="bg-gradient-to-r from-[#F0F9FF] via-[#F8FAFC] to-[#CCFBF1]/45 rounded-2xl p-5 sm:p-6 border border-[#BAE6FD] shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4"
+        >
+          <div className="flex items-start gap-3.5 max-w-2xl">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#0284C7] to-[#0D9488] text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#0284C7]">
+                  AI Wellness Navigation &amp; Practitioner Discovery
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#CCFBF1] text-[#0F766E] border border-[#99F6E4]">
+                  Non-Diagnostic
+                </span>
+              </div>
+              <h2 className="text-base sm:text-lg font-serif font-bold text-[#0F172A]">
+                AYUSH AI Wellness Companion
+              </h2>
+              <p className="text-xs text-[#475569] leading-relaxed">
+                Share what has been concerning you lately, optionally include your saved lifestyle assessment, and discover verified AYUSH practitioners with transparent consultation charges.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenCompanion}
+            data-testid="open-companion-btn"
+            className="inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-semibold text-white bg-[#0284C7] hover:bg-[#0369A1] rounded-xl transition-colors shadow-xs shrink-0 self-start md:self-auto"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>Open Wellness Companion</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        </section>
+      )}
 
       {/* 2. WELLNESS OVERVIEW (Compact Statistic Cards) */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

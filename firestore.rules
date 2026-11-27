@@ -452,6 +452,12 @@ service cloud.firestore {
           'rating',
           'bio',
           'nextAvailableSlot',
+          'consultationFee',
+          'consultationCurrency',
+          'consultationFormat',
+          'location',
+          'languages',
+          'photoUrl',
           'createdAt',
           'updatedAt',
           'updatedAtServer'
@@ -469,6 +475,12 @@ service cloud.firestore {
         (!('rating' in data) || (data.rating is number && data.rating >= 0 && data.rating <= 5)) &&
         isValidOptionalString(data, 'bio', 800) &&
         isValidOptionalString(data, 'nextAvailableSlot', 100) &&
+        (!('consultationFee' in data) || data.consultationFee == null || (data.consultationFee is number && data.consultationFee >= 0 && data.consultationFee <= 100000)) &&
+        isValidOptionalString(data, 'consultationCurrency', 10) &&
+        (!('consultationFormat' in data) || data.consultationFormat == null || data.consultationFormat in ['online', 'in_person', 'both']) &&
+        isValidOptionalString(data, 'location', 120) &&
+        (!('languages' in data) || data.languages == null || (data.languages is list && data.languages.size() <= 12)) &&
+        isValidOptionalString(data, 'photoUrl', 500) &&
         isValidOptionalString(data, 'createdAt', 64) &&
         isValidOptionalString(data, 'updatedAt', 64) &&
         isValidOptionalTimestamp(data, 'updatedAtServer');
@@ -945,6 +957,12 @@ service cloud.firestore {
               'bio',
               'specialization',
               'nextAvailableSlot',
+              'consultationFee',
+              'consultationCurrency',
+              'consultationFormat',
+              'location',
+              'languages',
+              'photoUrl',
               'updatedAt',
               'updatedAtServer'
             ])
@@ -1079,6 +1097,58 @@ service cloud.firestore {
         isValidContentApproval(request.resource.data);
 
       allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------------------
+    // 11. AI Wellness Companion Conversations (/aiConversations/{conversationId})
+    // Strictly owner-only: practitioners and other users cannot read seeker chats.
+    // -------------------------------------------------------------------------
+    function isValidAIConversation(data) {
+      return data.keys().hasAll(['id', 'userId', 'hasAssessmentConsent', 'messages', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly([
+          'id',
+          'userId',
+          'title',
+          'hasAssessmentConsent',
+          'minorGuardianFlag',
+          'messages',
+          'latestSummary',
+          'createdAt',
+          'updatedAt',
+          'updatedAtServer'
+        ]) &&
+        isValidId(data.id) &&
+        isValidId(data.userId) &&
+        isValidOptionalString(data, 'title', 160) &&
+        data.hasAssessmentConsent is bool &&
+        (!('minorGuardianFlag' in data) || data.minorGuardianFlag is bool) &&
+        data.messages is list &&
+        data.messages.size() <= 60 &&
+        (!('latestSummary' in data) || data.latestSummary == null || data.latestSummary is map) &&
+        isNonEmptyString(data.createdAt, 64) &&
+        isNonEmptyString(data.updatedAt, 64) &&
+        isValidOptionalTimestamp(data, 'updatedAtServer');
+    }
+
+    match /aiConversations/{conversationId} {
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+        isValidId(conversationId) &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.id == conversationId &&
+        isValidAIConversation(request.resource.data);
+
+      allow update: if isSignedIn() &&
+        isValidId(conversationId) &&
+        resource.data.userId == request.auth.uid &&
+        request.resource.data.userId == resource.data.userId &&
+        request.resource.data.id == resource.data.id &&
+        request.resource.data.createdAt == resource.data.createdAt &&
+        isValidAIConversation(request.resource.data);
+
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
     }
   }
 }

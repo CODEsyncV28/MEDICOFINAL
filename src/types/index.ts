@@ -70,6 +70,12 @@ export interface Practitioner {
   rating: number;
   bio: string;
   nextAvailableSlot: string;
+  consultationFee?: number | null;
+  consultationCurrency?: string | null;
+  consultationFormat?: 'online' | 'in_person' | 'both' | null;
+  location?: string | null;
+  languages?: string[] | null;
+  photoUrl?: string | null;
 }
 
 export interface ClientRecord {

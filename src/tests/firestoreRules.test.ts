@@ -232,6 +232,45 @@ class FirestoreRulesEngine {
   canUpdateContentApproval(ctx: RequestContext): boolean {
     return this.isAdmin(ctx);
   }
+
+  // 7. AI Conversations (/aiConversations/{conversationId}) — strictly owner-only
+  canReadAIConversation(ctx: RequestContext): boolean {
+    if (!this.isSignedIn(ctx)) return false;
+    return ctx.resource?.data?.userId === ctx.auth?.uid;
+  }
+
+  canCreateAIConversation(ctx: RequestContext, conversationId: string): boolean {
+    if (!this.isSignedIn(ctx)) return false;
+    const after = ctx.requestResource?.data;
+    if (!after) return false;
+    return after.id === conversationId && after.userId === ctx.auth?.uid;
+  }
+
+  // 8. Practitioner self-update for consultation details
+  canUpdatePractitionerProfile(ctx: RequestContext): boolean {
+    if (this.isAdmin(ctx)) return true;
+    if (!this.isSignedIn(ctx)) return false;
+    const before = ctx.resource?.data || {};
+    const after = ctx.requestResource?.data || {};
+    if (before.userId !== ctx.auth?.uid) return false;
+    if (after.userId !== before.userId || after.id !== before.id || after.isVerified !== before.isVerified) {
+      return false;
+    }
+    const diff = this.getDiffKeys(before, after);
+    return this.hasOnly(diff, [
+      'bio',
+      'specialization',
+      'nextAvailableSlot',
+      'consultationFee',
+      'consultationCurrency',
+      'consultationFormat',
+      'location',
+      'languages',
+      'photoUrl',
+      'updatedAt',
+      'updatedAtServer',
+    ]);
+  }
 }
 
 // ============================================================================
@@ -534,5 +573,85 @@ describe('Firestore Security Rules Verification Suite', () => {
       auth: { uid: 'user_unassigned' },
     };
     assert.strictEqual(engine.canUpdateUser(otherUserCtx, 'user_123'), false);
+  });
+
+  // Test 13: AI Conversations are strictly owner-only (denied for practitioners & other users)
+  it('13. AI Companion conversations are readable only by owner and denied to practitioners and other seekers', () => {
+    const convDoc = {
+      id: 'conv_user_123',
+      userId: 'user_123',
+      hasAssessmentConsent: true,
+      messages: [],
+      createdAt: '2026-11-27T06:00:00Z',
+      updatedAt: '2026-11-27T06:00:00Z',
+    };
+
+    assert.strictEqual(
+      engine.canReadAIConversation({ auth: { uid: 'user_123' }, resource: { data: convDoc } }),
+      true
+    );
+    assert.strictEqual(
+      engine.canReadAIConversation({ auth: { uid: 'dr_ayurveda_1' }, resource: { data: convDoc } }),
+      false,
+      'Assigned practitioner must not read private AI conversations by default'
+    );
+    assert.strictEqual(
+      engine.canReadAIConversation({ auth: { uid: 'user_unassigned' }, resource: { data: convDoc } }),
+      false
+    );
+    assert.strictEqual(
+      engine.canCreateAIConversation(
+        { auth: { uid: 'user_unassigned' }, requestResource: { data: convDoc } },
+        'conv_user_123'
+      ),
+      false
+    );
+  });
+
+  // Test 14: Practitioner can update own consultation fee/format/location/languages but cannot self-verify
+  it('14. Practitioner can update own consultation details but cannot alter isVerified', () => {
+    const beforePrac = {
+      id: 'dr_ayurveda_1',
+      userId: 'dr_ayurveda_1',
+      name: 'Dr. Priya Varma',
+      qualification: 'BAMS, MD',
+      councilRegistration: 'CCIM-123',
+      isVerified: true,
+      bio: 'Classical Dinacharya',
+      specialization: 'Sleep & Digestion',
+      nextAvailableSlot: 'Tomorrow 10 AM',
+    };
+
+    assert.strictEqual(
+      engine.canUpdatePractitionerProfile({
+        auth: { uid: 'dr_ayurveda_1' },
+        resource: { data: beforePrac },
+        requestResource: {
+          data: {
+            ...beforePrac,
+            consultationFee: 600,
+            consultationCurrency: 'INR',
+            consultationFormat: 'both',
+            location: 'Bengaluru',
+            languages: ['English', 'Hindi'],
+          },
+        },
+      }),
+      true
+    );
+
+    assert.strictEqual(
+      engine.canUpdatePractitionerProfile({
+        auth: { uid: 'dr_ayurveda_1' },
+        resource: { data: beforePrac },
+        requestResource: {
+          data: {
+            ...beforePrac,
+            isVerified: false,
+          },
+        },
+      }),
+      false
+    );
   });
 });

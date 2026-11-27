@@ -18,6 +18,8 @@ interface ConsultationModalProps {
   practitioner: Practitioner | null;
   seekerUid: string;
   seekerName: string;
+  initialNotes?: string;
+  initialTopic?: string;
   onClose: () => void;
   onCreated?: (consultation: ConsultationDocument) => void;
 }
@@ -39,13 +41,15 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
   practitioner,
   seekerUid,
   seekerName,
+  initialNotes = '',
+  initialTopic,
   onClose,
   onCreated,
 }) => {
-  const [topic, setTopic] = useState<string>(CONSULTATION_TOPICS[0].value);
+  const [topic, setTopic] = useState<string>(initialTopic || CONSULTATION_TOPICS[0].value);
   const [preferredDate, setPreferredDate] = useState<string>(getDefaultPreferredDate);
   const [preferredSlot, setPreferredSlot] = useState<'morning' | 'afternoon' | 'evening'>('morning');
-  const [notes, setNotes] = useState('');
+  const [notes, setNotes] = useState(initialNotes);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [createdRecord, setCreatedRecord] = useState<ConsultationDocument | null>(null);
@@ -53,16 +57,16 @@ export const ConsultationModal: React.FC<ConsultationModalProps> = ({
 
   useEffect(() => {
     if (isOpen && !wasOpenRef.current) {
-      setTopic(CONSULTATION_TOPICS[0].value);
+      setTopic(initialTopic || CONSULTATION_TOPICS[0].value);
       setPreferredDate(getDefaultPreferredDate());
       setPreferredSlot('morning');
-      setNotes('');
+      setNotes(initialNotes || '');
       setValidationError(null);
       setCreatedRecord(null);
       setIsSubmitting(false);
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen]);
+  }, [isOpen, initialNotes, initialTopic]);
 
   if (!isOpen || !practitioner) return null;
 

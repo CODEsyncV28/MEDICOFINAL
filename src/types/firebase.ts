@@ -151,7 +151,14 @@ export interface PractitionerDocument {
   rating: number;
   bio: string;
   nextAvailableSlot: string;
+  consultationFee?: number | null;
+  consultationCurrency?: string | null;
+  consultationFormat?: 'online' | 'in_person' | 'both' | null;
+  location?: string | null;
+  languages?: string[] | null;
+  photoUrl?: string | null;
   createdAt: string;
+  updatedAt?: string;
 }
 
 /**
@@ -212,4 +219,57 @@ export interface AuthState {
   loading: boolean;
   isConfigured: boolean;
   error: string | null;
+}
+
+export type CompanionPhase =
+  | 'greeting'
+  | 'contextual_understanding'
+  | 'follow_up'
+  | 'recommendation_ready'
+  | 'urgent_escalation';
+
+export interface CompanionConcernSummary {
+  primaryConcern: string;
+  durationNote?: string;
+  routineImpact?: string;
+  suggestedConsultationType: string;
+  keyObservations: string[];
+}
+
+export interface CompanionMatchingCriteria {
+  preferredDisciplines: AYUSHDiscipline[];
+  focusKeywords: string[];
+  consultationFormat?: 'online' | 'in_person' | 'both' | null;
+  maxBudget?: number | null;
+  preferredLanguage?: string | null;
+  preferredLocation?: string | null;
+}
+
+export interface CompanionChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  text: string;
+  timestamp: string;
+  phase: CompanionPhase;
+  followUpQuestion?: string | null;
+  suggestedReplies?: string[];
+  isUrgent?: boolean;
+  urgentGuidance?: string | null;
+  isMinorContext?: boolean;
+  summary?: CompanionConcernSummary | null;
+  recommendedPractitionerIds?: string[];
+  matchReasonsByPractitionerId?: Record<string, string[]>;
+  matchingCriteria?: CompanionMatchingCriteria | null;
+}
+
+export interface AIConversationDocument {
+  id: string;
+  userId: string;
+  title?: string;
+  hasAssessmentConsent: boolean;
+  minorGuardianFlag?: boolean;
+  messages: CompanionChatMessage[];
+  latestSummary?: CompanionConcernSummary | null;
+  createdAt: string;
+  updatedAt: string;
 }
