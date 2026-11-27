@@ -30,11 +30,11 @@ import {
   ArrowDown,
 } from 'lucide-react';
 import {
-  ASSET_IMAGES,
   AYUSH_DISCIPLINES_INFO,
   INITIAL_PROGRAMS,
   PLATFORM_WORKFLOW_STEPS,
 } from '../../data/mockData';
+import heroWellnessImage from '../../assets/images/ayush_hero_wellness_1793904214426.jpg';
 import { SafetyBanner } from '../common/SafetyBanner';
 import { RoleType } from '../../types';
 
@@ -252,7 +252,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="lg:col-span-5">
               <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#CBD5E1] bg-[#F1F5F9]">
                 <img
-                  src={ASSET_IMAGES.hero}
+                  src={heroWellnessImage}
                   alt="Traditional Indian wellness aesthetic with warm herbal infusion, brass vessel, and natural botanical elements"
                   referrerPolicy="no-referrer"
                   className="w-full h-[360px] sm:h-[440px] object-cover"
