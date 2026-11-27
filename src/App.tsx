@@ -474,8 +474,14 @@ function AppContent() {
       onNavigateToActivity={handleNavigateToActivity}
       onDateRollover={handleDateRollover}
     >
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#0284C7] selection:text-white">
-      <InAppReminderBanner />
+    <div
+      className={`min-h-screen flex flex-col font-sans ${
+        currentView === 'landing'
+          ? 'bg-[#FAF6EB] text-[#163828] selection:bg-[#3A6B4C] selection:text-white'
+          : 'bg-[#F8FAFC] text-[#0F172A] selection:bg-[#0284C7] selection:text-white'
+      }`}
+    >
+      {currentView !== 'landing' && <InAppReminderBanner />}
 
       {/* Toast Notification */}
       {toastMessage && (

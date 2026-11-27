@@ -4,17 +4,17 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Playfair Display', Georgia, Cambria, 'Times New Roman', Times, serif;
 
-  --color-ayush-primary: #0284C7;
-  --color-ayush-primary-dark: #075985;
-  --color-ayush-primary-light: #0369A1;
-  --color-ayush-sage: #0D9488;
-  --color-ayush-sage-light: #CCFBF1;
-  --color-ayush-sand: #F1F5F9;
-  --color-ayush-terracotta: #14B8A6;
-  --color-ayush-terracotta-light: #CCFBF1;
-  --color-ayush-canvas: #F8FAFC;
-  --color-ayush-surface: #FFFFFF;
-  --color-ayush-border: #E2E8F0;
+  --color-ayush-primary: #163828;
+  --color-ayush-primary-dark: #0F281C;
+  --color-ayush-primary-light: #3A6B4C;
+  --color-ayush-sage: #3C6E4E;
+  --color-ayush-sage-light: #DCEAD9;
+  --color-ayush-sand: #F3EFE0;
+  --color-ayush-terracotta: #B59449;
+  --color-ayush-terracotta-light: #F5EEDB;
+  --color-ayush-canvas: #FAF6EB;
+  --color-ayush-surface: #FCFBF6;
+  --color-ayush-border: #E2DAC4;
 }
 
 html {
@@ -27,12 +27,12 @@ html {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #F8FAFC;
+  background: #FAF6EB;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: #C9BFA4;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #0284C7;
+  background: #3A6B4C;
 }
