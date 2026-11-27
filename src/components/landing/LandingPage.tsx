@@ -14,11 +14,8 @@ import {
   Award,
   AlertTriangle,
   Globe,
-  HeartPulse,
-  ShieldCheck,
   User,
 } from 'lucide-react';
-import heroWellnessImage from '../../assets/images/ayush_hero_wellness_1793904214426.jpg';
 import { SafetyBanner } from '../common/SafetyBanner';
 import { RoleType } from '../../types';
 
@@ -71,6 +68,241 @@ const LotusEmblem: React.FC<{ className?: string }> = ({ className = 'w-6 h-5' }
   </svg>
 );
 
+interface AyushFivePillarsMandalaProps {
+  idPrefix: string;
+  onSelectPillar: (systemIdx: number) => void;
+  className?: string;
+}
+
+const AyushFivePillarsMandala: React.FC<AyushFivePillarsMandalaProps> = ({
+  idPrefix,
+  onSelectPillar,
+  className = '',
+}) => (
+  <div className={`relative w-[330px] h-[325px] sm:w-[360px] sm:h-[350px] select-none ${className}`}>
+    {/* Mandala Halo, Secondary Back Petals & Botanical Leaf Sprigs */}
+    <svg
+      viewBox="0 0 360 350"
+      className="pointer-events-none absolute inset-0 w-full h-full"
+      fill="none"
+      aria-hidden="true"
+    >
+      <defs>
+        <radialGradient id={`${idPrefix}-mandalaGlow`} cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#F5EED6" stopOpacity="0.95" />
+          <stop offset="70%" stopColor="#FAF6EB" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#FAF6EB" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx="180" cy="176" r="154" fill={`url(#${idPrefix}-mandalaGlow)`} />
+      <circle cx="180" cy="176" r="138" stroke="#DFD1AA" strokeWidth="1" />
+
+      {/* Faint alternating outer petals at 36, 108, 180, 252, 324 deg */}
+      {[36, 108, 180, 252, 324].map((deg) => (
+        <g key={deg} transform={`translate(180 176) rotate(${deg})`}>
+          <path
+            d="M0,-142 C24,-118 32,-88 22,-54 C8,-44 -8,-44 -22,-54 C-32,-88 -24,-118 0,-142 Z"
+            fill="#EAE3CA"
+            fillOpacity="0.55"
+            stroke="#DDD2B0"
+            strokeWidth="1"
+          />
+        </g>
+      ))}
+
+      {/* Botanical Leaf Sprigs */}
+      <g fill="#7A9C4D">
+        <path d="M56 106C44 90 36 82 26 78C40 76 52 84 62 100Z" />
+        <path d="M48 118C32 112 20 112 10 116C22 124 34 126 50 122Z" fill="#92B264" />
+        <path d="M304 106C316 90 324 82 334 78C320 76 308 84 298 100Z" />
+        <path d="M312 118C328 112 340 112 350 116C338 124 326 126 310 122Z" fill="#92B264" />
+        <path d="M62 246C46 250 32 258 24 270C40 268 52 262 64 250Z" />
+        <path d="M50 232C34 226 24 218 18 208C32 210 44 216 54 228Z" fill="#92B264" />
+        <path d="M298 246C314 250 328 258 336 270C320 268 308 262 296 250Z" />
+        <path d="M310 232C326 226 336 218 342 208C328 210 316 216 306 228Z" fill="#92B264" />
+      </g>
+    </svg>
+
+    {/* Symmetrical Clickable Petals */}
+    {/* 1. A · Ayurveda (Top: 0 deg) */}
+    <button
+      type="button"
+      onClick={() => onSelectPillar(0)}
+      aria-label="Explore Ayurveda"
+      className="group absolute left-1/2 top-[6px] -translate-x-1/2 w-[124px] h-[132px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
+    >
+      <svg viewBox="0 0 120 130" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${idPrefix}-petalA`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#9AB85A" />
+            <stop offset="100%" stopColor="#6D8C34" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M60 4 C96 28 112 64 96 106 C80 122 40 122 24 106 C8 64 24 28 60 4 Z"
+          fill={`url(#${idPrefix}-petalA)`}
+          stroke="#7F9F44"
+          strokeWidth="1.2"
+        />
+      </svg>
+      <span className="relative z-10 flex flex-col items-center text-white pb-2">
+        <span className="font-serif font-bold text-xl leading-none">A</span>
+        <span className="text-[11px] font-semibold mt-0.5 tracking-wide">Ayurveda</span>
+        <Leaf className="w-4 h-4 mt-1 opacity-85 text-[#ECF5DA]" />
+      </span>
+    </button>
+
+    {/* 2. H · Homoeopathy (Upper Left: -72 deg) */}
+    <button
+      type="button"
+      onClick={() => onSelectPillar(4)}
+      aria-label="Explore Homoeopathy"
+      className="group absolute left-[6px] top-[78px] w-[128px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
+    >
+      <svg viewBox="0 0 130 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${idPrefix}-petalH`} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#F9CC79" />
+            <stop offset="100%" stopColor="#E19A36" />
+          </linearGradient>
+        </defs>
+        <g transform="translate(65 63) rotate(-72)">
+          <path
+            d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z"
+            fill={`url(#${idPrefix}-petalH)`}
+            stroke="#CE8A29"
+            strokeWidth="1.2"
+          />
+        </g>
+      </svg>
+      <span className="relative z-10 flex flex-col items-center text-[#2D200C] pr-2">
+        <span className="font-serif font-bold text-xl leading-none">H</span>
+        <span className="text-[11px] font-semibold mt-0.5">Homoeopathy</span>
+        <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-80" fill="currentColor" aria-hidden="true">
+          <rect x="9" y="3" width="6" height="3" rx="1" />
+          <path d="M8 7h8l1.5 3v9a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-9L8 7z" fillOpacity="0.85" />
+        </svg>
+      </span>
+    </button>
+
+    {/* 3. Y · Yoga & Naturopathy (Upper Right: +72 deg) */}
+    <button
+      type="button"
+      onClick={() => onSelectPillar(1)}
+      aria-label="Explore Yoga and Naturopathy"
+      className="group absolute right-[6px] top-[78px] w-[128px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
+    >
+      <svg viewBox="0 0 130 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${idPrefix}-petalY`} x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#9CD2D9" />
+            <stop offset="100%" stopColor="#5D9FA9" />
+          </linearGradient>
+        </defs>
+        <g transform="translate(65 63) rotate(72)">
+          <path
+            d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z"
+            fill={`url(#${idPrefix}-petalY)`}
+            stroke="#4E8D97"
+            strokeWidth="1.2"
+          />
+        </g>
+      </svg>
+      <span className="relative z-10 flex flex-col items-center text-[#123339] pl-2">
+        <span className="font-serif font-bold text-xl leading-none">Y</span>
+        <span className="text-[10px] font-semibold leading-tight mt-0.5 text-center">
+          Yoga &amp;
+          <br />
+          Naturopathy
+        </span>
+        <svg viewBox="0 0 24 24" className="w-4 h-4 mt-0.5 opacity-80" fill="currentColor" aria-hidden="true">
+          <circle cx="12" cy="5.5" r="2.2" />
+          <path d="M7 18c1.2-3.2 2.8-5.5 5-5.5s3.8 2.3 5 5.5c-1.8 1.2-8.2 1.2-10 0z" />
+        </svg>
+      </span>
+    </button>
+
+    {/* 4. S · Siddha (Lower Left: -144 deg) */}
+    <button
+      type="button"
+      onClick={() => onSelectPillar(3)}
+      aria-label="Explore Siddha"
+      className="group absolute left-[42px] bottom-[8px] w-[124px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
+    >
+      <svg viewBox="0 0 126 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${idPrefix}-petalS`} x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stopColor="#C89BC0" />
+            <stop offset="100%" stopColor="#94628C" />
+          </linearGradient>
+        </defs>
+        <g transform="translate(63 63) rotate(-144)">
+          <path
+            d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z"
+            fill={`url(#${idPrefix}-petalS)`}
+            stroke="#81527A"
+            strokeWidth="1.2"
+          />
+        </g>
+      </svg>
+      <span className="relative z-10 flex flex-col items-center text-white pt-2">
+        <span className="font-serif font-bold text-xl leading-none">S</span>
+        <span className="text-[11px] font-semibold mt-0.5">Siddha</span>
+        <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-85" fill="currentColor" aria-hidden="true">
+          <path d="M4 11h16c0 4.4-3.6 8-8 8s-8-3.6-8-8z" />
+          <path d="M8 9c1.5-2 6.5-2 8 0" fillOpacity="0.65" />
+        </svg>
+      </span>
+    </button>
+
+    {/* 5. U · Unani (Lower Right: +144 deg) */}
+    <button
+      type="button"
+      onClick={() => onSelectPillar(2)}
+      aria-label="Explore Unani"
+      className="group absolute right-[42px] bottom-[8px] w-[124px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
+    >
+      <svg viewBox="0 0 126 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
+        <defs>
+          <linearGradient id={`${idPrefix}-petalU`} x1="1" y1="1" x2="0" y2="0">
+            <stop offset="0%" stopColor="#DC9F70" />
+            <stop offset="100%" stopColor="#AF6B3B" />
+          </linearGradient>
+        </defs>
+        <g transform="translate(63 63) rotate(144)">
+          <path
+            d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z"
+            fill={`url(#${idPrefix}-petalU)`}
+            stroke="#9B5B30"
+            strokeWidth="1.2"
+          />
+        </g>
+      </svg>
+      <span className="relative z-10 flex flex-col items-center text-[#2B170A] pt-2">
+        <span className="font-serif font-bold text-xl leading-none">U</span>
+        <span className="text-[11px] font-semibold mt-0.5">Unani</span>
+        <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-80" fill="currentColor" aria-hidden="true">
+          <path d="M5 12h14c0 3.9-3.1 7-7 7s-7-3.1-7-7z" />
+          <path d="M13 11l3.5-5 1.8 1.2L15 11z" />
+        </svg>
+      </span>
+    </button>
+
+    {/* Center Medallion */}
+    <div className="absolute left-1/2 top-[176px] -translate-x-1/2 -translate-y-1/2 w-[112px] h-[112px] rounded-full bg-[#FCF9EE] border-2 border-[#D4BC7E] shadow-md flex flex-col items-center justify-center text-center px-2 z-20">
+      <LotusEmblem className="w-5 h-4 text-[#4C7A58] mb-0.5" />
+      <span className="font-serif font-bold text-lg leading-none text-[#163828] tracking-tight">
+        AYUSH
+      </span>
+      <span className="text-[9px] text-[#41574A] leading-tight mt-0.5 font-medium">
+        India&apos;s Wellness
+        <br />
+        Heritage
+      </span>
+    </div>
+  </div>
+);
+
 export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenAssessment: _onOpenAssessment,
   onNavigateToRoles,
@@ -79,7 +311,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const [selectedDiscipline, setSelectedDiscipline] = useState<number>(0);
 
   const scrollToBrochure = () => {
-    const el = document.getElementById('ayush-intro-section');
+    const el = document.getElementById('ayush-systems');
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     }
@@ -312,29 +544,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </div>
             </div>
 
-            {/* Right Column: Hero Photo Card */}
-            <div className="lg:col-span-6">
-              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-[#E2DAC4] bg-[#EAE4D2]">
-                <img
-                  src={heroWellnessImage}
-                  alt="Sunlit wellness sanctuary with rolled natural mat, herbal tea cup, brass vessel, and indoor greenery"
-                  referrerPolicy="no-referrer"
-                  className="w-full h-[290px] sm:h-[340px] lg:h-[360px] object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent flex flex-col justify-end p-5 sm:p-7 text-white">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full border border-[#D4BC7E]/85 bg-[#163828]/55 flex items-center justify-center shrink-0">
-                      <LotusEmblem className="w-5 h-4 text-[#E7CF8C]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs sm:text-sm font-medium uppercase tracking-[0.14em] text-[#F9F4E5]">
-                        India&apos;s Wellness Heritage
-                      </p>
-                      <div className="mt-1 h-px w-36 bg-[#D4BC7E]/75" />
-                    </div>
-                  </div>
-                </div>
-              </div>
+            {/* Right Column: Five Pillars of AYUSH Infographic */}
+            <div className="lg:col-span-6 flex items-center justify-center py-2 lg:py-0">
+              <AyushFivePillarsMandala
+                idPrefix="hero"
+                onSelectPillar={handleSelectMandalaPillar}
+                className="lg:scale-[1.06] origin-center"
+              />
             </div>
           </div>
         </div>
@@ -358,438 +574,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </svg>
       </section>
 
-      {/* =========================================================================
-          2. CENTERPIECE: ROOTED IN INDIAN HERITAGE — THE FIVE PILLARS OF AYUSH
-         ========================================================================= */}
-      <section className="relative bg-[#FAF6EB] pt-0 pb-16 sm:pb-22 overflow-hidden">
-        {/* Right-edge botanical leaves framing the Five Pillars */}
-        <svg
-          viewBox="0 0 160 220"
-          className="hidden lg:block pointer-events-none absolute right-0 top-6 w-28 text-[#527446] opacity-75"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path d="M165 30C125 46 98 72 74 106" stroke="currentColor" strokeWidth="1.6" />
-          <path d="M148 44C122 36 96 42 78 60C106 68 132 62 148 44Z" fill="#7D9E5A" fillOpacity="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M154 74C124 72 98 86 84 110C114 108 138 94 154 74Z" fill="#92B26F" fillOpacity="0.5" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M158 112C134 116 114 132 104 154C130 148 148 132 158 112Z" fill="#6F934E" fillOpacity="0.45" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-
-        {/* Bottom-left botanical mortar-and-pestle line-art */}
-        <svg
-          viewBox="0 0 160 130"
-          className="hidden lg:block pointer-events-none absolute left-4 bottom-8 w-36 text-[#6B7F5E] opacity-75 z-10"
-          fill="none"
-          aria-hidden="true"
-        >
-          <path d="M52 72C52 94 70 108 92 108C114 108 132 94 132 72H52Z" fill="#ECE6D2" stroke="currentColor" strokeWidth="1.6" />
-          <ellipse cx="92" cy="72" rx="40" ry="7" fill="#E3DEC8" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M98 70L124 30C127 25 134 27 132 33L110 72" fill="#E9E3CF" stroke="currentColor" strokeWidth="1.5" />
-          <path d="M48 92C34 86 22 72 18 56C32 60 44 74 48 92Z" fill="#B6C69C" fillOpacity="0.6" stroke="currentColor" strokeWidth="1.2" />
-          <path d="M42 104C26 104 14 96 8 84C22 82 34 90 42 104Z" fill="#9BB17E" fillOpacity="0.55" stroke="currentColor" strokeWidth="1.2" />
-        </svg>
-
-        {/* Bottom-right subtle mandala & seated meditation silhouette */}
-        <svg
-          viewBox="0 0 180 150"
-          className="hidden lg:block pointer-events-none absolute right-2 bottom-6 w-40 text-[#DFD5B6] opacity-75 z-10"
-          fill="none"
-          aria-hidden="true"
-        >
-          <circle cx="115" cy="75" r="56" stroke="currentColor" strokeWidth="1.2" strokeDasharray="4 4" />
-          <circle cx="115" cy="75" r="40" stroke="currentColor" strokeWidth="1.2" />
-          <circle cx="115" cy="60" r="9" fill="#E6DCB8" />
-          <path d="M94 98C98 84 106 76 115 76C124 76 132 84 136 98C129 102 101 102 94 98Z" fill="#E6DCB8" />
-          <path d="M84 104C98 100 132 100 146 104C138 112 92 112 84 104Z" fill="#E6DCB8" />
-        </svg>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          {/* Header */}
-          <div className="text-center max-w-3xl mx-auto space-y-2">
-            <div className="flex items-center justify-center gap-3">
-              <span className="h-px w-10 sm:w-20 bg-[#D4BC7E]" />
-              <span className="text-[11px] sm:text-xs font-semibold tracking-[0.18em] text-[#B08D3E] uppercase">
-                Rooted in Indian Heritage
-              </span>
-              <span className="h-px w-10 sm:w-20 bg-[#D4BC7E]" />
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl md:text-[38px] font-serif font-bold text-[#163828] leading-tight">
-              The Five Pillars of AYUSH
-            </h2>
-
-            <p className="text-xs sm:text-sm text-[#3F5548]">
-              Discover the richness of India&apos;s traditional systems of wellness.
-            </p>
-          </div>
-
-          {/* 5-Zone Value Pillars + Center 5-Petal Lotus Mandala */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-            {/* Left 2 Pillars */}
-            <div className="lg:col-span-4 grid grid-cols-2 items-start">
-              <div className="px-3 sm:px-4 text-center space-y-2.5">
-                <div className="w-14 h-14 mx-auto rounded-full bg-[#DCEAD9] text-[#163828] flex items-center justify-center shadow-2xs">
-                  <Leaf className="w-6 h-6" />
-                </div>
-                <h3 className="font-sans font-bold text-sm sm:text-base text-[#163828]">
-                  Ancient Wisdom
-                </h3>
-                <p className="text-xs text-[#41574A] leading-relaxed">
-                  Timeless knowledge for better living.
-                </p>
-              </div>
-
-              <div className="px-3 sm:px-4 text-center space-y-2.5 border-l border-[#DFD6BE]">
-                <div className="w-14 h-14 mx-auto rounded-full bg-[#DCEAD9] text-[#163828] flex items-center justify-center shadow-2xs">
-                  <HeartPulse className="w-6 h-6" />
-                </div>
-                <h3 className="font-sans font-bold text-sm sm:text-base text-[#163828]">
-                  Holistic Wellness
-                </h3>
-                <p className="text-xs text-[#41574A] leading-relaxed">
-                  Healthy body, peaceful mind.
-                </p>
-              </div>
-            </div>
-
-            {/* Center Interactive 5-Petal AYUSH Lotus Mandala (Symmetrical Radial Petals) */}
-            <div className="lg:col-span-4 flex justify-center">
-              <div className="relative w-[330px] h-[325px] sm:w-[360px] sm:h-[350px] select-none">
-                {/* Mandala Halo, Secondary Back Petals & Botanical Leaf Sprigs */}
-                <svg
-                  viewBox="0 0 360 350"
-                  className="pointer-events-none absolute inset-0 w-full h-full"
-                  fill="none"
-                  aria-hidden="true"
-                >
-                  <defs>
-                    <radialGradient id="mandalaGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#F5EED6" stopOpacity="0.95" />
-                      <stop offset="70%" stopColor="#FAF6EB" stopOpacity="0.5" />
-                      <stop offset="100%" stopColor="#FAF6EB" stopOpacity="0" />
-                    </radialGradient>
-                  </defs>
-                  <circle cx="180" cy="176" r="154" fill="url(#mandalaGlow)" />
-                  <circle cx="180" cy="176" r="138" stroke="#DFD1AA" strokeWidth="1" />
-
-                  {/* Faint alternating outer petals at 36, 108, 180, 252, 324 deg */}
-                  {[36, 108, 180, 252, 324].map((deg) => (
-                    <g key={deg} transform={`translate(180 176) rotate(${deg})`}>
-                      <path
-                        d="M0,-142 C24,-118 32,-88 22,-54 C8,-44 -8,-44 -22,-54 C-32,-88 -24,-118 0,-142 Z"
-                        fill="#EAE3CA"
-                        fillOpacity="0.55"
-                        stroke="#DDD2B0"
-                        strokeWidth="1"
-                      />
-                    </g>
-                  ))}
-
-                  {/* Botanical Leaf Sprigs */}
-                  <g fill="#7A9C4D">
-                    <path d="M56 106C44 90 36 82 26 78C40 76 52 84 62 100Z" />
-                    <path d="M48 118C32 112 20 112 10 116C22 124 34 126 50 122Z" fill="#92B264" />
-                    <path d="M304 106C316 90 324 82 334 78C320 76 308 84 298 100Z" />
-                    <path d="M312 118C328 112 340 112 350 116C338 124 326 126 310 122Z" fill="#92B264" />
-                    <path d="M62 246C46 250 32 258 24 270C40 268 52 262 64 250Z" />
-                    <path d="M50 232C34 226 24 218 18 208C32 210 44 216 54 228Z" fill="#92B264" />
-                    <path d="M298 246C314 250 328 258 336 270C320 268 308 262 296 250Z" />
-                    <path d="M310 232C326 226 336 218 342 208C328 210 316 216 306 228Z" fill="#92B264" />
-                  </g>
-                </svg>
-
-                {/* Symmetrical Clickable Petals */}
-                {/* 1. A · Ayurveda (Top: 0 deg) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectMandalaPillar(0)}
-                  aria-label="Explore Ayurveda"
-                  className="group absolute left-1/2 top-[6px] -translate-x-1/2 w-[124px] h-[132px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 120 130" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="petalA" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#9AB85A" />
-                        <stop offset="100%" stopColor="#6D8C34" />
-                      </linearGradient>
-                    </defs>
-                    <path d="M60 4 C96 28 112 64 96 106 C80 122 40 122 24 106 C8 64 24 28 60 4 Z" fill="url(#petalA)" stroke="#7F9F44" strokeWidth="1.2" />
-                  </svg>
-                  <span className="relative z-10 flex flex-col items-center text-white pb-2">
-                    <span className="font-serif font-bold text-xl leading-none">A</span>
-                    <span className="text-[11px] font-semibold mt-0.5 tracking-wide">Ayurveda</span>
-                    <Leaf className="w-4 h-4 mt-1 opacity-85 text-[#ECF5DA]" />
-                  </span>
-                </button>
-
-                {/* 2. H · Homoeopathy (Upper Left: -72 deg) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectMandalaPillar(4)}
-                  aria-label="Explore Homoeopathy"
-                  className="group absolute left-[6px] top-[78px] w-[128px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 130 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="petalH" x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor="#F9CC79" />
-                        <stop offset="100%" stopColor="#E19A36" />
-                      </linearGradient>
-                    </defs>
-                    <g transform="translate(65 63) rotate(-72)">
-                      <path d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z" fill="url(#petalH)" stroke="#CE8A29" strokeWidth="1.2" />
-                    </g>
-                  </svg>
-                  <span className="relative z-10 flex flex-col items-center text-[#2D200C] pr-2">
-                    <span className="font-serif font-bold text-xl leading-none">H</span>
-                    <span className="text-[11px] font-semibold mt-0.5">Homoeopathy</span>
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-80" fill="currentColor" aria-hidden="true">
-                      <rect x="9" y="3" width="6" height="3" rx="1" />
-                      <path d="M8 7h8l1.5 3v9a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2v-9L8 7z" fillOpacity="0.85" />
-                    </svg>
-                  </span>
-                </button>
-
-                {/* 3. Y · Yoga & Naturopathy (Upper Right: +72 deg) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectMandalaPillar(1)}
-                  aria-label="Explore Yoga and Naturopathy"
-                  className="group absolute right-[6px] top-[78px] w-[128px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 130 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="petalY" x1="1" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#9CD2D9" />
-                        <stop offset="100%" stopColor="#5D9FA9" />
-                      </linearGradient>
-                    </defs>
-                    <g transform="translate(65 63) rotate(72)">
-                      <path d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z" fill="url(#petalY)" stroke="#4E8D97" strokeWidth="1.2" />
-                    </g>
-                  </svg>
-                  <span className="relative z-10 flex flex-col items-center text-[#123339] pl-2">
-                    <span className="font-serif font-bold text-xl leading-none">Y</span>
-                    <span className="text-[10px] font-semibold leading-tight mt-0.5 text-center">
-                      Yoga &amp;
-                      <br />
-                      Naturopathy
-                    </span>
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 mt-0.5 opacity-80" fill="currentColor" aria-hidden="true">
-                      <circle cx="12" cy="5.5" r="2.2" />
-                      <path d="M7 18c1.2-3.2 2.8-5.5 5-5.5s3.8 2.3 5 5.5c-1.8 1.2-8.2 1.2-10 0z" />
-                    </svg>
-                  </span>
-                </button>
-
-                {/* 4. S · Siddha (Lower Left: -144 deg) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectMandalaPillar(3)}
-                  aria-label="Explore Siddha"
-                  className="group absolute left-[42px] bottom-[8px] w-[124px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 126 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="petalS" x1="0" y1="1" x2="1" y2="0">
-                        <stop offset="0%" stopColor="#C89BC0" />
-                        <stop offset="100%" stopColor="#94628C" />
-                      </linearGradient>
-                    </defs>
-                    <g transform="translate(63 63) rotate(-144)">
-                      <path d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z" fill="url(#petalS)" stroke="#81527A" strokeWidth="1.2" />
-                    </g>
-                  </svg>
-                  <span className="relative z-10 flex flex-col items-center text-white pt-2">
-                    <span className="font-serif font-bold text-xl leading-none">S</span>
-                    <span className="text-[11px] font-semibold mt-0.5">Siddha</span>
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-85" fill="currentColor" aria-hidden="true">
-                      <path d="M4 11h16c0 4.4-3.6 8-8 8s-8-3.6-8-8z" />
-                      <path d="M8 9c1.5-2 6.5-2 8 0" fillOpacity="0.65" />
-                    </svg>
-                  </span>
-                </button>
-
-                {/* 5. U · Unani (Lower Right: +144 deg) */}
-                <button
-                  type="button"
-                  onClick={() => handleSelectMandalaPillar(2)}
-                  aria-label="Explore Unani"
-                  className="group absolute right-[42px] bottom-[8px] w-[124px] h-[126px] flex items-center justify-center cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#163828] rounded-full transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 126 126" className="absolute inset-0 w-full h-full drop-shadow-sm" aria-hidden="true">
-                    <defs>
-                      <linearGradient id="petalU" x1="1" y1="1" x2="0" y2="0">
-                        <stop offset="0%" stopColor="#DC9F70" />
-                        <stop offset="100%" stopColor="#AF6B3B" />
-                      </linearGradient>
-                    </defs>
-                    <g transform="translate(63 63) rotate(144)">
-                      <path d="M0 -59 C34 -36 49 -2 34 39 C19 54 -19 54 -34 39 C-49 -2 -34 -36 0 -59 Z" fill="url(#petalU)" stroke="#9B5B30" strokeWidth="1.2" />
-                    </g>
-                  </svg>
-                  <span className="relative z-10 flex flex-col items-center text-[#2B170A] pt-2">
-                    <span className="font-serif font-bold text-xl leading-none">U</span>
-                    <span className="text-[11px] font-semibold mt-0.5">Unani</span>
-                    <svg viewBox="0 0 24 24" className="w-4 h-4 mt-1 opacity-80" fill="currentColor" aria-hidden="true">
-                      <path d="M5 12h14c0 3.9-3.1 7-7 7s-7-3.1-7-7z" />
-                      <path d="M13 11l3.5-5 1.8 1.2L15 11z" />
-                    </svg>
-                  </span>
-                </button>
-
-                {/* Center Medallion */}
-                <div className="absolute left-1/2 top-[176px] -translate-x-1/2 -translate-y-1/2 w-[112px] h-[112px] rounded-full bg-[#FCF9EE] border-2 border-[#D4BC7E] shadow-md flex flex-col items-center justify-center text-center px-2 z-20">
-                  <LotusEmblem className="w-5 h-4 text-[#4C7A58] mb-0.5" />
-                  <span className="font-serif font-bold text-lg leading-none text-[#163828] tracking-tight">
-                    AYUSH
-                  </span>
-                  <span className="text-[9px] text-[#41574A] leading-tight mt-0.5 font-medium">
-                    India&apos;s Wellness
-                    <br />
-                    Heritage
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right 2 Pillars */}
-            <div className="lg:col-span-4 grid grid-cols-2 items-start">
-              <div className="px-3 sm:px-4 text-center space-y-2.5">
-                <div className="w-14 h-14 mx-auto rounded-full bg-[#DCEAD9] text-[#163828] flex items-center justify-center shadow-2xs">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <h3 className="font-sans font-bold text-sm sm:text-base text-[#163828]">
-                  Trusted Tradition
-                </h3>
-                <p className="text-xs text-[#41574A] leading-relaxed">
-                  A legacy of care for generations.
-                </p>
-              </div>
-
-              <div className="px-3 sm:px-4 text-center space-y-2.5 border-l border-[#DFD6BE]">
-                <div className="w-14 h-14 mx-auto rounded-full bg-[#DCEAD9] text-[#163828] flex items-center justify-center shadow-2xs">
-                  <LotusEmblem className="w-7 h-6 text-[#163828]" />
-                </div>
-                <h3 className="font-sans font-bold text-sm sm:text-base text-[#163828]">
-                  Better Tomorrow
-                </h3>
-                <p className="text-xs text-[#41574A] leading-relaxed">
-                  Wellness for a healthier India.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Layered Green Herbal Hills Wave Horizon */}
-        <svg
-          viewBox="0 0 1440 110"
-          preserveAspectRatio="none"
-          className="pointer-events-none absolute bottom-0 left-0 w-full h-14 sm:h-20"
-          aria-hidden="true"
-        >
-          <path
-            d="M0,45 C320,92 640,18 980,58 C1220,86 1350,48 1440,54 L1440,110 L0,110 Z"
-            fill="#DCE7D1"
-          />
-          <path
-            d="M0,66 C260,34 560,96 910,64 C1170,40 1320,76 1440,68 L1440,110 L0,110 Z"
-            fill="#5E8B63"
-            fillOpacity="0.65"
-          />
-          <path
-            d="M0,84 C360,52 720,104 1090,74 C1280,58 1380,82 1440,78 L1440,110 L0,110 Z"
-            fill="#285237"
-          />
-        </svg>
-      </section>
-
       {/* 2. MANDATORY SAFETY DISCLAIMER BANNER */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <SafetyBanner />
-      </section>
-
-      {/* =========================================================================
-          SECTION A: INTRODUCTION TO AYUSH (BROCHURE CORE)
-         ========================================================================= */}
-      <section
-        id="ayush-intro-section"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-24 space-y-8"
-      >
-        <div className="bg-[#FCFBF6] rounded-3xl p-6 sm:p-10 lg:p-12 border border-[#E2DAC4] shadow-xs space-y-8">
-          <div className="max-w-3xl space-y-3">
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#3A6B4C]" />
-              <span className="text-xs font-bold text-[#B08D3E] uppercase tracking-wider">
-                Part A · Introduction to AYUSH
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-[#163828]">
-              What is AYUSH?
-            </h2>
-            <p className="text-sm sm:text-base text-[#41574A] leading-relaxed">
-              <strong>AYUSH</strong> is an acronym representing India’s recognized indigenous, traditional, and complementary systems of healthcare and holistic wellbeing:
-            </p>
-          </div>
-
-          {/* 5 Acronym Letters Highlight Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="p-5 rounded-2xl bg-[#FAF6EB] border border-[#E2DAC4] shadow-2xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#DCEAD9] text-[#2F593D] font-serif font-bold text-xl flex items-center justify-center">
-                A
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#163828]">Ayurveda</h3>
-              <p className="text-xs text-[#41574A] leading-relaxed">
-                The science of life, longevity, and constitutional balance (Doshas &amp; Agni).
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6EB] border border-[#E2DAC4] shadow-2xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#DCEAD9] text-[#2F593D] font-serif font-bold text-lg flex items-center justify-center">
-                Y &amp; N
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#163828]">Yoga &amp; Naturopathy</h3>
-              <p className="text-xs text-[#41574A] leading-relaxed">
-                Mind-body union, breath control (Pranayama), and five-element nature cure.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6EB] border border-[#E2DAC4] shadow-2xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#DCEAD9] text-[#2F593D] font-serif font-bold text-xl flex items-center justify-center">
-                U
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#163828]">Unani</h3>
-              <p className="text-xs text-[#41574A] leading-relaxed">
-                Humoral balance, innate restorative intelligence, and six lifestyle essentials.
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6EB] border border-[#E2DAC4] shadow-2xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#DCEAD9] text-[#2F593D] font-serif font-bold text-xl flex items-center justify-center">
-                S
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#163828]">Siddha</h3>
-              <p className="text-xs text-[#41574A] leading-relaxed">
-                Ancient Dravidian science of vital energy points (Varmam) and longevity (Kayakalpa).
-              </p>
-            </div>
-
-            <div className="p-5 rounded-2xl bg-[#FAF6EB] border border-[#E2DAC4] shadow-2xs space-y-2">
-              <div className="w-10 h-10 rounded-xl bg-[#DCEAD9] text-[#2F593D] font-serif font-bold text-xl flex items-center justify-center">
-                H
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#163828]">Homoeopathy</h3>
-              <p className="text-xs text-[#41574A] leading-relaxed">
-                Gentle individualized holistic healing guided by the principle of similars.
-              </p>
-            </div>
-          </div>
-
-          <div className="p-4 bg-[#DCEAD9]/55 rounded-2xl border border-[#C3D9BE] text-xs sm:text-sm text-[#1E4730] leading-relaxed">
-            Together, these five distinct disciplines share a common ethos: treating the individual as an integrated whole—mind, body, senses, and environment—rather than focusing solely on isolated physical complaints.
-          </div>
-        </div>
       </section>
 
       {/* =========================================================================

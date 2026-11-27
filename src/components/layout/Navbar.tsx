@@ -152,7 +152,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {currentView === 'landing' && (
               <>
                 <button
-                  onClick={() => handleNavClick('ayush-intro-section')}
+                  onClick={() => handleNavClick('hero-section')}
                   className="hover:text-[#163828] transition-colors whitespace-nowrap shrink-0 pb-1 border-b-2 border-transparent"
                 >
                   What is AYUSH?
@@ -312,7 +312,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               Overview
             </button>
             <button
-              onClick={() => handleNavClick('ayush-intro-section')}
+              onClick={() => handleNavClick('hero-section')}
               className="text-left py-2 px-3 rounded-lg hover:bg-[#F1F5F9] transition-colors"
             >
               What is AYUSH?

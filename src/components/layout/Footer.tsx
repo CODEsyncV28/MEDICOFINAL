@@ -45,14 +45,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateLandingSection, onOpen
               </li>
               <li>
                 <button
-                  onClick={() => onNavigateLandingSection?.('ayush-intro-section')}
-                  className="hover:text-white transition-colors"
-                >
-                  What is AYUSH (Part A)
-                </button>
-              </li>
-              <li>
-                <button
                   onClick={() => onNavigateLandingSection?.('ayush-systems')}
                   className="hover:text-white transition-colors"
                 >
