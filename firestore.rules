@@ -76,6 +76,50 @@ service cloud.firestore {
     // -------------------------------------------------------------------------
     // Entity Validation Blueprints (Anti-Update-Gap & Payload Hardening)
     // -------------------------------------------------------------------------
+    function isValidTimeHHMM(val) {
+      return val is string &&
+        val.size() == 5 &&
+        val.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$');
+    }
+
+    function isValidReminderPreferences(prefs) {
+      return prefs is map &&
+        prefs.keys().hasAll([
+          'remindersEnabled',
+          'intervalMinutes',
+          'waterRemindersEnabled',
+          'waterIntervalMinutes',
+          'quietHoursEnabled',
+          'quietHoursStart',
+          'quietHoursEnd',
+          'inAppNotificationsEnabled',
+          'browserNotificationsEnabled',
+          'updatedAt'
+        ]) &&
+        prefs.keys().hasOnly([
+          'remindersEnabled',
+          'intervalMinutes',
+          'waterRemindersEnabled',
+          'waterIntervalMinutes',
+          'quietHoursEnabled',
+          'quietHoursStart',
+          'quietHoursEnd',
+          'inAppNotificationsEnabled',
+          'browserNotificationsEnabled',
+          'updatedAt'
+        ]) &&
+        prefs.remindersEnabled is bool &&
+        prefs.intervalMinutes is number && prefs.intervalMinutes >= 5 && prefs.intervalMinutes <= 240 &&
+        prefs.waterRemindersEnabled is bool &&
+        prefs.waterIntervalMinutes is number && prefs.waterIntervalMinutes >= 5 && prefs.waterIntervalMinutes <= 240 &&
+        prefs.quietHoursEnabled is bool &&
+        isValidTimeHHMM(prefs.quietHoursStart) &&
+        isValidTimeHHMM(prefs.quietHoursEnd) &&
+        prefs.inAppNotificationsEnabled is bool &&
+        prefs.browserNotificationsEnabled is bool &&
+        isNonEmptyString(prefs.updatedAt, 64);
+    }
+
     function isValidUserPayload(data) {
       return data.keys().hasAll(['uid', 'role', 'agreedToTerms', 'createdAt']) &&
         data.keys().hasOnly([
@@ -89,6 +133,7 @@ service cloud.firestore {
           'assignedPractitionerName',
           'prakritiBaseline',
           'avatarUrl',
+          'reminderPreferences',
           'createdAt',
           'updatedAt',
           'createdAtServer',
@@ -104,6 +149,7 @@ service cloud.firestore {
         isValidOptionalString(data, 'assignedPractitionerName', 100) &&
         isValidOptionalString(data, 'prakritiBaseline', 120) &&
         isValidOptionalString(data, 'avatarUrl', 500) &&
+        (!('reminderPreferences' in data) || data.reminderPreferences == null || isValidReminderPreferences(data.reminderPreferences)) &&
         isValidOptionalString(data, 'updatedAt', 64) &&
         (!('isActive' in data) || data.isActive is bool) &&
         isValidOptionalTimestamp(data, 'createdAtServer') &&
@@ -534,6 +580,7 @@ service cloud.firestore {
               'avatarUrl',
               'prakritiBaseline',
               'agreedToTerms',
+              'reminderPreferences',
               'updatedAt',
               'updatedAtServer'
             ])

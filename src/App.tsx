@@ -12,6 +12,8 @@ import { ConsultationModal } from './components/modals/ConsultationModal';
 import { NewRegimenModal } from './components/modals/NewRegimenModal';
 import { AuthModal } from './components/modals/AuthModal';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ReminderProvider } from './contexts/ReminderContext';
+import { InAppReminderBanner } from './components/reminders/InAppReminderBanner';
 import {
   toggleActivityStatus,
   fetchDailyActivitiesForDate,
@@ -435,8 +437,46 @@ function AppContent() {
     );
   }
 
+  const effectiveUid = firebaseUser ? firebaseUser.uid : GUEST_DINACHARYA_USER_ID;
+
+  const handleNavigateToActivity = (activityId?: string) => {
+    setCurrentRole('user');
+    setCurrentView('dashboard');
+    if (!activityId) {
+      setTimeout(() => {
+        const section = document.getElementById('dinacharya-checklist-section');
+        section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  };
+
+  const handleDateRollover = async (newDateString: string) => {
+    try {
+      const dailyDocs = await fetchDailyActivitiesForDate(effectiveUid, newDateString);
+      setActivities(
+        mergeDailyActivitiesWithRecords(
+          INITIAL_DAILY_ACTIVITIES,
+          dailyDocs || [],
+          !firebaseUser
+        )
+      );
+    } catch (err) {
+      console.warn('Could not refresh daily activities on date rollover:', err);
+    }
+  };
+
   return (
+    <ReminderProvider
+      userId={effectiveUid}
+      userProfile={userProfile}
+      activities={activities}
+      onToggleActivity={handleToggleActivity}
+      onNavigateToActivity={handleNavigateToActivity}
+      onDateRollover={handleDateRollover}
+    >
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0F172A] font-sans selection:bg-[#0284C7] selection:text-white">
+      <InAppReminderBanner />
+
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -653,6 +693,7 @@ function AppContent() {
         }}
       />
     </div>
+    </ReminderProvider>
   );
 }
 

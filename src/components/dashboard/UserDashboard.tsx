@@ -75,6 +75,7 @@ import {
   seedDemoUserEnrollments,
 } from '../../services/programService';
 import { SafetyBanner } from '../common/SafetyBanner';
+import { useOptionalReminders } from '../../contexts/ReminderContext';
 
 interface UserDashboardProps {
   activities: DailyActivity[];
@@ -110,6 +111,8 @@ interface UserDashboardProps {
   consultationsError?: string | null;
   // Published Catalog Refresh Trigger
   catalogRefreshKey?: number;
+  // Highlighted Dinacharya activity navigated from notification
+  highlightedActivityId?: string | null;
 }
 
 function getPractitionerInitials(name: string): string {
@@ -151,7 +154,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   isLoadingConsultations = false,
   consultationsError = null,
   catalogRefreshKey = 0,
+  highlightedActivityId: highlightedActivityIdProp = null,
 }) => {
+  const reminderCtx = useOptionalReminders();
+  const activeHighlightedActivityId =
+    highlightedActivityIdProp ?? reminderCtx?.highlightedActivityId ?? null;
+
   // Activity filter state
   const [selectedTimeFilter, setSelectedTimeFilter] = useState<'All' | 'Morning' | 'Afternoon' | 'Evening'>('All');
   
@@ -338,6 +346,21 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
     if (selectedTimeFilter === 'All') return activities;
     return activities.filter((a) => a.timeOfDay === selectedTimeFilter);
   }, [activities, selectedTimeFilter]);
+
+  useEffect(() => {
+    if (!activeHighlightedActivityId) return;
+    const targetAct = activities.find((a) => a.id === activeHighlightedActivityId);
+    if (targetAct && selectedTimeFilter !== 'All' && targetAct.timeOfDay !== selectedTimeFilter) {
+      setSelectedTimeFilter('All');
+    }
+    const timer = window.setTimeout(() => {
+      const el =
+        document.getElementById(`dinacharya-activity-${activeHighlightedActivityId}`) ||
+        document.getElementById('dinacharya-checklist-section');
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [activeHighlightedActivityId, activities, selectedTimeFilter]);
 
   const completedActivitiesCount = activities.filter((a) => a.completed).length;
 
@@ -1380,7 +1403,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
         {/* LEFT COLUMN (8 cols): Daily Dinacharya + Baseline Summary */}
         <div className="lg:col-span-8 space-y-8">
           {/* TODAY'S DINACHARYA (Daily Habit Checklist) */}
-          <section className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5">
+          <section
+            id="dinacharya-checklist-section"
+            className="bg-white rounded-2xl p-6 sm:p-7 border border-[#E2E8F0] shadow-xs space-y-5"
+          >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <span className="text-[11px] font-semibold text-[#0284C7] uppercase tracking-wider">
@@ -1427,12 +1453,17 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
             {/* Interactive Activities List */}
             <div className="space-y-3">
-              {filteredActivities.map((act) => (
+              {filteredActivities.map((act) => {
+                const isHighlighted = activeHighlightedActivityId === act.id;
+                return (
                 <div
                   key={act.id}
+                  id={`dinacharya-activity-${act.id}`}
                   onClick={() => onToggleActivity(act.id)}
                   className={`p-4 rounded-xl border transition-all cursor-pointer flex items-start gap-4 select-none ${
-                    act.completed
+                    isHighlighted
+                      ? 'ring-2 ring-[#0284C7] ring-offset-2 border-[#0284C7] bg-[#CCFBF1]/45 shadow-sm'
+                      : act.completed
                       ? 'bg-[#CCFBF1]/35 border-[#99F6E4]'
                       : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F1F5F9]'
                   }`}
@@ -1480,7 +1511,8 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                     </p>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

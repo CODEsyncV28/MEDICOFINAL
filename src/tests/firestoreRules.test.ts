@@ -107,6 +107,7 @@ class FirestoreRulesEngine {
       'avatarUrl',
       'prakritiBaseline',
       'agreedToTerms',
+      'reminderPreferences',
       'updatedAt',
       'updatedAtServer',
     ]);
@@ -501,5 +502,37 @@ describe('Firestore Security Rules Verification Suite', () => {
       },
     };
     assert.strictEqual(engine.canUpdateConsultation(pendingToCompletedCtx, 'consult_pend'), false);
+  });
+
+  // Test 12: Owner updating their own reminderPreferences is allowed; another user is denied
+  it('12. Owner updating reminderPreferences is ALLOWED while another user is DENIED', () => {
+    const validOwnerCtx: RequestContext = {
+      auth: { uid: 'user_123' },
+      resource: { data: { ...initialDb.users.user_123 } },
+      requestResource: {
+        data: {
+          ...initialDb.users.user_123,
+          reminderPreferences: {
+            remindersEnabled: true,
+            intervalMinutes: 30,
+            waterRemindersEnabled: true,
+            waterIntervalMinutes: 60,
+            quietHoursEnabled: true,
+            quietHoursStart: '22:00',
+            quietHoursEnd: '07:00',
+            inAppNotificationsEnabled: true,
+            browserNotificationsEnabled: false,
+            updatedAt: '2026-11-27T06:00:00Z',
+          },
+        },
+      },
+    };
+    assert.strictEqual(engine.canUpdateUser(validOwnerCtx, 'user_123'), true);
+
+    const otherUserCtx: RequestContext = {
+      ...validOwnerCtx,
+      auth: { uid: 'user_unassigned' },
+    };
+    assert.strictEqual(engine.canUpdateUser(otherUserCtx, 'user_123'), false);
   });
 });

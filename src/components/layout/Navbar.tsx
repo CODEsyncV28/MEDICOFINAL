@@ -3,6 +3,7 @@ import { Menu, X, ArrowRight, ShieldCheck, User, Stethoscope, Shield, LogOut } f
 import { RoleType } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 import { canAccessPortal } from '../../utils/portalAccess';
+import { NotificationCentre } from '../reminders/NotificationCentre';
 
 interface NavbarProps {
   currentView: 'landing' | 'roles' | 'dashboard';
@@ -77,7 +78,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="sticky top-0 z-40 bg-[#F8FAFC]/95 backdrop-blur-md border-b border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between gap-4 h-20">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 h-20">
           {/* Zone 1: Brand Wordmark (Single text element in display face) */}
           <button
             onClick={() => {
@@ -87,7 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="text-left group cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0284C7] rounded-lg p-1 -m-1 shrink-0"
             aria-label="AYUSH Wellness Connect - Home"
           >
-            <span className="text-lg sm:text-xl font-serif font-bold tracking-tight text-[#0F172A] whitespace-nowrap shrink-0 group-hover:text-[#0284C7] transition-colors">
+            <span className="text-base sm:text-xl font-serif font-bold tracking-tight text-[#0F172A] whitespace-nowrap shrink-0 group-hover:text-[#0284C7] transition-colors">
               AYUSH Wellness Connect
             </span>
           </button>
@@ -138,8 +139,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
           </nav>
 
-          {/* Zone 3: 1 Primary Action (Prominent Get Started or Role Switcher) */}
-          <div className="hidden sm:flex items-center gap-2.5 shrink-0">
+          {/* Right-side controls wrapper (Notification Centre + Zone 3 + Mobile Menu) */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+            <NotificationCentre />
+
+            {/* Zone 3: 1 Primary Action (Prominent Get Started or Role Switcher) */}
+            <div className="hidden sm:flex items-center gap-2.5 shrink-0">
             <span
               className={`${currentView === 'landing' ? 'hidden 2xl:inline-flex' : 'hidden xl:inline-flex'} items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap border ${
                 isConfigured
@@ -229,26 +234,27 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Mobile menu hamburger */}
-          <div className="lg:hidden flex items-center gap-2">
+          <div className="lg:hidden flex items-center gap-1.5 sm:gap-2">
             <button
               type="button"
               onClick={() => {
                 onSelectRole('user');
                 onNavigate('dashboard');
               }}
-              className="px-3 py-1.5 text-xs font-semibold text-white bg-[#0284C7] rounded-lg sm:hidden whitespace-nowrap"
+              className="px-2.5 py-1.5 text-[11px] font-semibold text-white bg-[#0284C7] rounded-lg sm:hidden whitespace-nowrap"
             >
               Get Started
             </button>
-            <button
-              type="button"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-[#0284C7] rounded-lg hover:bg-[#F1F5F9] focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
-              aria-label="Toggle navigation menu"
-              aria-expanded={mobileMenuOpen}
-            >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-            </button>
+              <button
+                type="button"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="p-1.5 sm:p-2 text-[#0284C7] rounded-lg hover:bg-[#F1F5F9] focus:outline-none focus:ring-2 focus:ring-[#0284C7]"
+                aria-label="Toggle navigation menu"
+                aria-expanded={mobileMenuOpen}
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+              </button>
+            </div>
           </div>
         </div>
       </div>

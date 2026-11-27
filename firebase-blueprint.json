@@ -12,6 +12,7 @@
         "agreedToTerms": { "type": "boolean", "description": "Whether user agreed to health educational terms." },
         "assignedPractitionerId": { "type": "string", "description": "Optional reference UID of supervising AYUSH doctor; /clientProfiles/{userId}.assignedPractitionerId is the canonical RBAC source of truth." },
         "prakritiBaseline": { "type": "string", "description": "Constitutional dosha baseline from assessment." },
+        "reminderPreferences": { "type": "object", "description": "User-configurable Dinacharya & hydration reminder preferences." },
         "createdAt": { "type": "string", "description": "ISO timestamp of registration." },
         "updatedAt": { "type": "string", "description": "ISO timestamp of last profile update." }
       },

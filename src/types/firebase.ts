@@ -1,4 +1,5 @@
 import { AYUSHDiscipline, WellnessCategory, RoleType } from './index';
+import { ReminderPreferences } from './reminders';
 
 /**
  * 1. User Profile Document (/users/{userId})
@@ -15,6 +16,7 @@ export interface UserProfileDocument {
   prakritiBaseline?: string | null;
   agreedToTerms: boolean;
   avatarUrl?: string | null;
+  reminderPreferences?: ReminderPreferences | null;
 }
 
 /**
